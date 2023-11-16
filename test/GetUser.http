@@ -1,0 +1,6 @@
+@base_url = http://localhost:7072/api
+@user_uuid = 5d1b7c56-9496-45c4-8bed-81a13471aae9
+@jwt = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1ZDFiN2M1Ni05NDk2LTQ1YzQtOGJlZC04MWExMzQ3MWFhZTkiLCJyb2xlIjoidXNlciIsInVzZXJfZW5jX2tleSI6Imw2MlpsanJVRyszWGoyeE5JNTJKQ1ZwN29MYnI0K2ZkdVpYc0xSWEJqQTg9IiwibmJmIjoxNzAwMTQ1NDYxLCJleHAiOjE3MDA0MDQ2NjEsImlhdCI6MTcwMDE0NTQ2MSwiaXNzIjoiaHR0cDovL2xvY2FsaG9zdDo3MDcyIiwiYXVkIjoiaHR0cDovL2xvY2FsaG9zdCJ9.GnhyX3U6AUlY5XlsgbS5sWBLh6kVJMZCBpzNwN7c5Hk
+
+GET {{base_url}}/v1/user/{{user_uuid}} HTTP/1.1
+Authorization: Bearer {{jwt}}

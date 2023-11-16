@@ -1,0 +1,11 @@
+@base_url = http://localhost:7072/api
+
+POST {{base_url}}/v1/signup HTTP/1.1
+Content-Type: application/json
+
+{ 
+    "credentials": {
+        "email": "tero.testaaja@goodlife.technology", 
+        "password": "SalainenSanaSala123"
+    }
+}

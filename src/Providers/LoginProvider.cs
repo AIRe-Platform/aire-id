@@ -1,4 +1,5 @@
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -29,17 +30,32 @@ namespace Aire.Id.Providers
             var user = await query.FirstOrDefaultAsync();
 
             if(user == null)
+            {
+                _log.LogWarning("User does not exist");
                 return null;
+            }
 
-            // TODO: Add roles and scopes and other claims to the user entity
+            var key = Crypto.DeriveUserEncryptionKey(user.UUID, password);
+            var privateData = user.GetPrivateUserData(key);
+
             var subject = new OauthSubject {
                 Subject = user.UUID,
-                Role = UserRoles.User,
-                Scopes = new(),
+                Role = user.Role ?? UserRoles.User,
+                Scopes = user.Scopes?
+                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .ToList(),
                 Claims = new Dictionary<string, object> {
-                    { "user_enc_key", Crypto.DeriveUserEncryptionKey(user.UUID, password) }
+                    { "user_enc_key",  key },
+                    { "connected_services", privateData.ConnectedServices }
                 }
             };
+
+            user.LastLogin = DateTime.UtcNow;
+            if(!await _storage.UpsertAsync(user))
+            {
+                _log.LogError("Failed to update user last login!");
+                return null;
+            }
 
             return subject;
         }

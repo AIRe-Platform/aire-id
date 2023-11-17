@@ -30,20 +30,6 @@ namespace Aire.Id.Oauth2
             _log = log;
         }
 
-        [FunctionName("Oauth_Token_Get")]
-        [OpenApiOperation(operationId: "Oauth_Token", tags: new[] { "OAuth2" })]
-        //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
-        //[OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]
-        public async Task<IActionResult> Oauth_Token_Get(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "oauth/token")] HttpRequest req)
-        {
-            OauthTokenRequest request = null;
-
-            // TODO: Parse query
-
-            return await _svc.HandleTokenRequest(request);
-        }
-
         [FunctionName("Oauth_Token_Post")]
         [OpenApiOperation(operationId: "Oauth_Token_Post", tags: new[] { "OAuth2" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
@@ -51,8 +37,7 @@ namespace Aire.Id.Oauth2
         public async Task<IActionResult> Oauth_Token_Post(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "oauth/token")] HttpRequest req)
         {
-            var request = new OauthTokenRequest(req);
-            return await _svc.HandleTokenRequest(request);
+            return await _svc.HandleTokenRequest(req);
         }
 
         [FunctionName("Oauth_TokenInfo_Get")]

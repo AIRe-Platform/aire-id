@@ -1,38 +1,79 @@
 using System;
 using Aire.Helpers;
+using Aire.Id.Api;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using Newtonsoft.Json;
 
 namespace Aire.Id.Oauth2.Models
 {
-	public class OauthTokenRequest
+	public class OauthTokenPasswordGrantRequest : OauthTokenRequest
 	{
-		public OauthGrantType GrantType { get; set; }
+		// Required
 		public string Username { get; set; }
+
+		// Required
 		public string Password { get; set; }
+
+		// Optional
 		public string Scope { get; set; }
-		public string Code { get; set; }
-		public string RedirectUri { get; set; }
-		public string ClientId { get; set; }
-		public string ClientSecret { get; set; }
-		public string RefreshToken { get; set; }
 
-		public OauthTokenRequest() {}
-
-		public OauthTokenRequest(HttpRequest req)
+		public OauthTokenPasswordGrantRequest() : base(OauthGrantType.Password)
 		{
-			if(Enum.TryParse<OauthGrantType>(req.ReadParam("grant_type"), out var grant))
-				GrantType = grant;
-
-			Username = req.ReadParam("username");
-			Password = req.ReadParam("password");
-			Scope = req.ReadParam("scope");
-			Code = req.ReadParam("code");
-			RedirectUri = req.ReadParam("redirect_uri");
-			ClientId = req.ReadParam("client_id");
-			ClientSecret = req.ReadParam("client_secret");
-			RefreshToken = req.ReadParam("refresh_token");
 		}
+
+		public new static OauthTokenPasswordGrantRequest FromRequest(HttpRequest req)
+		{
+			var passwordGrantRequest = new OauthTokenPasswordGrantRequest
+			{
+				Username = req.ReadParam("username"),
+				Password = req.ReadParam("password"),
+				Scope = req.ReadParam("scope")
+			};
+
+			if (string.IsNullOrWhiteSpace(passwordGrantRequest.Username) ||
+				string.IsNullOrWhiteSpace(passwordGrantRequest.Password))
+			{
+				throw new OauthException(OauthError.InvalidRequest);
+			}
+
+			return passwordGrantRequest;
+		}
+	}
+
+	public abstract class OauthTokenRequest
+	{
+		// Required
+		public OauthGrantType GrantType { get; private set; }
+
+		// If set, required for the error response.
+		public virtual string State { get => null; }
+
+		public OauthTokenRequest(OauthGrantType grantType)
+		{
+			GrantType = grantType;
+		}
+
+		public static OauthGrantType? GetOauthGrantType(HttpRequest req)
+		{
+			string grant = req?.ReadParam("grant_type");
+			
+			return grant switch {
+				"password" 				=> OauthGrantType.Password,
+				"client_credentials" 	=> OauthGrantType.ClientCredentials,
+				"authorization_code" 	=> OauthGrantType.AuthorizationCode,
+				"refresh_token" 		=> OauthGrantType.RefreshToken,
+				_ => null
+			};
+		}
+
+		public static OauthTokenRequest FromRequest(HttpRequest req)
+		{
+			var grant = GetOauthGrantType(req);
+            // TODO: Add other grant types
+            return grant switch
+            {
+                OauthGrantType.Password => OauthTokenPasswordGrantRequest.FromRequest(req),
+                _ => throw new OauthException(OauthError.UnsupportedGrantType),
+            };
+        }
     }
 }

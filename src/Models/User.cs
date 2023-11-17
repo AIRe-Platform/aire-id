@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Aire.Services.Models;
@@ -19,7 +20,7 @@ namespace Aire.Id.Models
         Other
     }
 
-    public class User
+    public class UserPrivate
     {
         [JsonProperty("first_name")]
         public string FirstName { get; set; }
@@ -44,5 +45,17 @@ namespace Aire.Id.Models
 
         [JsonProperty("connected_services")]
         public List<Service> ConnectedServices { get; set; }
+    }
+
+    public class User : UserPrivate
+    {
+        [JsonProperty("last_login")]
+        public DateTime? LastLogin { get; set; }
+
+        [JsonProperty("eula_accepted")]
+        public DateTime? EulaAccepted { get; set; }
+
+        [JsonProperty("verified")]
+        public bool Verified { get; set; }
     }
 }

@@ -45,36 +45,59 @@ namespace Aire.Id.Oauth2
             return await Task.FromResult(new NotFoundResult());
         }
 
-        public async Task<IActionResult> HandleTokenRequest(OauthTokenRequest req)
+        public async Task<IActionResult> HandleTokenRequest(HttpRequest req)
         {
-            switch(req.GrantType)
+            OauthTokenRequest tokenRequest = null;
+            try
             {
-                case OauthGrantType.Password:
+                tokenRequest = OauthTokenRequest.FromRequest(req);
+                if(tokenRequest is OauthTokenPasswordGrantRequest)
                 {
-                    var subject = await _loginProvider.GetUser(req.Username, req.Password);
-
-                    var desc = new OauthTokenDescription {
-                        Subject = subject,
-                        Lifetime = _config.TokenLifetime
-                    };
-
-                    var token = _tokenProvider.IssueNewToken(desc);
-
-                    var response = new OauthTokenResponse() {
-                        AccessToken = token,
-                        ExpiresIn = (int) _config.TokenLifetime.TotalSeconds,
-                        Scope = string.Join(" ", subject.Scopes),
-                        TokenType = OauthTokenType.Bearer
-                    };
-
-                    return new OkObjectResult(response);
+                    return await PasswordGrant(tokenRequest as OauthTokenPasswordGrantRequest);
                 }
-                default:
-                    // TODO: Return appropriate error response
-                    return new BadRequestResult();
+                // TODO: Add other supported grant types
+            }
+            catch(OauthException ex)
+            {
+                return ex.OauthErrorResult();
+            }
+            catch(Exception ex)
+            {
+                _log.LogError(ex, "An exception occurred while handling OAuth token request");
+                var oex = new OauthException(OauthError.ServerError)
+                {
+                    State = tokenRequest?.State,
+                };
+                return oex.OauthErrorResult();
             }
 
+            var unsupported = new OauthException(OauthError.UnsupportedGrantType);
+            return unsupported.OauthErrorResult();
+        }
 
+        private async Task<IActionResult> PasswordGrant(OauthTokenPasswordGrantRequest req)
+        {
+            var subject = await _loginProvider.GetUser(req.Username, req.Password);
+            if(subject == null)
+                throw new OauthException(OauthError.InvalidGrant);
+
+            var desc = new OauthTokenDescription {
+                Subject = subject,
+                Lifetime = _config.TokenLifetime
+            };
+
+            var token = _tokenProvider.IssueNewToken(desc);
+
+            var response = new OauthTokenResponse
+            {
+                AccessToken = token,
+                TokenType = OauthTokenType.Bearer,
+                ExpiresIn = (int) _config.TokenLifetime.TotalSeconds
+            };
+
+            // TODO: Check scopes and claims
+
+            return new OkObjectResult(response);
         }
     }
 }

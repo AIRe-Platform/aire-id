@@ -139,5 +139,18 @@ namespace Aire.Id.Services
             var token = _handler.CreateJwtSecurityToken(descriptor);
             return _handler.WriteToken(token);
         }
+
+        public JwtSecurityToken ValidateToken(string token)
+        {
+            try
+            {
+                _handler.ValidateToken(token, _validationParams, out SecurityToken securityToken);
+                return (JwtSecurityToken) securityToken;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

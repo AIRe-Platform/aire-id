@@ -1,3 +1,4 @@
+using System.Linq;
 using Aire.Helpers;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
@@ -14,6 +15,25 @@ namespace Aire.Id.Providers
         {
             _jwt = jwt;
             _log = log;
+        }
+
+        public OauthTokenResponse GetTokenInfo(string token)
+        {
+            var securityToken = _jwt.ValidateToken(token);
+            if(securityToken == null)
+                return null;
+
+            var scope = securityToken.Claims.FirstOrDefault(x => x.Type == "scope")?.Value;
+            
+            var response = new OauthTokenResponse()
+            {
+                TokenType = OauthTokenType.Bearer,
+                AccessToken = token,
+                ExpiresIn = (int) (securityToken.ValidTo - securityToken.ValidFrom).TotalSeconds,
+                Scope = scope
+            };
+            
+            return response;
         }
 
         public string IssueNewToken(OauthTokenDescription description)

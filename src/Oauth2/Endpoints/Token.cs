@@ -44,10 +44,15 @@ namespace Aire.Id.Oauth2
         [OpenApiOperation(operationId: "Oauth_TokenInfo", tags: new[] { "OAuth2" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         //[OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]
-        public async Task<IActionResult> Oauth_TokenInfo(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "oauth/tokeninfo")] HttpRequest req)
+        public IActionResult Oauth_TokenInfo(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "oauth/tokeninfo/{token}")] HttpRequest req,
+            string token)
         {
-            return await Task.FromResult(new NotFoundResult());
+            var response = _jwt.ValidateToken(token);
+            if(response == null)
+                return new UnauthorizedResult();
+            else
+                return new OkObjectResult(response);
         }
     }
 }

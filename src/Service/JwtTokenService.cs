@@ -25,15 +25,19 @@ namespace Aire.Id.Services
             _http = httpContext;
             _handler = handler;
 
-            var keyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey);
+            var signingKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey);
+            var decryptionKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenEncryptionKey);
 
             _validationParams = new TokenValidationParameters()
             {
                 RequireSignedTokens = true,
+                RequireAudience = true,
+                RequireExpirationTime = true,
 
                 ValidAudience = AireEnvironment.TokenAudience,
                 ValidIssuer = AireEnvironment.TokenIssuer,
-                IssuerSigningKey = new SymmetricSecurityKey(keyBytes),
+                IssuerSigningKey = new SymmetricSecurityKey(signingKeyBytes),
+                TokenDecryptionKey = new SymmetricSecurityKey(decryptionKeyBytes),
 
                 ValidateAudience = true,
                 ValidateIssuer = true,
@@ -112,8 +116,11 @@ namespace Aire.Id.Services
 
         public string IssueNewToken(string subject, string role, List<string> scopes, Dictionary<string, object> claims, TimeSpan lifetime)
         {
-            var keyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey);
-            var signingKey = new SymmetricSecurityKey(keyBytes);
+            var signingKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey);
+            var signingKey = new SymmetricSecurityKey(signingKeyBytes);
+
+            var encKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenEncryptionKey);
+            var encKey = new SymmetricSecurityKey(encKeyBytes);
 
             var descriptor = new SecurityTokenDescriptor
             {
@@ -125,6 +132,7 @@ namespace Aire.Id.Services
                 Issuer = AireEnvironment.TokenIssuer,
                 Audience = AireEnvironment.TokenAudience,
                 SigningCredentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256Signature),
+                EncryptingCredentials = new EncryptingCredentials(encKey, SecurityAlgorithms.Aes256KW, SecurityAlgorithms.Aes256CbcHmacSha512),
                 Claims = claims
             };
 

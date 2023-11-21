@@ -9,6 +9,10 @@ namespace Aire
         public static string TokenSigningKey {
             get => System.Environment.GetEnvironmentVariable("TokenSigningKey");
         }
+
+        public static string TokenEncryptionKey {
+            get => System.Environment.GetEnvironmentVariable("TokenEncryptionKey");
+        }
         
         public static string TokenIssuer {
             get => System.Environment.GetEnvironmentVariable("TokenIssuer");

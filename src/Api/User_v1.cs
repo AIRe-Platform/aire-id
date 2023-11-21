@@ -39,20 +39,24 @@ namespace Aire.Id.Api
         [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Missing or invalid authorization header")]
         [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
         public async Task<IActionResult> GetUser(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/user/{id}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/user/{id?}")] HttpRequest req,
             [JwtToken(AllowRoles = "user")] JwtSecurityToken token,
             string id)
         {
             if(token == null)
                 return new UnauthorizedResult();
 
-            if(id != token.Subject)
+            if(!string.IsNullOrEmpty(id) && id != token.Subject)
             {
                 _log.LogWarning("Not allowed to access other user's account");
                 return new ForbiddenResult();
             }
+            else
+            {
+                id = token.Subject;
+            }
 
-            var userAccount = await _storage.RetrieveAsync<UserEntity>(token.Subject);
+            var userAccount = await _storage.RetrieveAsync<UserEntity>(id);
             if(userAccount != null)
             {
                 _log.LogInformation("Account found");

@@ -52,9 +52,12 @@ namespace Aire.Id.Models
         /// <returns>Private user model</returns>
         public UserPrivate GetPrivateUserData(string encryptionKey)
         {
+            if(string.IsNullOrEmpty(encryptionKey))
+                return null;
+                
             byte[] key = Convert.FromBase64String(encryptionKey);
             byte[] iv = Convert.FromBase64String(DataIV);
-            return DataBlock.DecryptString(key, iv).JsonToObject<User>();
+            return DataBlock?.DecryptString(key, iv)?.JsonToObject<User>();
         }
 
         /// <summary>
@@ -65,6 +68,8 @@ namespace Aire.Id.Models
         public User GetUserData(string encryptionKey)
         {
             User user = (User) GetPrivateUserData(encryptionKey);
+            user ??= new User();
+            user.UUID = UUID;
             user.LastLogin = LastLogin;
             user.EulaAccepted = EulaAccepted;
             user.Verified = Verified;

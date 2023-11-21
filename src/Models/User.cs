@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using Aire.Services.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -44,11 +43,14 @@ namespace Aire.Id.Models
         public string Country { get; set; }
 
         [JsonProperty("connected_services")]
-        public List<Service> ConnectedServices { get; set; }
+        public List<ServiceCredentials> ConnectedServices { get; set; }
     }
 
     public class User : UserPrivate
     {
+        [JsonProperty("uuid")]
+        public string UUID { get; set; }
+
         [JsonProperty("last_login")]
         public DateTime? LastLogin { get; set; }
 

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Net;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Aire.Helpers;
@@ -73,6 +74,15 @@ namespace Aire.Id.Oauth2
 
             var unsupported = new OauthException(OauthError.UnsupportedGrantType);
             return unsupported.OauthErrorResult();
+        }
+
+        public IActionResult HandleTokenInfoRequest(string token)
+        {
+            var info = _tokenProvider.GetTokenInfo(token);
+            if(info == null)
+                return new StatusCodeResult((int) HttpStatusCode.Unauthorized);
+
+            return new OkObjectResult(info);
         }
 
         private async Task<IActionResult> PasswordGrant(OauthTokenPasswordGrantRequest req)

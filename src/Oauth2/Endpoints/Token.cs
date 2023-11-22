@@ -48,11 +48,7 @@ namespace Aire.Id.Oauth2
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "oauth/tokeninfo/{token}")] HttpRequest req,
             string token)
         {
-            var response = _jwt.ValidateToken(token);
-            if(response == null)
-                return new UnauthorizedResult();
-            else
-                return new OkObjectResult(response);
+            return _svc.HandleTokenInfoRequest(token);
         }
     }
 }

@@ -36,7 +36,7 @@ namespace Aire.Id.Models
         /// </summary>
         /// <param name="data">Private user data</param>
         /// <param name="encryptionKey">Encryption key</param>
-        public void SetUserData(UserPrivate data, string encryptionKey)
+        public void SetPrivateUserData(UserPrivate data, string encryptionKey)
         {
             byte[] key = Convert.FromBase64String(encryptionKey);
             byte[] iv = RandomNumberGenerator.GetBytes(16);
@@ -77,6 +77,18 @@ namespace Aire.Id.Models
         }
 
         /// <summary>
+        /// Check that given password matches the password hash
+        /// </summary>
+        /// <param name="password">Password</param>
+        /// <returns>True if the password is correct. Otherwise, returns false.</returns>
+        public bool CheckPassword(string password)
+        {
+            var hash = Crypto.PasswordHash(password, PasswordSalt, 32, PasswordIter);
+            var hash64 = Convert.ToBase64String(hash);
+            return hash64 == PasswordHash;
+        }
+
+        /// <summary>
         /// Changes the user password and re-encrypts the data.
         /// This effectively revokes the access of any existing access tokens.
         /// Apps should re-login the user to get the updated encryption key.
@@ -100,7 +112,7 @@ namespace Aire.Id.Models
                 if(data == null)
                     return false;
                 var newKey = Crypto.DeriveUserEncryptionKey(UUID, newPassword);
-                SetUserData(data, newKey);
+                SetPrivateUserData(data, newKey);
             }
 
             PasswordIter = 100000;

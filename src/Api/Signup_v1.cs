@@ -63,7 +63,7 @@ namespace Aire.Id
             var userData = new User {
                 Email = request.Credentials.Email
             };
-            user.SetUserData(userData, key);
+            user.SetPrivateUserData(userData, key);
 
             bool result = await _storage.UpsertAsync(user);
             if(!result)

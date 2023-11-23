@@ -35,12 +35,18 @@ namespace Aire.Id.Providers
                 return null;
             }
 
+            if(!user.CheckPassword(password))
+            {
+                _log.LogWarning("Incorrect password");
+                return null;
+            }
+
             var key = Crypto.DeriveUserEncryptionKey(user.UUID, password);
             var privateData = user.GetPrivateUserData(key);
 
             var subject = new OauthSubject {
                 Subject = user.UUID,
-                Role = user.Role ?? UserRoles.User,
+                Role = user.Role ?? AireConstants.Roles.User,
                 Scopes = user.Scopes?
                     .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .ToList(),

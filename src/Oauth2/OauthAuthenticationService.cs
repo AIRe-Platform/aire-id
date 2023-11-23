@@ -1,17 +1,12 @@
 using System;
 using System.Linq;
 using System.Net;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Aire.Helpers;
-using Aire.Id.Models;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -24,8 +19,6 @@ namespace Aire.Id.Oauth2
         private readonly IOauthLoginProvider _loginProvider;
         private readonly OauthConfiguration _config;
         private readonly ILogger<OauthAuthenticationService> _log;
-
-        // TODO: Handle Oauth operations here and call the methods from Auth and Token endpoints
 
         public OauthAuthenticationService(
             ITableStorageService storage, 
@@ -91,6 +84,14 @@ namespace Aire.Id.Oauth2
             if(subject == null)
                 throw new OauthException(OauthError.InvalidGrant);
 
+            subject.Scopes ??= new();
+
+            if(_config.DefaultScopes != null)
+                subject.Scopes.AddRange(_config.DefaultScopes);
+
+            if(subject.Role != null && _config.DefaultRoleScopes != null && _config.DefaultRoleScopes.ContainsKey(subject.Role))
+                subject.Scopes.AddRange(_config.DefaultRoleScopes[subject.Role]);
+
             var desc = new OauthTokenDescription {
                 Subject = subject,
                 Lifetime = _config.TokenLifetime
@@ -98,14 +99,19 @@ namespace Aire.Id.Oauth2
 
             var token = _tokenProvider.IssueNewToken(desc);
 
+            if(!string.IsNullOrWhiteSpace(req.Scope))
+            {
+                var requestedScopes = req.Scope.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                subject.Scopes = requestedScopes.Where(x => subject.Scopes.Contains(x)).ToList();
+            }
+
             var response = new OauthTokenResponse
             {
                 AccessToken = token,
                 TokenType = OauthTokenType.Bearer,
-                ExpiresIn = (int) _config.TokenLifetime.TotalSeconds
+                ExpiresIn = (int) _config.TokenLifetime.TotalSeconds,
+                Scope = string.Join(" ", subject.Scopes)
             };
-
-            // TODO: Check scopes and claims
 
             return new OkObjectResult(response);
         }

@@ -23,9 +23,24 @@ namespace Aire.Id
                 .AddHttpContextAccessor()
                 .AddSingleton<ITableStorageService, TableStorageService>()
                 .Configure<OauthConfiguration>(o => {
-                    o.Roles = new() { UserRoles.User, UserRoles.Admin };
-                    o.Scopes = new() {};
-                    o.DefaultRoleScopes = new() {};
+                    o.Roles = new() { 
+                        AireConstants.Roles.User, 
+                        AireConstants.Roles.Admin
+                    };
+                    o.Scopes = new() { 
+                        AireConstants.Scopes.ReadProfile,
+                        AireConstants.Scopes.EditProfile,
+                        AireConstants.Scopes.DeleteProfile,
+                    };
+                    o.DefaultRoleScopes = new() {
+                        { 
+                            AireConstants.Roles.User, new() { 
+                                AireConstants.Scopes.ReadProfile,
+                                AireConstants.Scopes.EditProfile,
+                                AireConstants.Scopes.DeleteProfile
+                            }
+                        }
+                    };
                     o.TokenLifetime = TimeSpan.FromDays(3);
                     o.DefaultScopes = new() {};
                 })

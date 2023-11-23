@@ -1,7 +1,4 @@
-using System.IO;
 using System.Net;
-using System.Security.Cryptography;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using Aire.Helpers;
 using Microsoft.AspNetCore.Http;
@@ -9,12 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
 using System.IdentityModel.Tokens.Jwt;
-using System;
 using Aire.Id.Models;
 using System.Linq;
 using System.Web.Http;
@@ -144,6 +138,66 @@ namespace Aire.Id.Api
             {
                 var updated = entity.GetUserData(userKey);
                 return new OkObjectResult(updated);
+            }
+            else
+            {
+                _log.LogWarning("Failed to update user data");
+                return new InternalServerErrorResult();
+            }
+        }
+
+        [FunctionName("User_v1_ChangePassword")]
+        [OpenApiOperation(operationId: "Change password", tags: new[] { "User" })]
+        //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
+        [OpenApiParameter("id", Description = "User identifier", Required = true)]
+        //[OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Description = "The updated user object")]
+        //[OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Missing or invalid authorization header")]
+        //[OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        public async Task<IActionResult> ChangePassword(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/user/{id}/password")] HttpRequest req,
+            [JwtToken(AllowRoles = "user", RequireScopes = "profile-edit")] JwtSecurityToken token,
+            string id)
+        {
+            if(token == null)
+                return new UnauthorizedResult();
+
+            if(token.Subject != id)
+            {
+                _log.LogWarning("Not allowed to edit other user's account");
+                return new ForbiddenResult();
+            }
+
+            var body = await req.ReadJson<PasswordChangeRequest>();
+            if(body == null)
+            {
+                _log.LogWarning("Could not parse request");
+                return new BadRequestResult();
+            }
+
+            bool valid = Validation.IsValidPassword(body.NewPassword);
+            if(!valid)
+            {
+                _log.LogWarning("New password is not valid");
+                return new BadRequestResult();
+            }
+
+            var entity = await _storage.RetrieveAsync<UserEntity>(id);
+            if(entity == null)
+            {
+                _log.LogWarning("User entity not found");
+                return new NotFoundResult();
+            }
+
+            if(!entity.ChangePassword(body.CurrentPassword, body.NewPassword))
+            {
+                _log.LogWarning("Failed to change password");
+                return new BadRequestResult();
+            }
+
+            bool result = await _storage.UpsertAsync(entity);
+            if(result)
+            {
+                return new NoContentResult();
             }
             else
             {

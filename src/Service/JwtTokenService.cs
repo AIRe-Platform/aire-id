@@ -136,6 +136,9 @@ namespace Aire.Id.Services
                 Claims = claims
             };
 
+            if(scopes != null)
+                descriptor.Claims.Add("scope", string.Join(" ", scopes));
+
             var token = _handler.CreateJwtSecurityToken(descriptor);
             return _handler.WriteToken(token);
         }

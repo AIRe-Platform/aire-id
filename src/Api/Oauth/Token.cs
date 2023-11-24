@@ -1,26 +1,21 @@
 using System.Threading.Tasks;
-using Aire.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Aire.Id.Oauth2;
 
-namespace Aire.Id.Oauth2
+namespace Aire.Id.Api
 {
     public class Token
     {
         private readonly OauthAuthenticationService _svc;
-        private readonly IJwtTokenService _jwt;
-        private readonly ILogger<Token> _log;
 
-        public Token(OauthAuthenticationService svc, IJwtTokenService jwt, ILogger<Token> log)
+        public Token(OauthAuthenticationService svc)
         {
             _svc = svc;
-            _jwt = jwt;
-            _log = log;
         }
 
         [FunctionName("Oauth_Token_Post")]

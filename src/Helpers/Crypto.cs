@@ -94,17 +94,5 @@ namespace Aire.Helpers
             using var sha = SHA256.Create();
             return Convert.ToHexString(sha.ComputeHash(inputBytes));
         }
-
-        /// <summary>
-        /// Derive a key to encrypt user data.
-        /// </summary>
-        /// <param name="uuid">User account UUID</param>
-        /// <param name="password">User password</param>
-        /// <returns>256-bit encryption key in base64</returns>
-        public static string DeriveUserEncryptionKey(string uuid, string password)
-        {
-            var hash = PasswordHash(uuid + password, null, 32, 100000);
-            return Convert.ToBase64String(hash);
-        }
     }
 }

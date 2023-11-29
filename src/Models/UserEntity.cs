@@ -30,6 +30,7 @@ namespace Aire.Id.Models
         // Encrypted data
         public string DataIV { get; set; }
         public string DataBlock { get; set; }
+        public string Encryption { get; set; }
 
         /// <summary>
         /// Serializes and encrypts the user data
@@ -106,13 +107,10 @@ namespace Aire.Id.Models
                 if(oldHash64 != PasswordHash)
                     return false;
 
-                // Re-encrypt data
-                var oldKey = Crypto.DeriveUserEncryptionKey(UUID, oldPassword);
-                var data = GetUserData(oldKey);
-                if(data == null)
-                    return false;
-                var newKey = Crypto.DeriveUserEncryptionKey(UUID, newPassword);
-                SetPrivateUserData(data, newKey);
+                // Re-encrypt data key
+                var key = GetEncryptionKey(oldPassword);
+                var keyBytes = Convert.FromBase64String(key);
+                SetEncryptionKey(UUID, newPassword, keyBytes);
             }
 
             PasswordIter = 100000;
@@ -124,6 +122,54 @@ namespace Aire.Id.Models
             PasswordHash = Convert.ToBase64String(hash);
 
             return true;
+        }
+
+        /// <summary>
+        /// Sets a random user data encryption key
+        /// which is encrypted using user credentials
+        /// </summary>
+        /// <param name="uuid">User identifier</param>
+        /// <param name="password">User password</param>
+        public void GenerateEncryptionKey(string uuid, string password)
+        {
+            if(!string.IsNullOrWhiteSpace(Encryption))
+                throw new InvalidOperationException("Encryption key is already set");
+
+            var encKeyBytes = RandomNumberGenerator.GetBytes(32);
+            SetEncryptionKey(uuid, password, encKeyBytes);
+        }
+
+        /// <summary>
+        /// Reads user data encryption key and decrypts it
+        /// </summary>
+        /// <param name="password">User password</param>
+        /// <returns>Base64 encoded data encryption key</returns>
+        public string GetEncryptionKey(string password)
+        {
+            var key = Crypto.PasswordHash(UUID + password, null, 32, 100000);
+            var parts = Encryption.Split(".");
+
+            if(parts.Length != 2)
+                return null;
+
+            var data = parts[0]; var iv = parts[1];
+            return data.DecryptString(key, Convert.FromBase64String(iv));
+        }
+
+        /// <summary>
+        /// Sets user data encryption key, encrypting it with user credentials
+        /// </summary>
+        /// <param name="uuid">User identifier</param>
+        /// <param name="password">User password</param>
+        /// <param name="encKey">256-bit key in base64</param>
+        public void SetEncryptionKey(string uuid, string password, byte[] encKeyBytes)
+        {
+            if(encKeyBytes.Length != 32)
+                throw new ArgumentException("Encryption key has to be 256 bits in length", nameof(encKeyBytes));
+            var key = Crypto.PasswordHash(uuid + password, null, 32, 100000);
+            var iv = RandomNumberGenerator.GetBytes(16);
+            var encKey = Convert.ToBase64String(encKeyBytes);
+            Encryption = $"{encKey.EncryptString(key, iv)}.{Convert.ToBase64String(iv)}";
         }
     }
 }

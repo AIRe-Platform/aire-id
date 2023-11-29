@@ -53,13 +53,15 @@ namespace Aire.Id
             }
 
             var uuid = Guid.NewGuid().ToString();
+            var pw = request.Credentials.Password;
             var user = new UserEntity() { 
                 UUID = uuid,
                 EmailHash = hash
             };
-            user.ChangePassword(null, request.Credentials.Password);
+            user.GenerateEncryptionKey(uuid, pw);
+            user.ChangePassword(null, pw);
 
-            var key = Crypto.DeriveUserEncryptionKey(uuid, request.Credentials.Password);
+            var key = user.GetEncryptionKey(pw);
             var userData = new User {
                 Email = request.Credentials.Email
             };

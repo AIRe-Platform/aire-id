@@ -41,7 +41,7 @@ namespace Aire.Id.Providers
                 return null;
             }
 
-            var key = Crypto.DeriveUserEncryptionKey(user.UUID, password);
+            var key = user.GetEncryptionKey(password);
             var privateData = user.GetPrivateUserData(key);
 
             var subject = new OauthSubject {

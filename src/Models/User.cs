@@ -42,6 +42,9 @@ namespace Aire.Id.Models
         [JsonProperty("country")]
         public string Country { get; set; }
 
+        [JsonProperty("bio")]
+        public string Bio { get; set; }
+
         [JsonProperty("connected_services")]
         public List<ServiceCredentials> ConnectedServices { get; set; }
     }

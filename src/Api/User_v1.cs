@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using Aire.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using System.IdentityModel.Tokens.Jwt;
@@ -26,7 +26,7 @@ namespace Aire.Id.Api
             _log = log;
         }
 
-        [FunctionName("User_v1_GET")]
+        [Function("User_v1_GET")]
         [OpenApiOperation(operationId: "Get User", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
@@ -76,7 +76,7 @@ namespace Aire.Id.Api
             return new NotFoundResult();
         }
 
-        [FunctionName("User_v1_PUT")]
+        [Function("User_v1_PUT")]
         [OpenApiOperation(operationId: "Edit User", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
@@ -146,7 +146,7 @@ namespace Aire.Id.Api
             }
         }
 
-        [FunctionName("User_v1_ChangePassword")]
+        [Function("User_v1_ChangePassword")]
         [OpenApiOperation(operationId: "Change password", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
@@ -206,7 +206,7 @@ namespace Aire.Id.Api
             }
         }
 
-        [FunctionName("User_v1_DELETE")]
+        [Function("User_v1_DELETE")]
         [OpenApiOperation(operationId: "Delete User", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]

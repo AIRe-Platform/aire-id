@@ -5,23 +5,19 @@ using Aire.Id.Oauth2;
 using Aire.Id.Oauth2.Providers;
 using Aire.Id.Providers;
 using Aire.Id.Services;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Hosting;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker.Extensions.OpenApi;
 
-[assembly: WebJobsStartup(typeof(Aire.Id.Startup))]
-
-namespace Aire.Id
-{
-    public class Startup : IWebJobsStartup
-    {
-        public void Configure(IWebJobsBuilder builder)
-        {
-            builder.UseJwtTokenBinding();
-
-            builder.Services
-                .AddHttpContextAccessor()
-                .AddSingleton<ITableStorageService, TableStorageService>()
+var host = new HostBuilder()
+    .ConfigureFunctionsWorkerDefaults(worker => worker.UseNewtonsoftJson())
+    .ConfigureOpenApi()
+    .ConfigureServices(services => {
+        services.AddApplicationInsightsTelemetryWorkerService();
+        services.ConfigureFunctionsApplicationInsights();
+        services.AddHttpContextAccessor();
+        services.AddSingleton<ITableStorageService, TableStorageService>()
                 .Configure<OauthConfiguration>(o => {
                     o.Roles = new() { 
                         AireConstants.Roles.User, 
@@ -43,11 +39,14 @@ namespace Aire.Id
                     };
                     o.TokenLifetime = TimeSpan.FromDays(3);
                     o.DefaultScopes = new() {};
-                })
-                .AddSingleton<IOauthTokenProvider, TokenProvider>()
-                .AddSingleton<IOauthLoginProvider, LoginProvider>()
-                .AddSingleton<OauthAuthenticationService>()
-                .AddLogging();
-        }
-    }
-}
+                });
+
+
+        services.AddSingleton<IOauthTokenProvider, TokenProvider>();
+        services.AddSingleton<IOauthLoginProvider, LoginProvider>();
+        services.AddSingleton<OauthAuthenticationService>();
+    })
+    .UseJwtTokenBinding()
+    .Build();
+
+host.Run();

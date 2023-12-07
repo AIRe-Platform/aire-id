@@ -35,6 +35,13 @@ You should create `local.settings.json` in the root of the repository when devel
     }
 }
 ```
+## API Documentation
+
+Visit path `/api/swagger/ui` to inspect. If running in localhost, there's an issue where the configuration file URL gets an invalid port.
+
+Simply change in the correct port in the top bar to work around the issue.
+
+Example: If the module is running on port `7072` change the URL to `http://localhost:7072/api/swagger.json`.
 
 ## Deployment
 

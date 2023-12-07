@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.OpenApi.Models;
 using Aire.Id.Oauth2;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 
 namespace Aire.Id.Api
 {
@@ -18,7 +17,7 @@ namespace Aire.Id.Api
             _svc = svc;
         }
 
-        [FunctionName("Oauth_Token_Post")]
+        [Function("Oauth_Token_Post")]
         [OpenApiOperation(operationId: "Oauth_Token_Post", tags: new[] { "OAuth2" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         //[OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]
@@ -28,7 +27,7 @@ namespace Aire.Id.Api
             return await _svc.HandleTokenRequest(req);
         }
 
-        [FunctionName("Oauth_TokenInfo_Get")]
+        [Function("Oauth_TokenInfo_Get")]
         [OpenApiOperation(operationId: "Oauth_TokenInfo", tags: new[] { "OAuth2" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         //[OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "text/plain", bodyType: typeof(string), Description = "The OK response")]

@@ -7,11 +7,27 @@ using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Aire.Id.Oauth2
 {
+    public static class OauthExtension
+    {
+        public static IFunctionsWorkerApplicationBuilder UseOauth<TTokenProvider, TLoginProvider>(this IFunctionsWorkerApplicationBuilder builder)
+            where TTokenProvider : class, IOauthTokenProvider
+            where TLoginProvider : class, IOauthLoginProvider
+        {
+            builder.Services
+                .AddSingleton<IOauthTokenProvider, TTokenProvider>()
+                .AddSingleton<IOauthLoginProvider, TLoginProvider>()
+                .AddSingleton<OauthAuthenticationService>();
+            return builder;
+        }
+    }
+
     public class OauthAuthenticationService
     {
         private readonly ITableStorageService _storage;

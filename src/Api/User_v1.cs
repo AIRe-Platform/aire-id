@@ -3,30 +3,30 @@ using System.Threading.Tasks;
 using Aire.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using System.IdentityModel.Tokens.Jwt;
 using Aire.Id.Models;
 using System.Linq;
 using System.Web.Http;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 
 namespace Aire.Id.Api
 {
     public class User_v1
     {
+        private readonly IJwtTokenService _jwt;
         private readonly ITableStorageService _storage;
         private readonly ILogger<User_v1> _log;
 
-        public User_v1(ITableStorageService storage, ILogger<User_v1> log)
+        public User_v1(IJwtTokenService jwt, ITableStorageService storage, ILogger<User_v1> log)
         {
+            _jwt = jwt;
             _storage = storage;
             _log = log;
         }
 
-        [FunctionName("User_v1_GET")]
+        [Function("User_v1_GET")]
         [OpenApiOperation(operationId: "Get User", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
@@ -35,20 +35,21 @@ namespace Aire.Id.Api
         [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
         public async Task<IActionResult> GetUser(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/user/{id?}")] HttpRequest req,
-            [JwtToken(AllowRoles = "user", RequireScopes = "profile-read")] JwtSecurityToken token,
-            string id)
+            FunctionContext context,
+            string? id = null)
         {
-            if(token == null)
+            var auth = context.Features.Get<JwtAuthFeature>();
+            if(!_jwt.CheckAuthorization(auth, "user", "profile-read"))
                 return new UnauthorizedResult();
 
-            if(!string.IsNullOrEmpty(id) && id != token.Subject)
+            if(!string.IsNullOrEmpty(id) && id != auth.Token.Subject)
             {
                 _log.LogWarning("Not allowed to access other user's account");
                 return new ForbiddenResult();
             }
             else
             {
-                id = token.Subject;
+                id = auth.Token.Subject;
             }
 
             var userAccount = await _storage.RetrieveAsync<UserEntity>(id);
@@ -56,7 +57,7 @@ namespace Aire.Id.Api
             {
                 _log.LogInformation("Account found");
                 
-                var userKey = token.Claims.FirstOrDefault(x => x.Type == "user_enc_key")?.Value;
+                var userKey = auth.Token.Claims.FirstOrDefault(x => x.Type == "user_enc_key")?.Value;
                 if(string.IsNullOrWhiteSpace(userKey))
                 {
                     _log.LogWarning("Missing user encryption key");
@@ -76,7 +77,7 @@ namespace Aire.Id.Api
             return new NotFoundResult();
         }
 
-        [FunctionName("User_v1_PUT")]
+        [Function("User_v1_PUT")]
         [OpenApiOperation(operationId: "Edit User", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
@@ -85,19 +86,20 @@ namespace Aire.Id.Api
         [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
         public async Task<IActionResult> EditUser(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "v1/user/{id}")] HttpRequest req,
-            [JwtToken(AllowRoles = "user", RequireScopes = "profile-edit")] JwtSecurityToken token,
+            FunctionContext context,
             string id)
-        {
-            if(token == null)
+        {      
+            var auth = context.Features.Get<JwtAuthFeature>();
+            if(!_jwt.CheckAuthorization(auth, "user", "profile-edit"))
                 return new UnauthorizedResult();
 
-            if(token.Subject != id)
+            if(auth.Token.Subject != id)
             {
                 _log.LogWarning("Not allowed to edit other user's account");
                 return new ForbiddenResult();
             }
 
-            var userKey = token.Claims.FirstOrDefault(x => x.Type == "user_enc_key")?.Value;
+            var userKey = auth.Token.Claims.FirstOrDefault(x => x.Type == "user_enc_key")?.Value;
             if(string.IsNullOrWhiteSpace(userKey))
             {
                 _log.LogWarning("Missing user encryption key");
@@ -146,7 +148,7 @@ namespace Aire.Id.Api
             }
         }
 
-        [FunctionName("User_v1_ChangePassword")]
+        [Function("User_v1_ChangePassword")]
         [OpenApiOperation(operationId: "Change password", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
@@ -155,13 +157,14 @@ namespace Aire.Id.Api
         //[OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
         public async Task<IActionResult> ChangePassword(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/user/{id}/password")] HttpRequest req,
-            [JwtToken(AllowRoles = "user", RequireScopes = "profile-edit")] JwtSecurityToken token,
+            FunctionContext context,
             string id)
         {
-            if(token == null)
+            var auth = context.Features.Get<JwtAuthFeature>();
+            if(!_jwt.CheckAuthorization(auth, "user", "profile-edit"))
                 return new UnauthorizedResult();
 
-            if(token.Subject != id)
+            if(auth.Token.Subject != id)
             {
                 _log.LogWarning("Not allowed to edit other user's account");
                 return new ForbiddenResult();
@@ -206,7 +209,7 @@ namespace Aire.Id.Api
             }
         }
 
-        [FunctionName("User_v1_DELETE")]
+        [Function("User_v1_DELETE")]
         [OpenApiOperation(operationId: "Delete User", tags: new[] { "User" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
@@ -215,13 +218,14 @@ namespace Aire.Id.Api
         [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
         public async Task<IActionResult> DeleteUser(
             [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "v1/user/{id}")] HttpRequest req,
-            [JwtToken(AllowRoles = "user", RequireScopes = "profile-delete")] JwtSecurityToken token,
+            FunctionContext context,
             string id)
         {
-            if(token == null)
+            var auth = context.Features.Get<JwtAuthFeature>();
+            if(!_jwt.CheckAuthorization(auth, "user", "profile-delete"))
                 return new UnauthorizedResult();
 
-            if(token.Subject != id)
+            if(auth.Token.Subject != id)
             {
                 _log.LogWarning("Not allowed to edit other user's account");
                 return new ForbiddenResult();

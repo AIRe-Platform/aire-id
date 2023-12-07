@@ -6,11 +6,10 @@ using Aire.Helpers;
 using Aire.Id.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 
 namespace Aire.Id
 {
@@ -25,7 +24,7 @@ namespace Aire.Id
             _log = log;
         }
 
-        [FunctionName("Signup_v1")]
+        [Function("Signup_v1")]
         [OpenApiOperation(operationId: "Run", tags: new[] { "User sign-up and verification" })]
         //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
         [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.NoContent, Description = "Signup success")]

@@ -6,6 +6,10 @@ namespace Aire
             get => System.Environment.GetEnvironmentVariable("StorageConnectionString");
         }
 
+        public static string AirePlatformService {
+            get => System.Environment.GetEnvironmentVariable("AirePlatformService");
+        }
+
         public static string TokenSigningKey {
             get => System.Environment.GetEnvironmentVariable("TokenSigningKey");
         }

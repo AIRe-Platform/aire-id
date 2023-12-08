@@ -1,7 +1,7 @@
 using System.Linq;
-using Aire.Helpers;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
+using Aire.Sdk.Auth.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Aire.Id.Providers

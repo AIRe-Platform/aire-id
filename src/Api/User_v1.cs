@@ -10,6 +10,10 @@ using Aire.Id.Models;
 using System.Linq;
 using System.Web.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Aire.Sdk.Auth.Models;
+using Aire.Sdk.Auth.Services;
+using Aire.Sdk.Auth.Scopes;
+using Aire.Sdk.Auth.Roles;
 
 namespace Aire.Id.Api
 {
@@ -39,7 +43,7 @@ namespace Aire.Id.Api
             string? id = null)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, "user", "profile-read"))
+            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.ReadProfile))
                 return new UnauthorizedResult();
 
             if(!string.IsNullOrEmpty(id) && id != auth.Token.Subject)
@@ -90,7 +94,7 @@ namespace Aire.Id.Api
             string id)
         {      
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, "user", "profile-edit"))
+            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.EditProfile))
                 return new UnauthorizedResult();
 
             if(auth.Token.Subject != id)
@@ -161,7 +165,7 @@ namespace Aire.Id.Api
             string id)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, "user", "profile-edit"))
+            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.EditProfile))
                 return new UnauthorizedResult();
 
             if(auth.Token.Subject != id)
@@ -222,7 +226,7 @@ namespace Aire.Id.Api
             string id)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, "user", "profile-delete"))
+            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.DeleteProfile))
                 return new UnauthorizedResult();
 
             if(auth.Token.Subject != id)

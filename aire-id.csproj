@@ -31,4 +31,13 @@
   <ItemGroup>
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Remove="submodules\**" />
+    <Compile Remove="submodules\**" />
+    <EmbeddedResource Remove="submodules\**" />
+    <None Remove="submodules\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="submodules\aire-dotnet-sdk\Aire.Sdk.Auth\Aire.Sdk.Auth.csproj" />
+  </ItemGroup>
 </Project>

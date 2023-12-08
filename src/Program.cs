@@ -12,9 +12,12 @@ using Aire;
 using Aire.Id.Oauth2;
 using Aire.Id.Providers;
 using Aire.Id.Services;
+using Aire.Sdk.Auth.Extensions;
 using Newtonsoft.Json;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
+using Aire.Sdk.Auth.Roles;
+using Aire.Sdk.Auth.Scopes;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker => {
@@ -33,23 +36,8 @@ var host = new HostBuilder()
         services
             .AddSingleton<ITableStorageService, TableStorageService>()
             .Configure<OauthConfiguration>(o => {
-                o.Roles = [ 
-                    AireConstants.Roles.User, 
-                    AireConstants.Roles.Admin
-                ];
-                o.Scopes = [ 
-                    AireConstants.Scopes.ReadProfile,
-                    AireConstants.Scopes.EditProfile,
-                    AireConstants.Scopes.DeleteProfile,
-                ];
                 o.DefaultRoleScopes = new() {
-                    { 
-                        AireConstants.Roles.User, new() { 
-                            AireConstants.Scopes.ReadProfile,
-                            AireConstants.Scopes.EditProfile,
-                            AireConstants.Scopes.DeleteProfile
-                        }
-                    }
+                    { AireRoles.User, AireScopes.UserScopes }
                 };
                 o.TokenLifetime = TimeSpan.FromDays(3);
                 o.DefaultScopes = [];

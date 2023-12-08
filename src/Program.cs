@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,17 +8,17 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.OpenApi.Models;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
 using Aire.Helpers;
 using Aire;
 using Aire.Id.Oauth2;
 using Aire.Id.Providers;
 using Aire.Id.Services;
 using Aire.Sdk.Auth.Extensions;
-using Newtonsoft.Json;
-using System.Text;
-using Microsoft.IdentityModel.Tokens;
 using Aire.Sdk.Auth.Roles;
 using Aire.Sdk.Auth.Scopes;
+using Aire.Sdk.Auth.Models;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker => {
@@ -41,6 +42,12 @@ var host = new HostBuilder()
                 };
                 o.TokenLifetime = TimeSpan.FromDays(3);
                 o.DefaultScopes = [];
+            })
+            .Configure<JwtTokenServiceConfiguration>(o => {
+                o.Audience = AireEnvironment.TokenAudience;
+                o.Issuer = AireEnvironment.TokenIssuer;
+                o.SigningKey = AireEnvironment.TokenSigningKey;
+                o.EncryptionKey = AireEnvironment.TokenEncryptionKey;
             });
 
         var signingKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey);

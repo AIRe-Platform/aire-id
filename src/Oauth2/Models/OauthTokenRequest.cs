@@ -8,13 +8,13 @@ namespace Aire.Id.Oauth2.Models
 	public class OauthTokenPasswordGrantRequest : OauthTokenRequest
 	{
 		// Required
-		public string Username { get; set; }
+		public string? Username { get; set; }
 
 		// Required
-		public string Password { get; set; }
+		public string? Password { get; set; }
 
 		// Optional
-		public string Scope { get; set; }
+		public string? Scope { get; set; }
 
 		public OauthTokenPasswordGrantRequest() : base(OauthGrantType.Password)
 		{
@@ -45,7 +45,7 @@ namespace Aire.Id.Oauth2.Models
 		public OauthGrantType GrantType { get; private set; }
 
 		// If set, required for the error response.
-		public virtual string State { get => null; }
+		public virtual string? State { get => null; }
 
 		public OauthTokenRequest(OauthGrantType grantType)
 		{
@@ -54,7 +54,7 @@ namespace Aire.Id.Oauth2.Models
 
 		public static OauthGrantType? GetOauthGrantType(HttpRequest req)
 		{
-			string grant = req?.ReadParam("grant_type");
+			string? grant = req?.ReadParam("grant_type");
 			
 			return grant switch {
 				"password" 				=> OauthGrantType.Password,

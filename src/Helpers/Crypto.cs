@@ -1,4 +1,3 @@
-using System;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -34,7 +33,7 @@ namespace Aire.Helpers
         /// <param name="key">256-bit key</param>
         /// <param name="iv">Initialization vector</param>
         /// <returns>String presentation of decrypted data</returns>
-        public static string DecryptString(this string cipherText, byte[] key, byte[] iv)
+        public static string? DecryptString(this string cipherText, byte[] key, byte[] iv)
         {
             if(key.Length != 32)
                 throw new ArgumentException($"Invalid key length, expected 32 bytes (256-bit), got {key.Length}");
@@ -62,7 +61,7 @@ namespace Aire.Helpers
         /// <param name="len">Key length in bytes</param>
         /// <param name="iter">Number of iterations</param>
         /// <returns>Derived key bytes</returns>
-        public static byte[] PasswordHash(string password, string salt = null, int len = 32, int iter = 100000)
+        public static byte[] PasswordHash(string password, string? salt = null, int len = 32, int iter = 100000)
         {
             var passwordBytes = Encoding.UTF8.GetBytes(password);
             var saltBytes = Array.Empty<byte>();

@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Hosting;
@@ -50,8 +49,8 @@ var host = new HostBuilder()
                 o.EncryptionKey = AireEnvironment.TokenEncryptionKey;
             });
 
-        var signingKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey);
-        var decryptionKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenEncryptionKey);
+        var signingKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey!);
+        var decryptionKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenEncryptionKey!);
 
         services.AddSingleton(_ => {
             var validationParams = new TokenValidationParameters {

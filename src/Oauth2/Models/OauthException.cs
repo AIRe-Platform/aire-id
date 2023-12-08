@@ -12,13 +12,13 @@ namespace Aire.Id.Oauth2.Models
 		public OauthError Error { get; private set; } = OauthError.ServerError;
 
         // Optional
-        public string ErrorUri { get; set; }
+        public string? ErrorUri { get; set; }
 
         // Required if state was present in the authorization request
-        public string State { get; set; }
+        public string? State { get; set; }
 
         // Set to use redirection
-        public string Redirect { get; set; }
+        public string? Redirect { get; set; }
 
 		public OauthException(OauthError error)
 			: base("")

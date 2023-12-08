@@ -5,6 +5,6 @@ namespace Aire.Id.Models
     public class SignupRequest
     {
         [JsonProperty("credentials")]
-        public UserCredentials Credentials { get; set; }
+        public UserCredentials? Credentials { get; set; }
     }
 }

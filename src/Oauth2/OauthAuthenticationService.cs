@@ -57,13 +57,13 @@ namespace Aire.Id.Oauth2
 
         public async Task<IActionResult> HandleTokenRequest(HttpRequest req)
         {
-            OauthTokenRequest tokenRequest = null;
+            OauthTokenRequest? tokenRequest = null;
             try
             {
                 tokenRequest = OauthTokenRequest.FromRequest(req);
-                if(tokenRequest is OauthTokenPasswordGrantRequest)
+                if(tokenRequest != null && tokenRequest is OauthTokenPasswordGrantRequest)
                 {
-                    return await PasswordGrant(tokenRequest as OauthTokenPasswordGrantRequest);
+                    return await PasswordGrant((OauthTokenPasswordGrantRequest) tokenRequest!);
                 }
                 // TODO: Add other supported grant types
             }
@@ -96,7 +96,7 @@ namespace Aire.Id.Oauth2
 
         private async Task<IActionResult> PasswordGrant(OauthTokenPasswordGrantRequest req)
         {
-            var subject = await _loginProvider.GetUser(req.Username, req.Password);
+            var subject = await _loginProvider.GetUser(req.Username!, req.Password!);
             if(subject == null)
                 throw new OauthException(OauthError.InvalidGrant);
 

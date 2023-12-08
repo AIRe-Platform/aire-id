@@ -1,5 +1,4 @@
 using System.Net;
-using System.Threading.Tasks;
 using Aire.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +6,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Aire.Id.Models;
-using System.Linq;
 using System.Web.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Aire.Sdk.Auth.Models;
@@ -46,14 +44,14 @@ namespace Aire.Id.Api
             if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.ReadProfile))
                 return new UnauthorizedResult();
 
-            if(!string.IsNullOrEmpty(id) && id != auth.Token.Subject)
+            if(!string.IsNullOrEmpty(id) && id != auth!.Token.Subject)
             {
                 _log.LogWarning("Not allowed to access other user's account");
                 return new ForbiddenResult();
             }
             else
             {
-                id = auth.Token.Subject;
+                id = auth!.Token.Subject;
             }
 
             var userAccount = await _storage.RetrieveAsync<UserEntity>(id);
@@ -97,7 +95,7 @@ namespace Aire.Id.Api
             if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.EditProfile))
                 return new UnauthorizedResult();
 
-            if(auth.Token.Subject != id)
+            if(auth!.Token.Subject != id)
             {
                 _log.LogWarning("Not allowed to edit other user's account");
                 return new ForbiddenResult();
@@ -168,7 +166,7 @@ namespace Aire.Id.Api
             if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.EditProfile))
                 return new UnauthorizedResult();
 
-            if(auth.Token.Subject != id)
+            if(auth!.Token.Subject != id)
             {
                 _log.LogWarning("Not allowed to edit other user's account");
                 return new ForbiddenResult();
@@ -195,7 +193,7 @@ namespace Aire.Id.Api
                 return new NotFoundResult();
             }
 
-            if(!entity.ChangePassword(body.CurrentPassword, body.NewPassword))
+            if(!entity.ChangePassword(body.CurrentPassword, body.NewPassword!))
             {
                 _log.LogWarning("Failed to change password");
                 return new BadRequestResult();
@@ -229,7 +227,7 @@ namespace Aire.Id.Api
             if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.DeleteProfile))
                 return new UnauthorizedResult();
 
-            if(auth.Token.Subject != id)
+            if(auth!.Token.Subject != id)
             {
                 _log.LogWarning("Not allowed to edit other user's account");
                 return new ForbiddenResult();

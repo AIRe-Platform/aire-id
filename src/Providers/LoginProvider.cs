@@ -23,7 +23,7 @@ namespace Aire.Id.Providers
             _log = log;
         }
 
-        public async Task<OauthSubject> GetUser(string username, string password)
+        public async Task<OauthSubject?> GetUser(string username, string password)
         {
             var hash = Crypto.SHA256Base16(username);
 
@@ -43,7 +43,7 @@ namespace Aire.Id.Providers
             }
 
             var key = user.GetEncryptionKey(password);
-            var privateData = user.GetPrivateUserData(key);
+            var privateData = user.GetPrivateUserData(key!);
 
             var subject = new OauthSubject {
                 Subject = user.UUID,
@@ -52,8 +52,8 @@ namespace Aire.Id.Providers
                     .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .ToList(),
                 Claims = new Dictionary<string, object> {
-                    { "user_enc_key",  key },
-                    { "connected_services", privateData.ConnectedServices }
+                    { "user_enc_key",  key! },
+                    { "connected_services", privateData!.ConnectedServices! }
                 }
             };
 

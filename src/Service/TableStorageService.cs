@@ -1,7 +1,5 @@
-using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Threading.Tasks;
 using Aire.Helpers;
 using Azure;
 using Azure.Data.Tables;
@@ -17,7 +15,7 @@ namespace Aire.Id.Services
             svcClient = new TableServiceClient(AireEnvironment.StorageConnectionString);
         }
 
-        private static string GetEntityTableName(Type t)
+        private static string? GetEntityTableName(Type t)
         {
             var attr = t.GetCustomAttribute(typeof(EntityTableAttribute));
             if(attr == null)
@@ -41,12 +39,12 @@ namespace Aire.Id.Services
             return table;
         }
         
-        public async Task<T> RetrieveAsync<T>(string key) where T : class, ITableEntity, new()
+        public async Task<T?> RetrieveAsync<T>(string key) where T : class, ITableEntity, new()
         {
             return await RetrieveAsync<T>(key, key);
         }
 
-        public async Task<T> RetrieveAsync<T>(string partitionKey, string rowKey) where T : class, ITableEntity, new()
+        public async Task<T?> RetrieveAsync<T>(string partitionKey, string rowKey) where T : class, ITableEntity, new()
         {
             var client = await GetTableClientAsync(typeof(T));
             var response = await client.GetEntityIfExistsAsync<T>(partitionKey, rowKey);

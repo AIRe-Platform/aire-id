@@ -1,13 +1,10 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 namespace Aire.Helpers
 {
     public static class HttpRequestExtensions
     {
-        public static async Task<T> ReadJson<T>(this HttpRequest req)
+        public static async Task<T?> ReadJson<T>(this HttpRequest req)
         {
             if(req.ContentType == "application/json" && req.Body != null)
             {
@@ -22,9 +19,9 @@ namespace Aire.Helpers
             return default;
         }
 
-        public static string ReadParam(this HttpRequest req, string param)
+        public static string? ReadParam(this HttpRequest req, string param)
         {
-            string value = req.Form[param];
+            string? value = req.Form[param];
             value ??= req.Query[param];
             return value;
         }

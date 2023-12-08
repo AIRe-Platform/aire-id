@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -22,10 +20,10 @@ namespace Aire.Id.Models
     public class UserPrivate
     {
         [JsonProperty("first_name")]
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
 
         [JsonProperty("last_name")]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
         [JsonProperty("gender")]
         public Gender? Gender { get; set; }
@@ -34,25 +32,25 @@ namespace Aire.Id.Models
         public int? Age { get; set; }
 
         [JsonProperty("email")]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [JsonProperty("language")]
-        public string Language { get; set; }
+        public string? Language { get; set; }
 
         [JsonProperty("country")]
-        public string Country { get; set; }
+        public string? Country { get; set; }
 
         [JsonProperty("bio")]
-        public string Bio { get; set; }
+        public string? Bio { get; set; }
 
         [JsonProperty("connected_services")]
-        public List<ServiceCredentials> ConnectedServices { get; set; }
+        public List<ServiceCredentials>? ConnectedServices { get; set; }
     }
 
     public class User : UserPrivate
     {
         [JsonProperty("uuid")]
-        public string UUID { get; set; }
+        public string? UUID { get; set; }
 
         [JsonProperty("last_login")]
         public DateTime? LastLogin { get; set; }

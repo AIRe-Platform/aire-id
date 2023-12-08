@@ -1,6 +1,4 @@
-using System;
 using System.Net;
-using System.Threading.Tasks;
 using System.Web.Http;
 using Aire.Helpers;
 using Aire.Id.Models;
@@ -40,10 +38,10 @@ namespace Aire.Id
             if(request == null)
                 return new BadRequestResult();
 
-            if(!(Validation.IsValidEmail(request.Credentials.Email) && Validation.IsValidPassword(request.Credentials.Password)))
+            if(!(Validation.IsValidEmail(request.Credentials?.Email) && Validation.IsValidPassword(request.Credentials?.Password)))
                 return new BadRequestResult();
 
-            var hash = Crypto.SHA256Base16(request.Credentials.Email);
+            var hash = Crypto.SHA256Base16(request.Credentials!.Email!);
             var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
 
             await foreach(UserEntity ent in query)
@@ -52,7 +50,8 @@ namespace Aire.Id
             }
 
             var uuid = Guid.NewGuid().ToString();
-            var pw = request.Credentials.Password;
+            var pw = request.Credentials!.Password!;
+            
             var user = new UserEntity() { 
                 UUID = uuid,
                 EmailHash = hash
@@ -64,7 +63,7 @@ namespace Aire.Id
             var userData = new User {
                 Email = request.Credentials.Email
             };
-            user.SetPrivateUserData(userData, key);
+            user.SetPrivateUserData(userData, key!);
 
             bool result = await _storage.UpsertAsync(user);
             if(!result)

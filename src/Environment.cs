@@ -2,28 +2,16 @@ namespace Aire
 {
     public static class AireEnvironment
     {
-        public static string StorageConnectionString {
-            get => System.Environment.GetEnvironmentVariable("StorageConnectionString");
-        }
+        public static string? StorageConnectionString => Environment.GetEnvironmentVariable("StorageConnectionString");
 
-        public static string AirePlatformService {
-            get => System.Environment.GetEnvironmentVariable("AirePlatformService");
-        }
+        public static string? AirePlatformService => Environment.GetEnvironmentVariable("AirePlatformService");
 
-        public static string TokenSigningKey {
-            get => System.Environment.GetEnvironmentVariable("TokenSigningKey");
-        }
+        public static string? TokenSigningKey => Environment.GetEnvironmentVariable("TokenSigningKey");
 
-        public static string TokenEncryptionKey {
-            get => System.Environment.GetEnvironmentVariable("TokenEncryptionKey");
-        }
+        public static string? TokenEncryptionKey => Environment.GetEnvironmentVariable("TokenEncryptionKey");
         
-        public static string TokenIssuer {
-            get => System.Environment.GetEnvironmentVariable("TokenIssuer");
-        }
+        public static string? TokenIssuer => Environment.GetEnvironmentVariable("TokenIssuer");
 
-        public static string TokenAudience {
-            get => System.Environment.GetEnvironmentVariable("TokenAudience");
-        }
+        public static string? TokenAudience => Environment.GetEnvironmentVariable("TokenAudience");
     }
 }

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Aire.Helpers;
 using Newtonsoft.Json;
 
@@ -10,17 +9,17 @@ namespace Aire.Id.Oauth2.Models
 		public OauthError Error { get; set; } = OauthError.ServerError;
 
 		[JsonProperty("error_description", NullValueHandling = NullValueHandling.Ignore)]
-		public string ErrorDescription { get; set; } = null;
+		public string? ErrorDescription { get; set; } = null;
 
 		[JsonProperty("error_uri", NullValueHandling = NullValueHandling.Ignore)]
-		public string ErrorUri { get; set; } = null;
+		public string? ErrorUri { get; set; } = null;
 
 		[JsonProperty("state", NullValueHandling = NullValueHandling.Ignore)]
-		public string State { get; set; } = null;
+		public string? State { get; set; } = null;
 
-		public Dictionary<string, string> ToDictionary()
+		public Dictionary<string, string?> ToDictionary()
 		{
-			var dict = new Dictionary<string, string>
+			var dict = new Dictionary<string, string?>
 			{
 				{ "error", Error.ObjectToJson() }
 			};

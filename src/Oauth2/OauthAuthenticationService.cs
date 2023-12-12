@@ -1,8 +1,5 @@
-using System;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using Aire.Helpers;
+using Aire.Sdk.TableStorage;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Microsoft.AspNetCore.Http;

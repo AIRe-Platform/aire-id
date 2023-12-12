@@ -1,6 +1,5 @@
 using System.Net;
-using System.Threading.Tasks;
-using Aire.Helpers;
+using Aire.Sdk.TableStorage;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;

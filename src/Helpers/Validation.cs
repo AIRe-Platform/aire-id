@@ -1,7 +1,7 @@
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 
-namespace Aire.Helpers
+namespace Aire.Id.Helpers
 {
     public static class Validation
     {

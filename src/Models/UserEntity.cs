@@ -1,6 +1,7 @@
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
-using Aire.Helpers;
+using Aire.Sdk.TableStorage;
+using Aire.Sdk.Helpers;
 using Aire.Services.Models;
 
 namespace Aire.Id.Models

@@ -1,6 +1,4 @@
-using System;
-using Aire.Helpers;
-using Aire.Id.Api;
+using Aire.Sdk.AspNetCore;
 using Microsoft.AspNetCore.Http;
 
 namespace Aire.Id.Oauth2.Models

@@ -1,4 +1,4 @@
-using Aire.Helpers;
+using Aire.Sdk.Helpers;
 using Newtonsoft.Json;
 
 namespace Aire.Id.Oauth2.Models

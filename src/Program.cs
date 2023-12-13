@@ -1,4 +1,3 @@
-using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +6,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Abstractions;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Configurations;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.OpenApi.Models;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Aire;
 using Aire.Id.Oauth2;
@@ -21,7 +19,12 @@ using Aire.Sdk.Auth.Models;
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker => {
         worker.UseNewtonsoftJson();
-        worker.UseJwtAuth();
+        worker.UseJwtAuth(new JwtTokenServiceConfiguration() {
+            Issuer = AireEnvironment.TokenIssuer,
+            Audience = AireEnvironment.TokenAudience,
+            SigningKey = AireEnvironment.TokenSigningKey,
+            EncryptionKey = AireEnvironment.TokenEncryptionKey
+        });
         worker.UseOauth<TokenProvider, LoginProvider>();
     })
     .ConfigureServices(services => {
@@ -41,37 +44,9 @@ var host = new HostBuilder()
                 o.TokenLifetime = TimeSpan.FromDays(3);
                 o.DefaultScopes = [];
             })
-            .Configure<JwtTokenServiceConfiguration>(o => {
-                o.Audience = AireEnvironment.TokenAudience;
-                o.Issuer = AireEnvironment.TokenIssuer;
-                o.SigningKey = AireEnvironment.TokenSigningKey;
-                o.EncryptionKey = AireEnvironment.TokenEncryptionKey;
-            })
             .Configure<TableStorageConfiguration>(o => {
                 o.ConnectionString = AireEnvironment.StorageConnectionString;
             });
-
-        var signingKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenSigningKey!);
-        var decryptionKeyBytes = Encoding.ASCII.GetBytes(AireEnvironment.TokenEncryptionKey!);
-
-        services.AddSingleton(_ => {
-            var validationParams = new TokenValidationParameters {
-                RequireSignedTokens = true,
-                RequireAudience = true,
-                RequireExpirationTime = true,
-
-                ValidAudience = AireEnvironment.TokenAudience,
-                ValidIssuer = AireEnvironment.TokenIssuer,
-                IssuerSigningKey = new SymmetricSecurityKey(signingKeyBytes),
-                TokenDecryptionKey = new SymmetricSecurityKey(decryptionKeyBytes),
-
-                ValidateAudience = true,
-                ValidateIssuer = true,
-                ValidateIssuerSigningKey = true,
-                ValidateLifetime = true
-            };
-            return validationParams;
-        });
         
         services.AddSingleton<IOpenApiConfigurationOptions>(_ => {
             var options = new OpenApiConfigurationOptions {

@@ -46,7 +46,7 @@ namespace Aire.Id.Api
             if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.ReadProfile))
                 return new UnauthorizedResult();
 
-            if(!string.IsNullOrEmpty(id) && id != auth!.Token.Subject)
+            if(!string.IsNullOrEmpty(id) && id != auth!.User.ToString())
             {
                 _log.LogWarning("Not allowed to access other user's account");
                 return new ForbiddenResult();
@@ -60,15 +60,8 @@ namespace Aire.Id.Api
             if(userAccount != null)
             {
                 _log.LogInformation("Account found");
-                
-                var userKey = auth.Token.Claims.FirstOrDefault(x => x.Type == "user_enc_key")?.Value;
-                if(string.IsNullOrWhiteSpace(userKey))
-                {
-                    _log.LogWarning("Missing user encryption key");
-                    return new ForbiddenResult();
-                }
 
-                var user = userAccount.GetUserData(userKey);
+                var user = userAccount.GetUserData(auth!.UserKey);
                 if(user == null)
                 {
                     _log.LogWarning("Could not decrypt user data");
@@ -97,16 +90,9 @@ namespace Aire.Id.Api
             if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.EditProfile))
                 return new UnauthorizedResult();
 
-            if(auth!.Token.Subject != id)
+            if(auth!.User.ToString() != id)
             {
                 _log.LogWarning("Not allowed to edit other user's account");
-                return new ForbiddenResult();
-            }
-
-            var userKey = auth.Token.Claims.FirstOrDefault(x => x.Type == "user_enc_key")?.Value;
-            if(string.IsNullOrWhiteSpace(userKey))
-            {
-                _log.LogWarning("Missing user encryption key");
                 return new ForbiddenResult();
             }
 
@@ -117,7 +103,7 @@ namespace Aire.Id.Api
                 return new NotFoundResult();
             }
 
-            var user = entity.GetPrivateUserData(userKey);
+            var user = entity.GetPrivateUserData(auth!.UserKey);
             if(user == null)
             {
                 _log.LogWarning("Failed to decrypt user data");
@@ -136,13 +122,13 @@ namespace Aire.Id.Api
                 userData.Email = user.Email;
                 userData.ConnectedServices = user.ConnectedServices;
             }
-            entity.SetPrivateUserData(userData, userKey);
+            entity.SetPrivateUserData(userData, auth!.UserKey);
 
 
             bool result = await _storage.UpsertAsync(entity);
             if(result)
             {
-                var updated = entity.GetUserData(userKey);
+                var updated = entity.GetUserData(auth!.UserKey);
                 return new OkObjectResult(updated);
             }
             else

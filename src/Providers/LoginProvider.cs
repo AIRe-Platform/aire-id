@@ -5,6 +5,7 @@ using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Aire.Sdk.Auth.Roles;
 using Microsoft.Extensions.Logging;
+using Aire.Sdk.Auth.Claims;
 
 namespace Aire.Id.Providers
 {
@@ -48,8 +49,8 @@ namespace Aire.Id.Providers
                     .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
                     .ToList(),
                 Claims = new Dictionary<string, object> {
-                    { "user_enc_key",  key! },
-                    { "connected_services", privateData!.ConnectedServices! }
+                    { AireClaims.UserEncryptionKey,  key! },
+                    { AireClaims.ConnectedServices, privateData!.ConnectedServices! }
                 }
             };
 

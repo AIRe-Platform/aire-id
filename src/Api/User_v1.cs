@@ -10,6 +10,7 @@ using Aire.Sdk.AspNetCore;
 using Aire.Sdk.TableStorage;
 using System.Web.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Aire.Sdk.Auth.Models;
 using Aire.Sdk.Auth.Services;
 using Aire.Sdk.Auth.Scopes;
@@ -31,14 +32,15 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_GET")]
-        [OpenApiOperation(operationId: "Get User", tags: new[] { "User" })]
-        //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
-        [OpenApiParameter("id", Description = "User identifier", Required = true)]
-        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Description = "The user object")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Missing or invalid authorization header")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiOperation(operationId: "Get User", tags: ["User"], Description = "Get user")]
+        [OpenApiParameter("id", Description = "User identifier")]
+        [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(User), Description = "The user object")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
         public async Task<IActionResult> GetUser(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "v1/user/{id?}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/user/{id?}")] HttpRequest req,
             FunctionContext context,
             string? id = null)
         {
@@ -75,14 +77,18 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_PUT")]
-        [OpenApiOperation(operationId: "Edit User", tags: new[] { "User" })]
-        //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
+        [OpenApiOperation(operationId: "Edit User", tags: ["User"], Description = "Edit user private data")]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
-        [OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Description = "The updated user object")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Missing or invalid authorization header")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
+        [OpenApiRequestBody("application/json", typeof(UserPrivate), Description = "User data", Required = true)]
+        [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserPrivate), Description = "The updated user object")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Parsing the data failed")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
         public async Task<IActionResult> EditUser(
-            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "v1/user/{id}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "v1/user/{id}")] HttpRequest req,
             FunctionContext context,
             string id)
         {      
@@ -139,14 +145,18 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_ChangePassword")]
-        [OpenApiOperation(operationId: "Change password", tags: new[] { "User" })]
-        //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
+        [OpenApiOperation(operationId: "Change password", tags: ["User"], Description = "Change user password")]
+        [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
-        //[OpenApiResponseWithBody(statusCode: HttpStatusCode.OK, contentType: "application/json", bodyType: typeof(string), Description = "The updated user object")]
-        //[OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Missing or invalid authorization header")]
-        //[OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiRequestBody("application/json", typeof(PasswordChangeRequest), Description = "Password change request", Required = true)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "The password was changed successfully")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Failed to parse the request or the password does not meet the minimum requirements")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
         public async Task<IActionResult> ChangePassword(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "v1/user/{id}/password")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/user/{id}/password")] HttpRequest req,
             FunctionContext context,
             string id)
         {
@@ -200,14 +210,18 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_DELETE")]
-        [OpenApiOperation(operationId: "Delete User", tags: new[] { "User" })]
-        //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
+        [OpenApiOperation(operationId: "Delete User", tags: ["User"], Description = "Delete user")]
+        [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiParameter("id", Description = "User identifier", Required = true)]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.NoContent, Description = "Operation completed successfully")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Unauthorized, Description = "Missing or invalid authorization header")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiRequestBody("application/json", typeof(UserDeleteRequest), Description = "Deletetion request", Required = true)]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Operation completed successfully")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Password confirmation failed")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
         public async Task<IActionResult> DeleteUser(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "v1/user/{id}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/user/{id}")] HttpRequest req,
             FunctionContext context,
             string id)
         {

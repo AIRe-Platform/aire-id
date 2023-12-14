@@ -21,16 +21,21 @@ namespace Aire.Id
         }
 
         [Function("Verify_v1")]
-        [OpenApiOperation(operationId: "Run", tags: new[] { "User sign-up and verification" })]
-        //[OpenApiSecurity("function_key", SecuritySchemeType.ApiKey, Name = "code", In = OpenApiSecurityLocationType.Query)]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.OK, Description = "Verification succeeded")]
-        [OpenApiResponseWithoutBody(statusCode: HttpStatusCode.NotFound, Description = "Verification failed")]
+        [OpenApiOperation(operationId: "Run", tags: ["User sign-up and verification"], Description = "Verify user")]
+        [OpenApiParameter("code", Description = "Verification code")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Verification succeeded")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Verification failed")]
+        [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "This endpoint is not yet implemented!")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify/{code}")] HttpRequest req,
+            string code)
         {
             // TODO: Implement verification
-
-            return await Task.FromResult(new NotFoundResult());
+            _log.LogInformation($"Verification code: {code}");
+            _log.LogError("Not implemented!");
+            return await Task.FromResult(
+                new StatusCodeResult((int) HttpStatusCode.NotImplemented)
+            );
         }
     }
 }

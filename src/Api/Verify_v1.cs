@@ -21,7 +21,11 @@ namespace Aire.Id
         }
 
         [Function("Verify_v1")]
-        [OpenApiOperation(operationId: "Verify code", tags: ["User sign-up and verification"], Description = "Verify user email code")]
+        [OpenApiOperation(
+            operationId: "verify", 
+            tags: ["User sign-up and verification"], 
+            Summary = "Verify code", 
+            Description = "Verify user email code")]
         [OpenApiParameter("code", Description = "Verification code", In = ParameterLocation.Path, Required = true)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Verification succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Verification failed")]

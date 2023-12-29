@@ -26,7 +26,10 @@ namespace Aire.Id
         }
 
         [Function("Signup_v1")]
-        [OpenApiOperation(operationId: "Signup", tags: ["User sign-up and verification"], Description = "Register a new user")]
+        [OpenApiOperation(
+            operationId: "signup", 
+            tags: ["User sign-up and verification"],
+            Summary = "Register new user")]
         [OpenApiRequestBody("application/json", typeof(SignupRequest), Description = "Signup request", Required = true)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Signup success")]
         [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid email format, account already exists, or password does not meet minimum requirements")]

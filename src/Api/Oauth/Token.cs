@@ -19,7 +19,10 @@ namespace Aire.Id.Api
         }
 
         [Function("Oauth_Token_Post")]
-        [OpenApiOperation(operationId: "Oauth_Token_Post", tags: ["OAuth2"], Description = "OAuth2 Token Endpoint")]
+        [OpenApiOperation(
+            operationId: "oauthTokenPost", 
+            tags: ["OAuth2"], 
+            Summary = "OAuth2 Token Endpoint")]
         [OpenApiRequestBody("application/x-www-form-urlencoded", typeof(OauthTokenRequest), Description = "Request depends on the grant type used", Required = true)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(OauthTokenResponse), Description = "The OK response")]
         [OpenApiResponseWithBody(HttpStatusCode.Forbidden, "application/json", typeof(OauthErrorResponse), Description = "OAuth error response", Summary = "Access denied")]
@@ -34,7 +37,11 @@ namespace Aire.Id.Api
         }
 
         [Function("Oauth_TokenInfo_Get")]
-        [OpenApiOperation(operationId: "Oauth_TokenInfo", tags: ["OAuth2"], Description = "Verify token and get its information")]
+        [OpenApiOperation(
+            operationId: "oauthTokenInfo", 
+            tags: ["OAuth2"],
+            Summary = "Get token info",
+            Description = "Decodes and verifies given token")]
         [OpenApiParameter("token", Description = "The JWT token to verify", Required = true)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(OauthTokenResponse), Description = "Token response")]
         public IActionResult Oauth_TokenInfo(

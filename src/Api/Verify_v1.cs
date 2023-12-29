@@ -21,12 +21,12 @@ namespace Aire.Id
         }
 
         [Function("Verify_v1")]
-        [OpenApiOperation(operationId: "Run", tags: ["User sign-up and verification"], Description = "Verify user")]
+        [OpenApiOperation(operationId: "Verify code", tags: ["User sign-up and verification"], Description = "Verify user email code")]
         [OpenApiParameter("code", Description = "Verification code", In = ParameterLocation.Path, Required = true)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Verification succeeded")]
         [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Verification failed")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "This endpoint is not yet implemented!")]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> VerifyCode(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify/{code}")] HttpRequest req,
             string code)
         {

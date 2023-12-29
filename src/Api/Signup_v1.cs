@@ -26,12 +26,12 @@ namespace Aire.Id
         }
 
         [Function("Signup_v1")]
-        [OpenApiOperation(operationId: "Run", tags: ["User sign-up and verification"], Description = "Register a new user")]
+        [OpenApiOperation(operationId: "Signup", tags: ["User sign-up and verification"], Description = "Register a new user")]
         [OpenApiRequestBody("application/json", typeof(SignupRequest), Description = "Signup request", Required = true)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Signup success")]
         [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid email format, account already exists, or password does not meet minimum requirements")]
         [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error, try again later.")]
-        public async Task<IActionResult> Run(
+        public async Task<IActionResult> Signup(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/signup")] HttpRequest req)
         {
             // TODO: Return body with error messages

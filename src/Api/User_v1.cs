@@ -32,31 +32,21 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_GET")]
-        [OpenApiOperation(operationId: "Get User", tags: ["User"], Description = "Get user")]
-        [OpenApiParameter("id", Description = "User identifier")]
+        [OpenApiOperation(operationId: "Get User", tags: ["User"], Description = "Get user (identify using token)")]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(User), Description = "The user object")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
         public async Task<IActionResult> GetUser(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/user/{id?}")] HttpRequest req,
-            FunctionContext context,
-            string? id = null)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/user")] HttpRequest req,
+            FunctionContext context)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
             if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.ReadProfile))
                 return new UnauthorizedResult();
 
-            if(!string.IsNullOrEmpty(id) && id != auth!.User.ToString())
-            {
-                _log.LogWarning("Not allowed to access other user's account");
-                return new ForbiddenResult();
-            }
-            else
-            {
-                id = auth!.Token.Subject;
-            }
+            string id = auth!.Token.Subject;
 
             var userAccount = await _storage.RetrieveAsync<UserEntity>(id);
             if(userAccount != null)
@@ -78,7 +68,7 @@ namespace Aire.Id.Api
 
         [Function("User_v1_PUT")]
         [OpenApiOperation(operationId: "Edit User", tags: ["User"], Description = "Edit user private data")]
-        [OpenApiParameter("id", Description = "User identifier", Required = true)]
+        [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path, Required = true)]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiRequestBody("application/json", typeof(UserPrivate), Description = "User data", Required = true)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserPrivate), Description = "The updated user object")]
@@ -147,7 +137,7 @@ namespace Aire.Id.Api
         [Function("User_v1_ChangePassword")]
         [OpenApiOperation(operationId: "Change password", tags: ["User"], Description = "Change user password")]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
-        [OpenApiParameter("id", Description = "User identifier", Required = true)]
+        [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path, Required = true)]
         [OpenApiRequestBody("application/json", typeof(PasswordChangeRequest), Description = "Password change request", Required = true)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "The password was changed successfully")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
@@ -212,7 +202,7 @@ namespace Aire.Id.Api
         [Function("User_v1_DELETE")]
         [OpenApiOperation(operationId: "Delete User", tags: ["User"], Description = "Delete user")]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
-        [OpenApiParameter("id", Description = "User identifier", Required = true)]
+        [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path, Required = true)]
         [OpenApiRequestBody("application/json", typeof(UserDeleteRequest), Description = "Deletetion request", Required = true)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Operation completed successfully")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]

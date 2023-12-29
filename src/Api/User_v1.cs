@@ -32,7 +32,11 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_GET")]
-        [OpenApiOperation(operationId: "Get User", tags: ["User"], Description = "Get user (identify using token)")]
+        [OpenApiOperation(
+            operationId: "getUser", 
+            tags: ["User"], 
+            Summary = "Get user",
+            Description = "Gets user identified by the token")]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(User), Description = "The user object")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
@@ -67,7 +71,11 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_PUT")]
-        [OpenApiOperation(operationId: "Edit User", tags: ["User"], Description = "Edit user private data")]
+        [OpenApiOperation(
+            operationId: "editUser", 
+            tags: ["User"], 
+            Summary = "Edit user",
+            Description = "Edits user private data")]
         [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path, Required = true)]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiRequestBody("application/json", typeof(UserPrivate), Description = "User data", Required = true)]
@@ -135,7 +143,10 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_ChangePassword")]
-        [OpenApiOperation(operationId: "Change password", tags: ["User"], Description = "Change user password")]
+        [OpenApiOperation(
+            operationId: "changePassword", 
+            tags: ["User"], 
+            Summary = "Change user password")]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path, Required = true)]
         [OpenApiRequestBody("application/json", typeof(PasswordChangeRequest), Description = "Password change request", Required = true)]
@@ -200,7 +211,10 @@ namespace Aire.Id.Api
         }
 
         [Function("User_v1_DELETE")]
-        [OpenApiOperation(operationId: "Delete User", tags: ["User"], Description = "Delete user")]
+        [OpenApiOperation(
+            operationId: "deleteUser", 
+            tags: ["User"], 
+            Summary = "Delete user")]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path, Required = true)]
         [OpenApiRequestBody("application/json", typeof(UserDeleteRequest), Description = "Deletetion request", Required = true)]

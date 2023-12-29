@@ -22,7 +22,11 @@ namespace Aire.Id.Api
         }
 
         [Function("Oauth_Auth_Get")]
-        [OpenApiOperation(operationId: "Oauth_Auth_Get", tags: ["OAuth2"], Description = "OAuth2 Authorization Endpoint (using GET)")]
+        [OpenApiOperation(
+            operationId: "oauthAuthGet", 
+            tags: ["OAuth2"], 
+            Summary = "OAuth2 Auth Endpoint",
+            Description = "OAuth2 authorization endpoint using GET")]
         [OpenApiParameter("response_type", Required = true, In = ParameterLocation.Query)]
         [OpenApiParameter("client_id", Required = true, In = ParameterLocation.Query)]
         [OpenApiParameter("redirect_uri", Required = false, In = ParameterLocation.Query)]
@@ -40,7 +44,11 @@ namespace Aire.Id.Api
         }
 
         [Function("Oauth_Auth_Post")]
-        [OpenApiOperation(operationId: "Oauth_Auth_Get", tags: ["OAuth2"], Description = "OAuth2 Authorization Endpoint (using POST)")]
+        [OpenApiOperation(
+            operationId: "oauthAuthPost", 
+            tags: ["OAuth2"],
+            Summary = "OAuth2 Auth Endpoint",
+            Description = "OAuth2 authorization endpoint using POST")]
         [OpenApiRequestBody("application/x-www-form-urlencoded", typeof(OauthAuthRequest), Description = "Auth request")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "The endpoint is not yet implemented")]
         public async Task<IActionResult> Oauth_Authorize_Post(
@@ -54,7 +62,11 @@ namespace Aire.Id.Api
         }
 
         [Function("Oauth_Auth_Callback")]
-        [OpenApiOperation(operationId: "Oauth_Auth_Callback", tags: ["OAuth2"], Description = "OAuth2 Authorization Callback")]
+        [OpenApiOperation(
+            operationId: "oauthAuthCallback", 
+            tags: ["OAuth2"],
+            Summary = "OAuth Auth Code Callback",
+            Description = "OAuth2 authorization code callback")]
         [OpenApiParameter("code", Description = "Authorization code", In = ParameterLocation.Query)]
         [OpenApiParameter("state", Description = "Authorization request state value", In = ParameterLocation.Query)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "The endpoint is not yet implemented")]

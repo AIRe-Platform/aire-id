@@ -13,7 +13,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aire.Sdk.Auth", "submodules
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aire.Sdk.Helpers", "submodules\aire-dotnet-sdk\Aire.Sdk.Helpers\Aire.Sdk.Helpers.csproj", "{82D97146-8A6D-4B5B-9F2C-24064A4751EA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aire.Sdk.TableStorage", "submodules\aire-dotnet-sdk\Aire.Sdk.TableStorage\Aire.Sdk.TableStorage.csproj", "{CB97738F-270D-4B74-B220-6FF52698D657}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aire.Sdk.Azure", "submodules\aire-dotnet-sdk\Aire.Sdk.Azure\Aire.Sdk.Azure.csproj", "{CB97738F-270D-4B74-B220-6FF52698D657}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aire.Sdk.AspNetCore", "submodules\aire-dotnet-sdk\Aire.Sdk.AspNetCore\Aire.Sdk.AspNetCore.csproj", "{7EC19F59-417C-4BC5-AF4E-1A8CB3097CD6}"
 EndProject

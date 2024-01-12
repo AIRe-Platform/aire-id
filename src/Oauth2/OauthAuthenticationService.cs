@@ -1,5 +1,5 @@
 using System.Net;
-using Aire.Sdk.TableStorage;
+using Aire.Sdk.Azure;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Microsoft.AspNetCore.Http;
@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Aire.Sdk.Auth.Scopes;
 
 namespace Aire.Id.Oauth2
 {
@@ -58,11 +59,18 @@ namespace Aire.Id.Oauth2
             try
             {
                 tokenRequest = OauthTokenRequest.FromRequest(req);
-                if(tokenRequest != null && tokenRequest is OauthTokenPasswordGrantRequest)
+                if(tokenRequest != null)
                 {
-                    return await PasswordGrant((OauthTokenPasswordGrantRequest) tokenRequest!);
+                    if(tokenRequest is OauthTokenPasswordGrantRequest)
+                    {
+                        return await PasswordGrant((OauthTokenPasswordGrantRequest) tokenRequest!);
+                    }
+                    // else if (tokenRequest is OauthTokenRefreshRequest)
+                    // {
+                    //     return await RefreshTokenGrant((OauthTokenRefreshRequest) tokenRequest!);
+                    // }
+                    // Add other supported grant type handlers here
                 }
-                // TODO: Add other supported grant types
             }
             catch(OauthException ex)
             {
@@ -99,11 +107,20 @@ namespace Aire.Id.Oauth2
 
             subject.Scopes ??= new();
 
-            if(_config.DefaultScopes != null)
-                subject.Scopes.AddRange(_config.DefaultScopes);
+            if(subject.Verified)
+            {
+                if(_config.DefaultScopes != null)
+                    subject.Scopes.AddRange(_config.DefaultScopes);
 
-            if(subject.Role != null && _config.DefaultRoleScopes != null && _config.DefaultRoleScopes.ContainsKey(subject.Role))
-                subject.Scopes.AddRange(_config.DefaultRoleScopes[subject.Role]);
+                if(subject.Role != null 
+                    && _config.DefaultRoleScopes != null 
+                    && _config.DefaultRoleScopes.TryGetValue(subject.Role, out var roleScopes))
+                    subject.Scopes.AddRange(roleScopes);
+            }
+            else
+            {
+                subject.Scopes = [ AireScopes.UnverifiedAccount ];
+            }
 
             var desc = new OauthTokenDescription {
                 Subject = subject,

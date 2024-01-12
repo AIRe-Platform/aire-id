@@ -4,6 +4,12 @@ namespace Aire
     {
         public static string? StorageConnectionString => Environment.GetEnvironmentVariable("StorageConnectionString");
 
+        public static string? CommunicationServiceConnectionString => Environment.GetEnvironmentVariable("COMMUNICATION_SERVICES_CONNECTION_STRING");
+
+        public static string? EmailDomainWhitelist => Environment.GetEnvironmentVariable("EmailDomainWhitelist");
+
+        public static string? EmailSenderAddress => Environment.GetEnvironmentVariable("EmailSenderAddress");
+
         public static string? AirePlatformService => Environment.GetEnvironmentVariable("AirePlatformService");
 
         public static string? TokenSigningKey => Environment.GetEnvironmentVariable("TokenSigningKey");

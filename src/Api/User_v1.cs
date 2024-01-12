@@ -7,7 +7,7 @@ using Microsoft.OpenApi.Models;
 using Aire.Id.Models;
 using Aire.Id.Helpers;
 using Aire.Sdk.AspNetCore;
-using Aire.Sdk.TableStorage;
+using Aire.Sdk.Azure;
 using System.Web.Http;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;

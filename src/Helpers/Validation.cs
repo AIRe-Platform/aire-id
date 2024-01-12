@@ -1,5 +1,6 @@
 using System.Net.Mail;
 using System.Text.RegularExpressions;
+using Aire.Id.Models;
 
 namespace Aire.Id.Helpers
 {
@@ -11,7 +12,17 @@ namespace Aire.Id.Helpers
             { 
                 if(email == null)
                     return false;
+                    
                 var address = new MailAddress(email);
+
+                var whitelist = AireEnvironment.EmailDomainWhitelist?
+                    .Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+                if(whitelist != null && !whitelist.Contains(address.Host))
+                {
+                    return false;
+                }
+
                 return true;
             }
             catch
@@ -32,6 +43,17 @@ namespace Aire.Id.Helpers
             return !string.IsNullOrWhiteSpace(password) 
                 && (password.Length >= 6)
                 && (digits && lowercaseLetters && uppercaseLetters);
+        }
+
+        public static bool ValidateSignupCredentials(SignupRequest signup)
+        {
+            if(signup.Credentials == null)
+                return false;
+
+            return (
+                IsValidEmail(signup.Credentials.Email) && 
+                IsValidPassword(signup.Credentials.Password)
+            );
         }
     }
 }

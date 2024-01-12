@@ -1,4 +1,4 @@
-using Aire.Sdk.TableStorage;
+using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Id.Models;
 using Aire.Id.Oauth2.Models;
@@ -51,7 +51,8 @@ namespace Aire.Id.Providers
                 Claims = new Dictionary<string, object> {
                     { AireClaims.UserEncryptionKey,  key! },
                     { AireClaims.ConnectedServices, privateData!.ConnectedServices! }
-                }
+                },
+                Verified = user.Verified
             };
 
             user.LastLogin = DateTime.UtcNow;

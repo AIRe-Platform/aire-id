@@ -1,0 +1,15 @@
+Welcome to the AIRe Development Platform
+
+Here's the verification code to activate your account:
+
+{{code}}
+
+Enter it while logging in for the first time.
+
+Please note, that the code will expire after an hour. You can request a new verification code when logging in.
+
+Have fun!
+
+Best regards,
+
+AIRe Development Team

@@ -58,11 +58,18 @@ namespace Aire.Id.Oauth2
             try
             {
                 tokenRequest = OauthTokenRequest.FromRequest(req);
-                if(tokenRequest != null && tokenRequest is OauthTokenPasswordGrantRequest)
+                if(tokenRequest != null)
                 {
-                    return await PasswordGrant((OauthTokenPasswordGrantRequest) tokenRequest!);
+                    if(tokenRequest is OauthTokenPasswordGrantRequest)
+                    {
+                        return await PasswordGrant((OauthTokenPasswordGrantRequest) tokenRequest!);
+                    }
+                    // else if (tokenRequest is OauthTokenRefreshRequest)
+                    // {
+                    //     return await RefreshTokenGrant((OauthTokenRefreshRequest) tokenRequest!);
+                    // }
+                    // Add other supported grant type handlers here
                 }
-                // TODO: Add other supported grant types
             }
             catch(OauthException ex)
             {

@@ -37,6 +37,35 @@ namespace Aire.Id.Oauth2.Models
 		}
 	}
 
+	public class OauthTokenRefreshRequest : OauthTokenRequest
+	{
+		// Required
+		public string? RefreshToken { get; set; }
+
+		// Optional
+		public string? Scope { get; set; }
+
+		public OauthTokenRefreshRequest() : base(OauthGrantType.RefreshToken)
+		{
+		}
+
+		public new static OauthTokenRefreshRequest FromRequest(HttpRequest req)
+		{
+			var refreshRequest = new OauthTokenRefreshRequest
+			{
+				RefreshToken = req.ReadParam("refresh_token"),
+				Scope = req.ReadParam("scope")
+			};
+
+			if (string.IsNullOrWhiteSpace(refreshRequest.RefreshToken))
+			{
+				throw new OauthException(OauthError.InvalidRequest);
+			}
+
+			return refreshRequest;
+		}
+	}
+
 	public abstract class OauthTokenRequest
 	{
 		// Required
@@ -70,6 +99,7 @@ namespace Aire.Id.Oauth2.Models
             return grant switch
             {
                 OauthGrantType.Password => OauthTokenPasswordGrantRequest.FromRequest(req),
+				OauthGrantType.RefreshToken => OauthTokenRefreshRequest.FromRequest(req),
                 _ => throw new OauthException(OauthError.UnsupportedGrantType),
             };
         }

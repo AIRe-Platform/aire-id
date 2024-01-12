@@ -6,6 +6,7 @@ using Aire.Id.Oauth2;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using System.Net;
 using Aire.Id.Oauth2.Models;
+using Aire.Sdk.AspNetCore;
 
 namespace Aire.Id.Api
 {
@@ -36,18 +37,28 @@ namespace Aire.Id.Api
             return await _svc.HandleTokenRequest(req);
         }
 
-        [Function("Oauth_TokenInfo_Get")]
+        public class TokenInfoRequestBody
+        {
+            [OpenApiProperty(Description = "Access token", Nullable = false)]
+            public string? Token { get; set; }
+        }
+
+        [Function("Oauth_TokenInfo")]
         [OpenApiOperation(
             operationId: "oauthTokenInfo", 
             tags: ["OAuth2"],
-            Summary = "Get token info",
+            Summary = "Verify token",
             Description = "Decodes and verifies given token")]
-        [OpenApiParameter("token", Description = "The JWT token to verify", Required = true)]
+        [OpenApiRequestBody("application/x-www-form-urlencoded", typeof(TokenInfoRequestBody), Required = true)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(OauthTokenResponse), Description = "Token response")]
         public IActionResult Oauth_TokenInfo(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "oauth/tokeninfo/{token}")] HttpRequest req,
-            string token)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "oauth/tokeninfo")] HttpRequest req)
         {
+            var token = req.ReadParam("token");
+
+            if(string.IsNullOrEmpty(token))
+                return new BadRequestResult();
+
             return _svc.HandleTokenInfoRequest(token);
         }
     }

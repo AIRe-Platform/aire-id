@@ -20,7 +20,12 @@ namespace Aire.Id.Models
         public string? Scopes { get; set; }
         public DateTime? LastLogin { get; set; }
         public DateTime? EulaAccepted { get; set; }
-        bool Verified { get; set; }
+
+        // Verification
+        public bool Verified { get; set; }
+        public string? VerificationCode { get; set; }
+        public DateTime? VerificationCodeExpiry { get; set; }
+        public int? VerificationCodeRetryCount { get; set; }
 
         // Password properties
         public string? PasswordSalt { get; set; }
@@ -140,6 +145,19 @@ namespace Aire.Id.Models
 
             var encKeyBytes = RandomNumberGenerator.GetBytes(32);
             SetEncryptionKey(uuid, password, encKeyBytes);
+        }
+
+        /// <summary>
+        /// Sets account unverified and generates 
+        /// </summary>
+        public string GenerateVerificationCode()
+        {
+            string code = RandomNumberGenerator.GetInt32(0, 1000000).ToString("D6");
+            Verified = false;
+            VerificationCode = code;
+            VerificationCodeExpiry = DateTime.UtcNow.AddHours(1);
+            VerificationCodeRetryCount = 0;
+            return code;
         }
 
         /// <summary>

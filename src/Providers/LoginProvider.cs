@@ -51,7 +51,8 @@ namespace Aire.Id.Providers
                 Claims = new Dictionary<string, object> {
                     { AireClaims.UserEncryptionKey,  key! },
                     { AireClaims.ConnectedServices, privateData!.ConnectedServices! }
-                }
+                },
+                Verified = user.Verified
             };
 
             user.LastLogin = DateTime.UtcNow;

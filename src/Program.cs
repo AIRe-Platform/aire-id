@@ -1,4 +1,5 @@
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Extensions.OpenApi.Extensions;
@@ -15,6 +16,7 @@ using Aire.Sdk.Auth.Extensions;
 using Aire.Sdk.Auth.Roles;
 using Aire.Sdk.Auth.Scopes;
 using Aire.Sdk.Auth.Models;
+using Azure.Storage.Queues;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker => {
@@ -33,6 +35,18 @@ var host = new HostBuilder()
 
         services.AddMvcCore().AddNewtonsoftJson(options => {
             options.SerializerSettings.NullValueHandling = NullValueHandling.Ignore;
+        });
+
+        services.AddAzureClients(builder => {
+            builder
+                .AddEmailClient(AireEnvironment.CommunicationServiceConnectionString)
+                .WithName("acs");
+
+            builder.AddQueueServiceClient(AireEnvironment.StorageConnectionString)
+                .ConfigureOptions(options => {
+                    options.MessageEncoding = QueueMessageEncoding.Base64;
+                })
+                .WithName("queue-client");
         });
 
         services

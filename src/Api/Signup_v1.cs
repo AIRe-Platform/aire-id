@@ -1,26 +1,30 @@
 using System.Net;
-using System.Web.Http;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Id.Models;
 using Aire.Id.Helpers;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Azure.Storage.Queues;
+using Microsoft.Extensions.Azure;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using System.Web.Http;
 
 namespace Aire.Id
 {
     public class Signup_v1
     {
         private readonly ITableStorageService _storage;
+        private readonly QueueClient _mail_queue;
         private readonly ILogger<Signup_v1> _log;
 
-        public Signup_v1(ITableStorageService storage, ILogger<Signup_v1> log)
+        public Signup_v1(ITableStorageService storage, IAzureClientFactory<QueueServiceClient> clientFactory, ILogger<Signup_v1> log)
         {
             _storage = storage;
+            _mail_queue = clientFactory.CreateClient("queue-client").GetQueueClient("mail-queue");
             _log = log;
         }
 
@@ -36,24 +40,22 @@ namespace Aire.Id
         public async Task<IActionResult> Signup(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/signup")] HttpRequest req)
         {
-            // TODO: Return body with error messages
-            // TODO: Send verification email and implement Verify_v1
-
-            var request = await req.ReadJson<SignupRequest>();
+            // TODO: Return error codes
+            
+            var request = await req.ReadFromJsonAsync<SignupRequest>();
 
             if(request == null)
                 return new BadRequestResult();
 
-            if(!(Validation.IsValidEmail(request.Credentials?.Email) && Validation.IsValidPassword(request.Credentials?.Password)))
+            if(!Validation.ValidateSignupCredentials(request))
                 return new BadRequestResult();
 
             var hash = Crypto.SHA256Base16(request.Credentials!.Email!);
             var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
+            var ent = await query.FirstOrDefaultAsync();
 
-            await foreach(UserEntity ent in query)
-            {
+            if(ent != null)
                 return new BadRequestResult();
-            }
 
             var uuid = Guid.NewGuid().ToString();
             var pw = request.Credentials!.Password!;
@@ -65,16 +67,33 @@ namespace Aire.Id
             user.GenerateEncryptionKey(uuid, pw);
             user.ChangePassword(null, pw);
 
+            string verificationCode = user.GenerateVerificationCode();
+
             var key = user.GetEncryptionKey(pw);
             var userData = new User {
                 Email = request.Credentials.Email
             };
             user.SetPrivateUserData(userData, key!);
 
-            bool result = await _storage.UpsertAsync(user);
-            if(!result)
             {
-                return new InternalServerErrorResult();
+                bool result = await _storage.UpsertAsync(user);
+                if(!result)
+                    return new InternalServerErrorResult();
+            }
+
+            var mail = new MailTemplate 
+            {
+                Locale = userData.Language,
+                Recipient = request.Credentials.Email,
+                TemplateName = "verification",
+                Values = new Dictionary<string, string> {
+                    { "code", verificationCode }
+                }
+            };
+
+            {
+                var result = await _mail_queue.SendMessageAsync(mail.ObjectToJson());
+                _log.LogInformation($"Queued verification mail. MessageId: {result.Value.MessageId}");
             }
 
             return new NoContentResult();

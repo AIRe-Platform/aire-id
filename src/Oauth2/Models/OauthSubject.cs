@@ -6,5 +6,6 @@ namespace Aire.Id.Oauth2.Models
         public string? Role { get; set; }
         public List<string>? Scopes { get; set; }
         public Dictionary<string, object>? Claims { get; set; }
+        public bool Verified { get; set; }
     }
 }

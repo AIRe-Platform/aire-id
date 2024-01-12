@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Aire.Sdk.Auth.Scopes;
 
 namespace Aire.Id.Oauth2
 {
@@ -106,11 +107,20 @@ namespace Aire.Id.Oauth2
 
             subject.Scopes ??= new();
 
-            if(_config.DefaultScopes != null)
-                subject.Scopes.AddRange(_config.DefaultScopes);
+            if(subject.Verified)
+            {
+                if(_config.DefaultScopes != null)
+                    subject.Scopes.AddRange(_config.DefaultScopes);
 
-            if(subject.Role != null && _config.DefaultRoleScopes != null && _config.DefaultRoleScopes.ContainsKey(subject.Role))
-                subject.Scopes.AddRange(_config.DefaultRoleScopes[subject.Role]);
+                if(subject.Role != null 
+                    && _config.DefaultRoleScopes != null 
+                    && _config.DefaultRoleScopes.TryGetValue(subject.Role, out var roleScopes))
+                    subject.Scopes.AddRange(roleScopes);
+            }
+            else
+            {
+                subject.Scopes = [ AireScopes.UnverifiedAccount ];
+            }
 
             var desc = new OauthTokenDescription {
                 Subject = subject,

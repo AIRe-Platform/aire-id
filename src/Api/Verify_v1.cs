@@ -1,6 +1,5 @@
 using System.Net;
-using Aire.Sdk.TableStorage;
-using Microsoft.AspNetCore.Http;
+using Aire.Sdk.Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;

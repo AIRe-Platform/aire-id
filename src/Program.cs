@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 using Aire;
 using Aire.Id.Oauth2;
 using Aire.Id.Providers;
-using Aire.Sdk.TableStorage;
+using Aire.Sdk.Azure;
 using Aire.Sdk.Auth.Extensions;
 using Aire.Sdk.Auth.Roles;
 using Aire.Sdk.Auth.Scopes;

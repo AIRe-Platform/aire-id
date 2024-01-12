@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 using System.Security.Cryptography;
-using Aire.Sdk.TableStorage;
+using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Services.Models;
 

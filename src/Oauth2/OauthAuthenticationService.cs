@@ -1,5 +1,5 @@
 using System.Net;
-using Aire.Sdk.TableStorage;
+using Aire.Sdk.Azure;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Microsoft.AspNetCore.Http;

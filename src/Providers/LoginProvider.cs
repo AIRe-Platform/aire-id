@@ -1,4 +1,4 @@
-using Aire.Sdk.TableStorage;
+using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Id.Models;
 using Aire.Id.Oauth2.Models;

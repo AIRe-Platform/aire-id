@@ -68,10 +68,12 @@ var host = new HostBuilder()
                     Version = "0.1.0",
                     Title = "AIRe ID Module",
                     Description = "This is the reference implementation of AIRe Platform ID module."
-                },
-                Servers = DefaultOpenApiConfigurationOptions.GetHostNames(),
+                },                
+                Servers = [
+                    new OpenApiServer { Url = AireEnvironment.OpenApiHost ?? "/api" }
+                ],
                 OpenApiVersion = OpenApiVersionType.V3,
-                IncludeRequestingHostName = true,
+                IncludeRequestingHostName = false,
                 ForceHttp = false,
                 ForceHttps = false,
             };

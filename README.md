@@ -4,11 +4,15 @@ This module handles authentication and user accounts.
 
 ## Getting Started
 
-Open the solution in VS Code (on Windows/Linux/macOS). Install the recommended extensions. Hit F5 and you should be good to go.
+You need to have [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) installed. Pull the repository and its submodules.
 
-You may also use Visual Studio on macOS and Windows.
+Open the solution in VS Code (recommended, works on Windows/Linux/macOS). You may also use Visual Studio on macOS and Windows.
 
-Remember to configure!
+On VS Code: Install the recommended extensions.
+
+Configure `local.settings.json` as instructed. You should be running the AIRe Services module locally with Azurite. Add `mail-queue` queue into the Table Storage if it does not exist.
+
+Hit F5 and you should be good to go.
 
 ## Configuration
 
@@ -26,7 +30,6 @@ You should create `local.settings.json` in the root of the repository when devel
         "TokenEncryptionKey": "<enryption key shared between platform modules>",
         "TokenIssuer": "http://localhost:7072",
         "TokenAudience": "http://localhost",
-        "OpenApi__HostNames": "http://localhost:7072/api/"
     },
     "Host": {
         "LocalHttpPort": 7072,
@@ -35,13 +38,14 @@ You should create `local.settings.json` in the root of the repository when devel
     }
 }
 ```
+
+Use the same token keys you are using in AIRe Services module.
+
 ## API Documentation
 
-Visit path `/api/swagger/ui` to inspect. If running in localhost, there's an issue where the configuration file URL gets an invalid port.
+Visit path `/api/swagger/ui` to inspect. The default host is set to `/api` path.
 
-Simply change in the correct port in the top bar to work around the issue.
-
-Example: If the module is running on port `7072` change the URL to `http://localhost:7072/api/swagger.json`.
+You can set a custom host with `OpenApi__HostNames` environment value.
 
 ## Deployment
 

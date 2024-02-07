@@ -47,7 +47,7 @@ namespace Aire.Id.Api
             FunctionContext context)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.ReadProfile))
+            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadProfile))
                 return new UnauthorizedResult();
 
             string id = auth!.Token.Subject;
@@ -91,7 +91,7 @@ namespace Aire.Id.Api
             string id)
         {      
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.EditProfile))
+            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditProfile))
                 return new UnauthorizedResult();
 
             if(auth!.User.ToString() != id)
@@ -162,7 +162,7 @@ namespace Aire.Id.Api
             string id)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.EditProfile))
+            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditProfile))
                 return new UnauthorizedResult();
 
             if(auth!.Token.Subject != id)
@@ -230,7 +230,7 @@ namespace Aire.Id.Api
             string id)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.DeleteProfile))
+            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.DeleteProfile))
                 return new UnauthorizedResult();
 
             if(auth!.Token.Subject != id)

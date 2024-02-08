@@ -57,7 +57,7 @@ namespace Aire.Id
             FunctionContext context)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.UnverifiedAccount))
+            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.UnverifiedAccount))
                 return new UnauthorizedResult();
 
             string id = auth!.Token.Subject;
@@ -113,7 +113,7 @@ namespace Aire.Id
             FunctionContext context)
         {            
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, AireRoles.User, AireScopes.UnverifiedAccount))
+            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.UnverifiedAccount))
                 return new UnauthorizedResult();
 
             string id = auth!.Token.Subject;

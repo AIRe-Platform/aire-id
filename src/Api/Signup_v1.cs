@@ -12,6 +12,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using System.Web.Http;
+using Aire.Sdk.Auth.Roles;
 
 namespace Aire.Id
 {
@@ -62,7 +63,8 @@ namespace Aire.Id
             
             var user = new UserEntity() { 
                 UUID = uuid,
-                EmailHash = hash
+                EmailHash = hash,
+                Role = AireRoles.User
             };
             user.GenerateEncryptionKey(uuid, pw);
             user.ChangePassword(null, pw);

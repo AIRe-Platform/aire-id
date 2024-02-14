@@ -1,17 +1,17 @@
 using System.Net;
-using Aire.Sdk.Azure;
-using Aire.Sdk.Helpers;
-using Aire.Id.Models;
-using Aire.Id.Helpers;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using System.Web.Http;
 using Azure.Storage.Queues;
-using Microsoft.Extensions.Azure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using System.Web.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using Aire.Id.Models;
+using Aire.Id.Helpers;
+using Aire.Sdk.Azure;
+using Aire.Sdk.Helpers;
 using Aire.Sdk.Auth.Roles;
 
 namespace Aire.Id

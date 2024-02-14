@@ -1,20 +1,19 @@
 using System.Net;
+using System.Web.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Aire.Id.Models;
 using Aire.Id.Helpers;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Azure;
-using System.Web.Http;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Aire.Sdk.Auth.Models;
 using Aire.Sdk.Auth.Services;
 using Aire.Sdk.Auth.Scopes;
-using Aire.Sdk.Auth.Roles;
 
 namespace Aire.Id.Api
 {
@@ -31,7 +30,7 @@ namespace Aire.Id.Api
             _log = log;
         }
 
-        [Function("User_v1_GET")]
+        [Function("GetUser_v1")]
         [OpenApiOperation(
             operationId: "getUser", 
             tags: ["User"], 
@@ -70,7 +69,7 @@ namespace Aire.Id.Api
             return new NotFoundResult();
         }
 
-        [Function("User_v1_PUT")]
+        [Function("EditUser_v1")]
         [OpenApiOperation(
             operationId: "editUser", 
             tags: ["User"], 
@@ -142,7 +141,7 @@ namespace Aire.Id.Api
             }
         }
 
-        [Function("User_v1_ChangePassword")]
+        [Function("ChangePassword_v1")]
         [OpenApiOperation(
             operationId: "changePassword", 
             tags: ["User"], 
@@ -210,7 +209,7 @@ namespace Aire.Id.Api
             }
         }
 
-        [Function("User_v1_DELETE")]
+        [Function("DeleteUser_v1")]
         [OpenApiOperation(
             operationId: "deleteUser", 
             tags: ["User"], 

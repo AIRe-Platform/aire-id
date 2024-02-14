@@ -17,6 +17,7 @@ using Aire.Sdk.Auth.Scopes;
 using Aire.Sdk.Auth.Services;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Helpers;
+using Aire.Sdk.Models.Identity;
 
 namespace Aire.Id
 {

@@ -13,6 +13,7 @@ using Aire.Id.Helpers;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Sdk.Auth.Roles;
+using Aire.Sdk.Models.Identity;
 
 namespace Aire.Id
 {

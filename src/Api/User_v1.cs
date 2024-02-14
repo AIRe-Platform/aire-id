@@ -14,6 +14,7 @@ using Aire.Sdk.Azure;
 using Aire.Sdk.Auth.Models;
 using Aire.Sdk.Auth.Services;
 using Aire.Sdk.Auth.Scopes;
+using Aire.Sdk.Models.Identity;
 
 namespace Aire.Id.Api
 {

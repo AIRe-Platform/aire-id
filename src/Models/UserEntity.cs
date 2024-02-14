@@ -2,6 +2,7 @@ using System.Runtime.Serialization;
 using System.Security.Cryptography;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
+using Aire.Sdk.Models.Identity;
 using Aire.Services.Models;
 
 namespace Aire.Id.Models

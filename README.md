@@ -57,6 +57,9 @@ Publish the Functions app and then setup the following required environment valu
 - `TokenEncryptionKey` The token encryption key shared between the platform instance modules.
 - `TokenIssuer` The token issuer host URL, the same as the service's host.
 - `TokenAudience` Comma-separated list of audiences.
+- `COMMUNICATION_SERVICES_CONNECTION_STRING`: Azure Communication Services (ACS) connection string.
+- `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
+- `EmailSenderAddress` The sender address configured in ACS.
 
 ## Disclaimer
 

@@ -1,10 +1,10 @@
+using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.OpenApi.Models;
 using Aire.Id.Oauth2;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using System.Net;
 using Aire.Id.Oauth2.Models;
 using Aire.Sdk.AspNetCore;
 

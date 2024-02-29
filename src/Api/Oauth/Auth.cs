@@ -1,12 +1,12 @@
+using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Aire.Id.Oauth2;
-using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Aire.Id.Oauth2.Models;
-using System.Net;
 
 namespace Aire.Id.Api
 {
@@ -65,7 +65,7 @@ namespace Aire.Id.Api
         [OpenApiOperation(
             operationId: "oauthAuthCallback", 
             tags: ["OAuth2"],
-            Summary = "OAuth Auth Code Callback",
+            Summary = "OAuth2 Auth Code Callback",
             Description = "OAuth2 authorization code callback")]
         [OpenApiParameter("code", Description = "Authorization code", In = ParameterLocation.Query)]
         [OpenApiParameter("state", Description = "Authorization request state value", In = ParameterLocation.Query)]

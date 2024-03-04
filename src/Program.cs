@@ -52,10 +52,7 @@ var host = new HostBuilder()
         services
             .AddSingleton<ITableStorageService, TableStorageService>()
             .Configure<OauthConfiguration>(o => {
-                o.DefaultRoleScopes = new() {
-                    { AireRoles.User, AireScopes.UserScopes },
-                    { AireRoles.Admin, AireScopes.AdminScopes }
-                };
+                o.DefaultRoleScopes = AireScopes.DefaultRoleScopes;
                 o.TokenLifetime = TimeSpan.FromDays(3);
                 o.DefaultScopes = [];
             })

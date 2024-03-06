@@ -12,10 +12,8 @@ using Aire;
 using Aire.Id.Oauth2;
 using Aire.Id.Providers;
 using Aire.Sdk.Azure;
+using Aire.Sdk.Auth;
 using Aire.Sdk.Auth.Extensions;
-using Aire.Sdk.Auth.Roles;
-using Aire.Sdk.Auth.Scopes;
-using Aire.Sdk.Auth.Models;
 using Azure.Storage.Queues;
 
 var host = new HostBuilder()

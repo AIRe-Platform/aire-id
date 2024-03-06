@@ -17,6 +17,7 @@ namespace Aire.Id.Models
             set { PartitionKey = value; RowKey = value; }
         }
 
+        public string? Username { get; set; }
         public string? EmailHash { get; set; }
         public string? Role { get; set; }
         public string? Scopes { get; set; }

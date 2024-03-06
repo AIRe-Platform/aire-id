@@ -1,5 +1,10 @@
 using System.Net;
 using System.Web.Http;
+using Aire.Id.Models;
+using Aire.Sdk.Azure;
+using Aire.Sdk.Auth;
+using Aire.Sdk.AspNetCore;
+using Aire.Sdk.Helpers;
 using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,14 +15,6 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Aire.Id.Models;
-using Aire.Sdk.Azure;
-using Aire.Sdk.Auth.Models;
-using Aire.Sdk.Auth.Scopes;
-using Aire.Sdk.Auth.Services;
-using Aire.Sdk.AspNetCore;
-using Aire.Sdk.Helpers;
-using Aire.Sdk.Models.Identity;
 
 namespace Aire.Id
 {
@@ -43,7 +40,7 @@ namespace Aire.Id
         [Function("Verify_v1")]
         [OpenApiOperation(
             operationId: "verifyCode", 
-            tags: ["User sign-up and verification"], 
+            tags: ["Verification"], 
             Summary = "Activate user account with a verification code")]
         [OpenApiParameter("code", Description = "Verification code", In = ParameterLocation.Path, Required = true)]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
@@ -102,7 +99,7 @@ namespace Aire.Id
         [Function("ResendVerify_v1")]
         [OpenApiOperation(
             operationId: "resendVerify", 
-            tags: ["User sign-up and verification"], 
+            tags: ["Verification"], 
             Summary = "Re-send the verification email")]
         [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Success")]

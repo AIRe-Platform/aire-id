@@ -1,4 +1,5 @@
 using System.Net;
+using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
@@ -8,7 +9,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Aire.Sdk.Auth.Scopes;
 
 namespace Aire.Id.Oauth2
 {
@@ -101,31 +101,15 @@ namespace Aire.Id.Oauth2
 
         private async Task<IActionResult> PasswordGrant(OauthTokenPasswordGrantRequest req)
         {
-            var subject = await _loginProvider.GetUser(req.Username!, req.Password!);
+            var subject = await _loginProvider.Login(req.Username!, req.Password!);
             if (subject == null)
                 throw new OauthException(OauthError.InvalidGrant);
 
-            subject.Scopes ??= new();
-
-            if (subject.Verified)
+            subject.Scopes ??= [];
+            if (!string.IsNullOrWhiteSpace(req.Scope))
             {
-                if (subject.Scopes.Count == 0)
-                {
-                    if (subject.Role != null
-                        && _config.DefaultRoleScopes != null
-                        && _config.DefaultRoleScopes.TryGetValue(subject.Role, out var roleScopes))
-                    {
-                        subject.Scopes.AddRange(roleScopes);
-                    }
-                    else if (_config.DefaultScopes != null)
-                    {
-                        subject.Scopes.AddRange(_config.DefaultScopes);
-                    }
-                }
-            }
-            else
-            {
-                subject.Scopes = [AireScopes.UnverifiedAccount];
+                var requestedScopes = req.Scope.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                subject.Scopes = requestedScopes.Where(x => subject.Scopes.Contains(x)).ToList();
             }
 
             var desc = new OauthTokenDescription
@@ -135,12 +119,6 @@ namespace Aire.Id.Oauth2
             };
 
             var token = _tokenProvider.IssueNewToken(desc);
-
-            if (!string.IsNullOrWhiteSpace(req.Scope))
-            {
-                var requestedScopes = req.Scope.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                subject.Scopes = requestedScopes.Where(x => subject.Scopes.Contains(x)).ToList();
-            }
 
             var response = new OauthTokenResponse
             {

@@ -1,11 +1,10 @@
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
+using Aire.Sdk.Auth;
 using Aire.Id.Models;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
-using Aire.Sdk.Auth.Roles;
 using Microsoft.Extensions.Logging;
-using Aire.Sdk.Auth.Claims;
 
 namespace Aire.Id.Providers
 {
@@ -20,11 +19,11 @@ namespace Aire.Id.Providers
             _log = log;
         }
 
-        public async Task<OauthSubject?> GetUser(string username, string password)
+        public async Task<OauthSubject?> Login(string username, string password)
         {
             var hash = Crypto.SHA256Base16(username);
 
-            var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
+            var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash || x.Username == username);
             var user = await query.FirstOrDefaultAsync();
 
             if(user == null)
@@ -38,22 +37,9 @@ namespace Aire.Id.Providers
                 _log.LogWarning("Incorrect password");
                 return null;
             }
-
-            var key = user.GetEncryptionKey(password);
-            var privateData = user.GetPrivateUserData(key!);
-
-            var subject = new OauthSubject {
-                Subject = user.UUID,
-                Role = user.Role ?? AireRoles.User,
-                Scopes = user.Scopes?
-                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .ToList(),
-                Claims = new Dictionary<string, object> {
-                    { AireClaims.UserEncryptionKey,  key! },
-                    { AireClaims.ConnectedServices, privateData!.ConnectedServices! }
-                },
-                Verified = user.Verified
-            };
+            
+            var key = user.GetEncryptionKey(password)!;
+            var subject = GetSubject(user, key);
 
             user.LastLogin = DateTime.UtcNow;
             if(!await _storage.UpsertAsync(user))
@@ -64,5 +50,50 @@ namespace Aire.Id.Providers
 
             return subject;
         }
+
+        public OauthSubject GetSubject(UserEntity user, string key)
+        {
+            var privateData = user.GetPrivateUserData(key!);
+
+            var subject = new OauthSubject {
+                Subject = user.UUID,
+                Role = user.Role ?? AireRoles.User,
+                Scopes = user.Scopes?
+                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .ToList(),
+                Claims = new Dictionary<string, object> {
+                    { AireClaims.UserEncryptionKey,  key },
+                    { AireClaims.ConnectedServices, privateData!.ConnectedServices! }
+                },
+                Verified = user.Verified
+            };
+
+            subject.Scopes ??= [];
+            if (subject.Verified)
+            {
+                if (subject.Scopes.Count == 0)
+                {
+                    if (subject.Role != null
+                        && AireScopes.DefaultRoleScopes != null
+                        && AireScopes.DefaultRoleScopes.TryGetValue(subject.Role, out var roleScopes))
+                    {
+                        subject.Scopes.AddRange(roleScopes);
+                    }
+                }
+
+                var additionalScopes = user.AdditionalScopes?                    
+                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                    .ToList();
+                    
+                if(additionalScopes != null)
+                    subject.Scopes.AddRange(additionalScopes);
+            }
+            else
+            {
+                subject.Scopes = [AireScopes.UnverifiedAccount];
+            }
+
+            return subject;
+        } 
     }
 }

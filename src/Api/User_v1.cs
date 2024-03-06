@@ -11,10 +11,9 @@ using Aire.Id.Models;
 using Aire.Id.Helpers;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Azure;
-using Aire.Sdk.Auth.Models;
-using Aire.Sdk.Auth.Services;
-using Aire.Sdk.Auth.Scopes;
+using Aire.Sdk.Auth;
 using Aire.Sdk.Models.Identity;
+using Aire.Sdk.Platform.Clients;
 
 namespace Aire.Id.Api
 {
@@ -22,12 +21,14 @@ namespace Aire.Id.Api
     {
         private readonly IJwtTokenService _jwt;
         private readonly ITableStorageService _storage;
+        private readonly IAireClientFactory _clientFactory;
         private readonly ILogger<User_v1> _log;
 
-        public User_v1(IJwtTokenService jwt, ITableStorageService storage, ILogger<User_v1> log)
+        public User_v1(IJwtTokenService jwt, ITableStorageService storage, IAireClientFactory clientFactory, ILogger<User_v1> log)
         {
             _jwt = jwt;
             _storage = storage;
+            _clientFactory = clientFactory;
             _log = log;
         }
 
@@ -259,13 +260,22 @@ namespace Aire.Id.Api
                 return new BadRequestResult();
             }
 
-            bool result = await _storage.DeleteAsync(user);
-            if(result)
+            // Delete user data from Memory module
+            var memoryService = await _clientFactory.CreateMemoryClient(auth!.JwtEncodedToken);
+            if(memoryService != null)
             {
-                if(!options.KeepAnonymizedData)
+                bool dataDeleted = await memoryService.DestroyUserData(options.KeepAnonymizedData);
+                if(!dataDeleted)
                 {
-                    _log.LogWarning("REMOVING PLATFORM-WIDE USER DATA IS NOT IMPLEMENTED YET");
+                    _log.LogCritical("Failure to delete data from the Memory module");
+                    return new InternalServerErrorResult();
                 }
+            }
+
+            // Delete user when data is destroyed
+            bool userDeleted = await _storage.DeleteAsync(user);
+            if(userDeleted)
+            {
                 return new NoContentResult();
             }
             else

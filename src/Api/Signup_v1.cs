@@ -1,5 +1,11 @@
 using System.Net;
 using System.Web.Http;
+using Aire.Id.Models;
+using Aire.Id.Helpers;
+using Aire.Sdk.Azure;
+using Aire.Sdk.Helpers;
+using Aire.Sdk.Auth;
+using Aire.Sdk.Models.Identity;
 using Azure.Storage.Queues;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
@@ -8,12 +14,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Aire.Id.Models;
-using Aire.Id.Helpers;
-using Aire.Sdk.Azure;
-using Aire.Sdk.Helpers;
-using Aire.Sdk.Auth.Roles;
-using Aire.Sdk.Models.Identity;
 
 namespace Aire.Id
 {
@@ -33,7 +33,7 @@ namespace Aire.Id
         [Function("Signup_v1")]
         [OpenApiOperation(
             operationId: "signup", 
-            tags: ["User sign-up and verification"],
+            tags: ["Sign-up"],
             Summary = "Register new user")]
         [OpenApiRequestBody("application/json", typeof(SignupRequest), Description = "Signup request", Required = true)]
         [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Signup success")]

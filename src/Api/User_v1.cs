@@ -163,7 +163,7 @@ namespace Aire.Id.Api
             string id)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
-            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditProfile))
+            if(!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.PasswordChange))
                 return new UnauthorizedResult();
 
             if(auth!.Token.Subject != id)

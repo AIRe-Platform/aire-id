@@ -196,7 +196,8 @@ public class Demo_v1
             Id = groupId,
             Name = group.Name,
             UsernamePrefix = group.UsernamePrefix,
-            Users = subjects
+            Users = subjects,
+            Active = true
         };
 
         if (!await _storage.UpsertAsync(groupEntity))
@@ -243,13 +244,17 @@ public class Demo_v1
         if (!string.IsNullOrWhiteSpace(group.Name))
             entity.Name = group.Name;
 
+        if (group.Active.HasValue)
+            entity.Active = group.Active;
+
         if (!await _storage.UpsertAsync(entity))
             throw new SystemException("Failed to insert group entity");
 
         var result = new DemoGroup
         {
             Id = entity.Id,
-            Name = entity.Name
+            Name = entity.Name,
+            Active = entity.Active
         };
 
         return new OkObjectResult(result);
@@ -290,16 +295,17 @@ public class Demo_v1
             // Delete user data from Memory (pretend to be the subject)
             var subjectKey = entity.GetEncryptionKey(subject.AccessCode!);
             var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!);
-            var token = _tokenProvider.IssueNewToken(new Oauth2.Models.OauthTokenDescription {
+            var token = _tokenProvider.IssueNewToken(new Oauth2.Models.OauthTokenDescription
+            {
                 Subject = oauthSubject,
                 Lifetime = TimeSpan.FromMinutes(5)
             });
 
             var memoryService = await _clientFactory.CreateMemoryClient(token);
-            if(memoryService != null)
+            if (memoryService != null)
             {
                 bool deleteData = await memoryService.DestroyUserData(true); // anonymize, decrypt
-                if(!deleteData)
+                if (!deleteData)
                     throw new Exception($"Failure to destroy user '{entity.UUID}' data from Memory");
             }
 

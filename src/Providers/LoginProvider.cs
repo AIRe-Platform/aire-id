@@ -37,6 +37,20 @@ namespace Aire.Id.Providers
                 _log.LogWarning("Incorrect password");
                 return null;
             }
+
+            if(user.Role == AireRoles.DemoUser)
+            {
+                var asDemoUser = await _storage.RetrieveAsync<DemoUserEntity>(user.UUID!);
+                if(asDemoUser?.DemoGroupId != null)
+                {
+                    var group = await _storage.RetrieveAsync<DemoGroupEntity>(asDemoUser.DemoGroupId);
+                    if(group == null || group.Active == false)
+                    {
+                        _log.LogWarning("The demo user is deactivated");
+                        return null;
+                    }
+                }
+            }
             
             var key = user.GetEncryptionKey(password)!;
             var subject = GetSubject(user, key);

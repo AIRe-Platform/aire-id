@@ -23,6 +23,7 @@ public class DemoGroupEntity : BaseTableEntity
     public string? Name { get; set; }
     public string? UsernamePrefix { get; set; }
     public string? UsersJson { get; set; }
+    public bool? Active { get; set; }
 
     [IgnoreDataMember]
     public List<DemoUser>? Users

@@ -61,7 +61,8 @@ public class Demo_v1
         var groups = await query.Select(x => new DemoGroup
         {
             Id = x.Id,
-            Name = x.Name
+            Name = x.Name,
+            Active = x.Active
         }).ToListAsync();
 
         return new OkObjectResult(groups);
@@ -126,7 +127,7 @@ public class Demo_v1
         tags: ["Demo"],
         Summary = "Create a demo group")]
     [OpenApiRequestBody("application/json", typeof(DemoGroupCreateRequest), Description = "Group information")]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoUser>), Description = "List of the generated demo users")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(DemoGroup), Description = "Demo group object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
@@ -203,7 +204,14 @@ public class Demo_v1
         if (!await _storage.UpsertAsync(groupEntity))
             throw new SystemException("Failed to insert group entity");
 
-        return new OkObjectResult(subjects);
+        var response = new DemoGroup
+        {
+            Id = groupEntity.Id,
+            Name = groupEntity.Name,
+            Active = true
+        };
+
+        return new OkObjectResult(response);
     }
 
     [Function("EditDemoGroup_v1")]

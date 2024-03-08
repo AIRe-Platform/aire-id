@@ -146,7 +146,7 @@ public class Demo_v1
         if (string.IsNullOrWhiteSpace(group.Name) ||
             string.IsNullOrWhiteSpace(group.UsernamePrefix) ||
             !Regex.IsMatch(group.UsernamePrefix, @"^([\w\d]+[_-]?)+$") ||
-            group.Count < 1)
+            group.Count < 1 || group.Count > 100)
         {
             return new BadRequestResult();
         }

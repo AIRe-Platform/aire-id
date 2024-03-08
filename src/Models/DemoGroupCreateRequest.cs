@@ -5,7 +5,7 @@ namespace Aire.Sdk.Models.Demo;
 
 public class DemoGroupCreateRequest
 {
-    [JsonProperty("group", Required = Required.Always)]
+    [JsonProperty("name", Required = Required.Always)]
     [OpenApiProperty(Description = "Demo group name")]
     public string? Name { get; set; }
 

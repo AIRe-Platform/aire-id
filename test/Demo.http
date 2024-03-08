@@ -13,7 +13,7 @@ Authorization: Bearer {{token}}
 Content-Type: application/json
 Accept: application/json
 
-{ "group": "Test Demo Group", "count": 10, "username_prefix": "demo_" }
+{ "name": "Test Demo Group", "count": 10, "username_prefix": "demo_" }
 
 ### Edit demo group
 PUT {{base}}/v1/demo/group/{{group_id}} HTTP/1.1

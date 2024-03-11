@@ -26,7 +26,10 @@ namespace Aire.Id
         public Signup_v1(ITableStorageService storage, IAzureClientFactory<QueueServiceClient> clientFactory, ILogger<Signup_v1> log)
         {
             _storage = storage;
-            _mail_queue = clientFactory.CreateClient("queue-client").GetQueueClient("mail-queue");
+            _mail_queue = clientFactory
+                .CreateClient("queue-client")
+                .GetQueueClient(AireConstants.MailQueue);
+            _mail_queue.CreateIfNotExists();
             _log = log;
         }
 

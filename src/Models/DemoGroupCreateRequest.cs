@@ -1,0 +1,19 @@
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Newtonsoft.Json;
+
+namespace Aire.Sdk.Models.Demo;
+
+public class DemoGroupCreateRequest
+{
+    [JsonProperty("name", Required = Required.Always)]
+    [OpenApiProperty(Description = "Demo group name")]
+    public string? Name { get; set; }
+
+    [JsonProperty("count", Required = Required.Always)]
+    [OpenApiProperty(Description = "Number of users to generate in the group")]
+    public int? Count { get; set; }
+
+    [JsonProperty("username_prefix", Required = Required.Always)]
+    [OpenApiProperty(Description = "Prefix to use when generating usernames")]
+    public string? UsernamePrefix { get; set; }
+}

@@ -1,6 +1,6 @@
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
-using Aire.Sdk.Auth.Services;
+using Aire.Sdk.Auth;
 using Microsoft.Extensions.Logging;
 
 namespace Aire.Id.Providers

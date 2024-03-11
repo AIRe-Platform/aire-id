@@ -12,11 +12,11 @@ using Aire;
 using Aire.Id.Oauth2;
 using Aire.Id.Providers;
 using Aire.Sdk.Azure;
+using Aire.Sdk.Auth;
 using Aire.Sdk.Auth.Extensions;
-using Aire.Sdk.Auth.Roles;
-using Aire.Sdk.Auth.Scopes;
-using Aire.Sdk.Auth.Models;
 using Azure.Storage.Queues;
+using Aire.Sdk.Platform;
+using Aire.Sdk.Platform.Clients;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker => {
@@ -30,6 +30,7 @@ var host = new HostBuilder()
         worker.UseOauth<TokenProvider, LoginProvider>();
     })
     .ConfigureServices(services => {
+        services.AddHttpClient();
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
 
@@ -52,12 +53,7 @@ var host = new HostBuilder()
         services
             .AddSingleton<ITableStorageService, TableStorageService>()
             .Configure<OauthConfiguration>(o => {
-                o.DefaultRoleScopes = new() {
-                    { AireRoles.User, AireScopes.UserScopes },
-                    { AireRoles.Admin, AireScopes.AdminScopes }
-                };
                 o.TokenLifetime = TimeSpan.FromDays(3);
-                o.DefaultScopes = [];
             })
             .Configure<TableStorageConfiguration>(o => {
                 o.ConnectionString = AireEnvironment.StorageConnectionString;
@@ -80,6 +76,14 @@ var host = new HostBuilder()
             };
             return options;
         });
+
+        services
+            .Configure<AirePlatformServiceConfiguration>(o => {
+                o.ServiceUrl = AireEnvironment.PlatformServiceUrl;
+                o.ServiceKey = AireEnvironment.PlatformServiceKey;
+            })
+            .AddSingleton<IAirePlatformService, AirePlatformService>()
+            .AddSingleton<IAireClientFactory, AireClientFactory>();
     })
     .Build();
 

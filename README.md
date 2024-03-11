@@ -25,9 +25,10 @@ You should create `local.settings.json` in the root of the repository when devel
         "AzureWebJobsStorage": "",
         "StorageConnectionString": "<Connection string for Table storage or storage emulator>",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-        "AirePlatformService": "http://localhost:7071/api",
-        "TokenSigningKey": "<signing key shared between platform modules>",
-        "TokenEncryptionKey": "<enryption key shared between platform modules>",
+        "AIRE_SERVICE_BASE": "http://localhost:7071/api",
+        "AIRE_SERVICE_KEY": "<service key secret>",
+        "TOKEN_ENCRYPTION_KEY": "<enryption key shared between platform modules>",
+        "TOKEN_SIGNING_KEY": "<signing key shared between platform modules>",
         "TokenIssuer": "http://localhost:7072",
         "TokenAudience": "http://localhost",
     },
@@ -52,11 +53,15 @@ You can set a custom host with `OpenApi__HostNames` environment value.
 Publish the Functions app and then setup the following required environment values:
 
 - `StorageConnectionString` Azure Table Storage connection string
-- `AirePlatformService` The endpoint of the AIRe Services module.
-- `TokenSigningKey` The token signing key shared between the platform instance modules.
-- `TokenEncryptionKey` The token encryption key shared between the platform instance modules.
+- `COMMUNICATION_SERVICES_CONNECTION_STRING`: Azure Communication Services (ACS) connection string.
+- `AIRE_SERVICE_BASE` The endpoint of the AIRe Services module.
+- `AIRE_SERVICE_KEY` The service key for the AIRe Services module.
+- `TOKEN_SIGNING_KEY` The token signing key shared between the platform instance modules.
+- `TOKEN_ENCRYPTION_KEY` The token encryption key shared between the platform instance modules.
 - `TokenIssuer` The token issuer host URL, the same as the service's host.
-- `TokenAudience` Comma-separated list of audiences.
+- `TokenAudience` Comma-separated list of audiences. (Optional)
+- `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
+- `EmailSenderAddress` The sender address configured in ACS.
 
 ## Disclaimer
 

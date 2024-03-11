@@ -11,20 +11,23 @@ namespace Aire.Id.Models
     public class UserEntity : BaseTableEntity
     {
         [IgnoreDataMember]
-        public string? UUID {
+        public string? UUID
+        {
             get => RowKey;
             set { PartitionKey = value; RowKey = value; }
         }
 
+        public string? Username { get; set; }
         public string? EmailHash { get; set; }
         public string? Role { get; set; }
         public string? Scopes { get; set; }
+        public string? AdditionalScopes { get; set; }
         public DateTime? LastLogin { get; set; }
         public DateTime? EulaAccepted { get; set; }
 
         // Verification
         public bool Verified { get; set; }
-        public string? VerificationCode { get; set; }
+        public string? VerificationCode { get; set; }
         public DateTime? VerificationCodeExpiry { get; set; }
         public int? VerificationCodeRetryCount { get; set; }
 
@@ -36,7 +39,7 @@ namespace Aire.Id.Models
         // Encrypted data
         public string? DataIV { get; set; }
         public string? DataBlock { get; set; }
-        public string? Encryption { get; set; }
+        public string? Encryption { get; set; }
 
         /// <summary>
         /// Serializes and encrypts the user data
@@ -49,7 +52,6 @@ namespace Aire.Id.Models
             byte[] iv = RandomNumberGenerator.GetBytes(16);
             DataBlock = data.ObjectToJson().EncryptString(key, iv);
             DataIV = Convert.ToBase64String(iv);
-            EmailHash = Crypto.SHA256Base16(data.Email!);
         }
 
         /// <summary>
@@ -59,9 +61,9 @@ namespace Aire.Id.Models
         /// <returns>Private user model</returns>
         public UserPrivate? GetPrivateUserData(string encryptionKey)
         {
-            if(string.IsNullOrEmpty(encryptionKey))
+            if (string.IsNullOrEmpty(encryptionKey))
                 return null;
-                
+
             byte[] key = Convert.FromBase64String(encryptionKey);
             byte[] iv = Convert.FromBase64String(DataIV!);
             return DataBlock?.DecryptString(key, iv)?.JsonToObject<User>();
@@ -74,7 +76,7 @@ namespace Aire.Id.Models
         /// <returns>User model</returns>
         public User GetUserData(string encryptionKey)
         {
-            User? user = (User?) GetPrivateUserData(encryptionKey);
+            User? user = (User?)GetPrivateUserData(encryptionKey);
             user ??= new User();
             user.UUID = UUID;
             user.LastLogin = LastLogin;
@@ -105,15 +107,15 @@ namespace Aire.Id.Models
         /// <returns>True if the operation was successful. Otherwise, false.</returns>
         public bool ChangePassword(string? oldPassword, string newPassword)
         {
-            if(!string.IsNullOrEmpty(PasswordHash))
+            if (!string.IsNullOrEmpty(PasswordHash))
             {
                 // Verify old password
-                if(oldPassword == null)
+                if (oldPassword == null)
                     return false;
 
                 var oldHash = Crypto.PasswordHash(oldPassword, PasswordSalt, 32, PasswordIter);
                 var oldHash64 = Convert.ToBase64String(oldHash);
-                if(oldHash64 != PasswordHash)
+                if (oldHash64 != PasswordHash)
                     return false;
 
                 // Re-encrypt data key
@@ -141,7 +143,7 @@ namespace Aire.Id.Models
         /// <param name="password">User password</param>
         public void GenerateEncryptionKey(string uuid, string password)
         {
-            if(!string.IsNullOrWhiteSpace(Encryption))
+            if (!string.IsNullOrWhiteSpace(Encryption))
                 throw new InvalidOperationException("Encryption key is already set");
 
             var encKeyBytes = RandomNumberGenerator.GetBytes(32);
@@ -171,7 +173,7 @@ namespace Aire.Id.Models
             var key = Crypto.PasswordHash(UUID + password, null, 32, 100000);
             var parts = Encryption!.Split(".");
 
-            if(parts.Length != 2)
+            if (parts.Length != 2)
                 return null;
 
             var data = parts[0]; var iv = parts[1];
@@ -186,7 +188,7 @@ namespace Aire.Id.Models
         /// <param name="encKey">256-bit key in base64</param>
         public void SetEncryptionKey(string uuid, string password, byte[] encKeyBytes)
         {
-            if(encKeyBytes.Length != 32)
+            if (encKeyBytes.Length != 32)
                 throw new ArgumentException("Encryption key has to be 256 bits in length", nameof(encKeyBytes));
             var key = Crypto.PasswordHash(uuid + password, null, 32, 100000);
             var iv = RandomNumberGenerator.GetBytes(16);

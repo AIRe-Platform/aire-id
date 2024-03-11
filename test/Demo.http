@@ -1,0 +1,39 @@
+@base=http://localhost:7072/api
+@token=
+@group_id=
+
+### Get a list of demo groups
+GET {{base}}/v1/demo/groups HTTP/1.1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Create demo group
+POST {{base}}/v1/demo/group HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{ "name": "Test Demo Group", "count": 10, "username_prefix": "demo_" }
+
+### Edit demo group
+PUT {{base}}/v1/demo/group/{{group_id}} HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{ "name": "My Demo Group" }
+
+### Delete demo group
+DELETE {{base}}/v1/demo/group/{{group_id}} HTTP/1.1
+Authorization: Bearer {{token}}
+
+### Get demo group users
+GET {{base}}/v1/demo/group/{{group_id}} HTTP/1.1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Get demo user
+@user_id=
+GET {{base}}/v1/demo/user/{{user_id}} HTTP/1.1
+Authorization: Bearer {{token}}
+Accept: application/json

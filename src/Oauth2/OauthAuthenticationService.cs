@@ -1,4 +1,5 @@
 using System.Net;
+using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
@@ -8,7 +9,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Aire.Sdk.Auth.Scopes;
 
 namespace Aire.Id.Oauth2
 {
@@ -35,10 +35,10 @@ namespace Aire.Id.Oauth2
         private readonly ILogger<OauthAuthenticationService> _log;
 
         public OauthAuthenticationService(
-            ITableStorageService storage, 
+            ITableStorageService storage,
             IOauthTokenProvider tokenProvider,
             IOauthLoginProvider loginProvider,
-            IOptions<OauthConfiguration> config, 
+            IOptions<OauthConfiguration> config,
             ILogger<OauthAuthenticationService> log)
         {
             _storage = storage;
@@ -59,11 +59,11 @@ namespace Aire.Id.Oauth2
             try
             {
                 tokenRequest = OauthTokenRequest.FromRequest(req);
-                if(tokenRequest != null)
+                if (tokenRequest != null)
                 {
-                    if(tokenRequest is OauthTokenPasswordGrantRequest)
+                    if (tokenRequest is OauthTokenPasswordGrantRequest)
                     {
-                        return await PasswordGrant((OauthTokenPasswordGrantRequest) tokenRequest!);
+                        return await PasswordGrant((OauthTokenPasswordGrantRequest)tokenRequest!);
                     }
                     // else if (tokenRequest is OauthTokenRefreshRequest)
                     // {
@@ -72,11 +72,11 @@ namespace Aire.Id.Oauth2
                     // Add other supported grant type handlers here
                 }
             }
-            catch(OauthException ex)
+            catch (OauthException ex)
             {
                 return ex.OauthErrorResult();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _log.LogError(ex, "An exception occurred while handling OAuth token request");
                 var oex = new OauthException(OauthError.ServerError)
@@ -93,53 +93,38 @@ namespace Aire.Id.Oauth2
         public IActionResult HandleTokenInfoRequest(string token)
         {
             var info = _tokenProvider.GetTokenInfo(token);
-            if(info == null)
-                return new StatusCodeResult((int) HttpStatusCode.Unauthorized);
+            if (info == null)
+                return new StatusCodeResult((int)HttpStatusCode.Unauthorized);
 
             return new OkObjectResult(info);
         }
 
         private async Task<IActionResult> PasswordGrant(OauthTokenPasswordGrantRequest req)
         {
-            var subject = await _loginProvider.GetUser(req.Username!, req.Password!);
-            if(subject == null)
+            var subject = await _loginProvider.Login(req.Username!, req.Password!);
+            if (subject == null)
                 throw new OauthException(OauthError.InvalidGrant);
 
-            subject.Scopes ??= new();
-
-            if(subject.Verified)
+            subject.Scopes ??= [];
+            if (!string.IsNullOrWhiteSpace(req.Scope))
             {
-                if(_config.DefaultScopes != null)
-                    subject.Scopes.AddRange(_config.DefaultScopes);
-
-                if(subject.Role != null 
-                    && _config.DefaultRoleScopes != null 
-                    && _config.DefaultRoleScopes.TryGetValue(subject.Role, out var roleScopes))
-                    subject.Scopes.AddRange(roleScopes);
-            }
-            else
-            {
-                subject.Scopes = [ AireScopes.UnverifiedAccount ];
+                var requestedScopes = req.Scope.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                subject.Scopes = requestedScopes.Where(x => subject.Scopes.Contains(x)).ToList();
             }
 
-            var desc = new OauthTokenDescription {
+            var desc = new OauthTokenDescription
+            {
                 Subject = subject,
                 Lifetime = _config.TokenLifetime
             };
 
             var token = _tokenProvider.IssueNewToken(desc);
 
-            if(!string.IsNullOrWhiteSpace(req.Scope))
-            {
-                var requestedScopes = req.Scope.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                subject.Scopes = requestedScopes.Where(x => subject.Scopes.Contains(x)).ToList();
-            }
-
             var response = new OauthTokenResponse
             {
                 AccessToken = token,
                 TokenType = OauthTokenType.Bearer,
-                ExpiresIn = (int) _config.TokenLifetime.TotalSeconds,
+                ExpiresIn = (int)_config.TokenLifetime.TotalSeconds,
                 Scope = string.Join(" ", subject.Scopes)
             };
 

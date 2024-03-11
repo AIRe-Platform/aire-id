@@ -312,7 +312,7 @@ public class Demo_v1
             var memoryService = await _clientFactory.CreateMemoryClient(token);
             if (memoryService != null)
             {
-                bool deleteData = await memoryService.DestroyUserData(true); // anonymize, decrypt
+                bool deleteData = await memoryService.DeleteUserData(true);
                 if (!deleteData)
                     throw new Exception($"Failure to destroy user '{entity.UUID}' data from Memory");
             }

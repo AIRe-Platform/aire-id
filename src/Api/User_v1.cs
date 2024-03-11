@@ -264,7 +264,7 @@ namespace Aire.Id.Api
             var memoryService = await _clientFactory.CreateMemoryClient(auth!.JwtEncodedToken);
             if(memoryService != null)
             {
-                bool dataDeleted = await memoryService.DestroyUserData(options.KeepAnonymizedData);
+                bool dataDeleted = await memoryService.DeleteUserData(options.KeepAnonymizedData);
                 if(!dataDeleted)
                 {
                     _log.LogCritical("Failure to delete data from the Memory module");

@@ -1,0 +1,212 @@
+using System.Net;
+using Aire.Id.Helpers;
+using Aire.Id.Models;
+using Aire.Sdk.AspNetCore;
+using Aire.Sdk.Auth;
+using Aire.Sdk.Azure;
+using Aire.Sdk.Helpers;
+using Aire.Sdk.Models.Admin;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+
+namespace Aire.Id.Api.Admin;
+
+public class Admin_Account_v1
+{
+    private readonly IJwtTokenService _jwt;
+    private readonly ITableStorageService _storage;
+    private readonly ILogger<Admin_Account_v1> _log;
+
+    public Admin_Account_v1(IJwtTokenService jwt, ITableStorageService storage, ILogger<Admin_Account_v1> log)
+    {
+        _jwt = jwt;
+        _storage = storage;
+        _log = log;
+    }
+
+    [Function("Admin_GetAccountById_v1")]
+    [OpenApiOperation(
+            operationId: "getAccountById",
+            tags: ["Admin"],
+            Summary = "Get user account by ID",
+            Description = "Finds user account by ID")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserAccount), Description = "The account object")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid account ID format")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
+    public async Task<IActionResult> GetAccountById(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/account/{id}")] HttpRequest req,
+            FunctionContext context,
+            string id)
+    {
+        var auth = context.Features.Get<JwtAuthFeature>();
+        if (auth == null)
+            return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
+            return new ForbiddenResult();
+
+        if(!Guid.TryParse(id, out Guid guid))
+            return new BadRequestResult();
+
+        var entity = await _storage.RetrieveAsync<UserEntity>(guid.ToString());
+        if (entity == null)
+        {
+            _log.LogWarning("Account not found");
+            return new NotFoundResult();
+        }
+        
+        var account = new UserAccount {
+            Id = guid,
+            Username = entity.Username,
+            Verified = entity.Verified,
+            EulaAccepted = entity.EulaAccepted,
+            LastLogin = entity.LastLogin,
+            OverrideScopes = entity.Scopes != null,
+            Scopes = ScopeHelper.GetScopesForUser(entity),
+            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
+        };
+
+        return new OkObjectResult(account);
+    }
+
+    [Function("Admin_FindAccount_v1")]
+    [OpenApiOperation(
+            operationId: "findAccount",
+            tags: ["Admin"],
+            Summary = "Find account",
+            Description = "Find account by using email or usernaname")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserAccount), Description = "The account object")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid query")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
+    public async Task<IActionResult> FindAccount(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/account")] HttpRequest req,
+            FunctionContext context,
+            [FromQuery] string? email = null,
+            [FromQuery] string? username = null)
+    {
+        var auth = context.Features.Get<JwtAuthFeature>();
+        if (auth == null)
+            return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
+            return new ForbiddenResult();
+
+        bool valid = !string.IsNullOrEmpty(email) ^ !string.IsNullOrEmpty(username);
+        if(!valid)
+            return new BadRequestResult();
+
+        UserEntity? entity = null;
+        if(!string.IsNullOrEmpty(email))
+        {
+            var hash = Crypto.SHA256Base16(email);
+            var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
+            entity = await query.FirstOrDefaultAsync();
+        }
+        else if (!string.IsNullOrEmpty(username))
+        {
+            var query = await _storage.QueryAsync<UserEntity>(x => x.Username == username);
+            entity = await query.FirstOrDefaultAsync();
+        }
+
+        if (entity == null)
+        {
+            _log.LogWarning("Account not found");
+            return new NotFoundResult();
+        }
+        
+        var account = new UserAccount {
+            Id = Guid.Parse(entity.UUID!),
+            Email = email,
+            Username = entity.Username,
+            Verified = entity.Verified,
+            EulaAccepted = entity.EulaAccepted,
+            LastLogin = entity.LastLogin,
+            Role = entity.Role ?? AireRoles.User,
+            OverrideScopes = entity.Scopes != null,
+            Scopes = ScopeHelper.GetScopesForUser(entity),
+            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
+        };
+
+        return new OkObjectResult(account);
+    }
+
+    [Function("Admin_EditAccount_v1")]
+    [OpenApiOperation(
+            operationId: "editAccount",
+            tags: ["Admin"],
+            Summary = "Edit user account",
+            Description = "Edit user account")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
+    [OpenApiRequestBody("application/json", typeof(UserAccount), Required = true, Description = "User account object")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserAccount), Description = "The saved account object")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid account ID format or invalid body")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
+    public async Task<IActionResult> EditAccount(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "v1/admin/account/{id}")] HttpRequest req,
+            FunctionContext context,
+            string id)
+    {
+        var auth = context.Features.Get<JwtAuthFeature>();
+        if (auth == null)
+            return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
+            return new ForbiddenResult();
+
+        if(!Guid.TryParse(id, out Guid guid))
+            return new BadRequestResult();
+
+        var data = await req.ReadJson<UserAccount>();
+        if(data == null)
+        {
+            _log.LogWarning("Failed to parse body");
+            return new BadRequestResult();
+        }
+
+        var entity = await _storage.RetrieveAsync<UserEntity>(guid.ToString());
+        if (entity == null)
+        {
+            _log.LogWarning("Account not found");
+            return new NotFoundResult();
+        }
+
+        if(data.Verified.HasValue)
+            entity.Verified = data.Verified.Value;
+
+        if(data.Role != null)
+            entity.Role = data.Role;
+
+        if(data.AdditionalScopes != null)
+            entity.AdditionalScopes = string.Join(" ", data.AdditionalScopes);
+
+        if(data.OverrideScopes && data.Scopes != null)
+            entity.Scopes = string.Join(" ", data.Scopes);
+        
+        var account = new UserAccount {
+            Id = guid,
+            Username = entity.Username,
+            Verified = entity.Verified,
+            EulaAccepted = entity.EulaAccepted,
+            LastLogin = entity.LastLogin,
+            Role = entity.Role,
+            OverrideScopes = entity.Scopes != null,
+            Scopes = ScopeHelper.GetScopesForUser(entity),
+            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
+        };
+
+        return new OkObjectResult(account);
+    }
+}

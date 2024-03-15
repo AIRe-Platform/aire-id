@@ -5,6 +5,7 @@ using Aire.Id.Models;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Microsoft.Extensions.Logging;
+using Aire.Id.Helpers;
 
 namespace Aire.Id.Providers
 {
@@ -72,40 +73,13 @@ namespace Aire.Id.Providers
             var subject = new OauthSubject {
                 Subject = user.UUID,
                 Role = user.Role ?? AireRoles.User,
-                Scopes = user.Scopes?
-                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .ToList(),
+                Scopes = ScopeHelper.GetScopesForUser(user),
                 Claims = new Dictionary<string, object> {
                     { AireClaims.UserEncryptionKey,  key },
                     { AireClaims.ConnectedServices, privateData!.ConnectedServices! }
                 },
                 Verified = user.Verified
             };
-
-            subject.Scopes ??= [];
-            if (subject.Verified)
-            {
-                if (subject.Scopes.Count == 0)
-                {
-                    if (subject.Role != null
-                        && AireScopes.DefaultRoleScopes != null
-                        && AireScopes.DefaultRoleScopes.TryGetValue(subject.Role, out var roleScopes))
-                    {
-                        subject.Scopes.AddRange(roleScopes);
-                    }
-                }
-
-                var additionalScopes = user.AdditionalScopes?                    
-                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .ToList();
-                    
-                if(additionalScopes != null)
-                    subject.Scopes.AddRange(additionalScopes);
-            }
-            else
-            {
-                subject.Scopes = [AireScopes.UnverifiedAccount];
-            }
 
             return subject;
         } 

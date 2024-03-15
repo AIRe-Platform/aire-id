@@ -16,7 +16,7 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
-namespace Aire.Id;
+namespace Aire.Id.Api;
 
 public class Demo_v1
 {
@@ -46,7 +46,7 @@ public class Demo_v1
         Summary = "Get list of demo groups")]
     [OpenApiParameter("group", Description = "Group name", In = ParameterLocation.Path)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoGroup>), Description = "List of demo groups")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoGroups(
@@ -54,8 +54,11 @@ public class Demo_v1
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
+        if (auth == null)
             return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
+            return new ForbiddenResult();
 
         var query = await _storage.QueryAsync<DemoGroupEntity>(_ => true);
         var groups = await query.Select(x => new DemoGroup
@@ -75,7 +78,7 @@ public class Demo_v1
         Summary = "Get list of demo users in a group")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoUser>), Description = "List of demo users")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authotization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoUsers(
@@ -84,8 +87,11 @@ public class Demo_v1
         string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
+        if (auth == null)
             return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
+            return new ForbiddenResult();
 
         var group = await _storage.RetrieveAsync<DemoGroupEntity>(id);
         if (group == null)
@@ -101,7 +107,7 @@ public class Demo_v1
         Summary = "Get demo user")]
     [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(User), Description = "Demo user profile")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoUser(
@@ -110,8 +116,11 @@ public class Demo_v1
         string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
+        if (auth == null)
             return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
+            return new ForbiddenResult();
 
         var user = await _storage.RetrieveAsync<DemoUserEntity>(id);
         if (user == null || user.Role != AireRoles.DemoUser)
@@ -128,7 +137,8 @@ public class Demo_v1
         Summary = "Create a demo group")]
     [OpenApiRequestBody("application/json", typeof(DemoGroupCreateRequest), Description = "Group information")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(DemoGroup), Description = "Demo group object")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> CreateDemoGroup(
@@ -136,8 +146,11 @@ public class Demo_v1
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditDemoGroups))
+        if (auth == null)
             return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditDemoGroups))
+            return new ForbiddenResult();
 
         var group = await req.ReadJson<DemoGroupCreateRequest>();
         if (group == null)
@@ -224,6 +237,7 @@ public class Demo_v1
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(DemoGroup), Description = "Edited demo group")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The group does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> EditDemoGroup(
@@ -232,8 +246,11 @@ public class Demo_v1
         string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditDemoGroups))
+        if (auth == null)
             return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditDemoGroups))
+            return new ForbiddenResult();
 
         var group = await req.ReadJson<DemoGroup>();
         if (group == null)
@@ -274,7 +291,7 @@ public class Demo_v1
         tags: ["Demo"],
         Summary = "Delete a demo group")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
-    [OpenApiResponseWithoutBody(HttpStatusCode.OK, Description = "Operation completed succesfully")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Operation completed succesfully")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
@@ -284,8 +301,11 @@ public class Demo_v1
         string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.DeleteDemoGroups))
+        if (auth == null)
             return new UnauthorizedResult();
+
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.DeleteDemoGroups))
+            return new ForbiddenResult();
 
         var group = await _storage.RetrieveAsync<DemoGroupEntity>(id);
         if (group == null)

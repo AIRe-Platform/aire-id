@@ -1,4 +1,5 @@
 using System.Net;
+using System.Web.Http;
 using Aire.Id.Helpers;
 using Aire.Id.Models;
 using Aire.Sdk.AspNetCore;
@@ -70,7 +71,7 @@ public class Admin_Account_v1
             Verified = entity.Verified,
             EulaAccepted = entity.EulaAccepted,
             LastLogin = entity.LastLogin,
-            OverrideScopes = entity.Scopes != null,
+            OverrideScopes = entity.Scopes != null && entity.Scopes.Length > 0,
             Scopes = ScopeHelper.GetScopesForUser(entity),
             AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
         };
@@ -121,7 +122,7 @@ public class Admin_Account_v1
             EulaAccepted = entity.EulaAccepted,
             LastLogin = entity.LastLogin,
             Role = entity.Role ?? AireRoles.User,
-            OverrideScopes = entity.Scopes != null,
+            OverrideScopes = entity.Scopes != null && entity.Scopes.Length > 0,
             Scopes = ScopeHelper.GetScopesForUser(entity),
             AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
         };
@@ -184,14 +185,18 @@ public class Admin_Account_v1
         {
             if (data.Scopes == null)
                 return new BadRequestResult();
-                
+
             entity.Scopes = string.Join(" ", data.Scopes);
             entity.AdditionalScopes = "";
         }
         else
         {
-            entity.Scopes = string.Join(" ", ScopeHelper.GetBaseScopesForUser(entity));
+            entity.Scopes = "";
         }
+
+        var edit = await _storage.UpsertAsync(entity);
+        if (!edit)
+            return new InternalServerErrorResult();
 
         var account = new Account
         {
@@ -201,7 +206,7 @@ public class Admin_Account_v1
             EulaAccepted = entity.EulaAccepted,
             LastLogin = entity.LastLogin,
             Role = entity.Role,
-            OverrideScopes = entity.Scopes != null,
+            OverrideScopes = entity.Scopes != null && entity.Scopes.Length > 0,
             Scopes = ScopeHelper.GetScopesForUser(entity),
             AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
         };

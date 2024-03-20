@@ -36,7 +36,7 @@ public class Admin_Account_v1
             Summary = "Get user account by ID",
             Description = "Finds user account by ID")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserAccount), Description = "The account object")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Account), Description = "The account object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid account ID format")]
@@ -53,7 +53,7 @@ public class Admin_Account_v1
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
             return new ForbiddenResult();
 
-        if(!Guid.TryParse(id, out Guid guid))
+        if (!Guid.TryParse(id, out Guid guid))
             return new BadRequestResult();
 
         var entity = await _storage.RetrieveAsync<UserEntity>(guid.ToString());
@@ -62,8 +62,9 @@ public class Admin_Account_v1
             _log.LogWarning("Account not found");
             return new NotFoundResult();
         }
-        
-        var account = new UserAccount {
+
+        var account = new Account
+        {
             Id = guid,
             Username = entity.Username,
             Verified = entity.Verified,
@@ -84,7 +85,8 @@ public class Admin_Account_v1
             Summary = "Find account",
             Description = "Find account by using email or usernaname")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserAccount), Description = "The account object")]
+    [OpenApiParameter("login_name", In = ParameterLocation.Query, Description = "Username or email address")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Account), Description = "The account object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid query")]
@@ -92,8 +94,7 @@ public class Admin_Account_v1
     public async Task<IActionResult> FindAccount(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/account")] HttpRequest req,
             FunctionContext context,
-            [FromQuery] string? email = null,
-            [FromQuery] string? username = null)
+            [FromQuery] string login_name)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
         if (auth == null)
@@ -102,32 +103,19 @@ public class Admin_Account_v1
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
             return new ForbiddenResult();
 
-        bool valid = !string.IsNullOrEmpty(email) ^ !string.IsNullOrEmpty(username);
-        if(!valid)
-            return new BadRequestResult();
-
-        UserEntity? entity = null;
-        if(!string.IsNullOrEmpty(email))
-        {
-            var hash = Crypto.SHA256Base16(email);
-            var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
-            entity = await query.FirstOrDefaultAsync();
-        }
-        else if (!string.IsNullOrEmpty(username))
-        {
-            var query = await _storage.QueryAsync<UserEntity>(x => x.Username == username);
-            entity = await query.FirstOrDefaultAsync();
-        }
+        var hash = Crypto.SHA256Base16(login_name);
+        var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash || x.Username == login_name);
+        var entity = await query.FirstOrDefaultAsync();
 
         if (entity == null)
         {
             _log.LogWarning("Account not found");
             return new NotFoundResult();
         }
-        
-        var account = new UserAccount {
+
+        var account = new Account
+        {
             Id = Guid.Parse(entity.UUID!),
-            Email = email,
             Username = entity.Username,
             Verified = entity.Verified,
             EulaAccepted = entity.EulaAccepted,
@@ -148,8 +136,8 @@ public class Admin_Account_v1
             Summary = "Edit user account",
             Description = "Edit user account")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
-    [OpenApiRequestBody("application/json", typeof(UserAccount), Required = true, Description = "User account object")]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(UserAccount), Description = "The saved account object")]
+    [OpenApiRequestBody("application/json", typeof(Account), Required = true, Description = "User account object")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Account), Description = "The saved account object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid account ID format or invalid body")]
@@ -166,11 +154,11 @@ public class Admin_Account_v1
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
             return new ForbiddenResult();
 
-        if(!Guid.TryParse(id, out Guid guid))
+        if (!Guid.TryParse(id, out Guid guid))
             return new BadRequestResult();
 
-        var data = await req.ReadJson<UserAccount>();
-        if(data == null)
+        var data = await req.ReadJson<Account>();
+        if (data == null)
         {
             _log.LogWarning("Failed to parse body");
             return new BadRequestResult();
@@ -183,19 +171,30 @@ public class Admin_Account_v1
             return new NotFoundResult();
         }
 
-        if(data.Verified.HasValue)
+        if (data.Verified.HasValue)
             entity.Verified = data.Verified.Value;
 
-        if(data.Role != null)
+        if (data.Role != null)
             entity.Role = data.Role;
 
-        if(data.AdditionalScopes != null)
+        if (data.AdditionalScopes != null)
             entity.AdditionalScopes = string.Join(" ", data.AdditionalScopes);
 
-        if(data.OverrideScopes && data.Scopes != null)
+        if (data.OverrideScopes)
+        {
+            if (data.Scopes == null)
+                return new BadRequestResult();
+                
             entity.Scopes = string.Join(" ", data.Scopes);
-        
-        var account = new UserAccount {
+            entity.AdditionalScopes = "";
+        }
+        else
+        {
+            entity.Scopes = string.Join(" ", ScopeHelper.GetBaseScopesForUser(entity));
+        }
+
+        var account = new Account
+        {
             Id = guid,
             Username = entity.Username,
             Verified = entity.Verified,

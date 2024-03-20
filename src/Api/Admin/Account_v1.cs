@@ -187,7 +187,6 @@ public class Admin_Account_v1
                 return new BadRequestResult();
 
             entity.Scopes = string.Join(" ", data.Scopes);
-            entity.AdditionalScopes = "";
         }
         else
         {

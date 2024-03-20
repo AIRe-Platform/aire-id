@@ -10,8 +10,7 @@ public static class ScopeHelper
         List<string> scopes = [];
 
         if (!entity.Verified)
-            return [AireScopes.UnverifiedAccount];
-
+            return [];
 
         if (!string.IsNullOrWhiteSpace(entity.Scopes)) // scope override
         {
@@ -42,7 +41,7 @@ public static class ScopeHelper
         List<string> scopes = [];
 
         if (!entity.Verified)
-            return [AireScopes.UnverifiedAccount];
+            return [];
 
         if (!string.IsNullOrWhiteSpace(entity.Scopes)) // scope override
         {

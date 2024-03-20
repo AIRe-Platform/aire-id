@@ -75,8 +75,9 @@ namespace Aire.Id.Providers
                 Role = user.Role ?? AireRoles.User,
                 Scopes = ScopeHelper.GetScopesForUser(user),
                 Claims = new Dictionary<string, object> {
-                    { AireClaims.UserEncryptionKey,  key },
-                    { AireClaims.ConnectedServices, privateData!.ConnectedServices! }
+                    { AireClaims.UserEncryptionKey, key },
+                    { AireClaims.ConnectedServices, privateData!.ConnectedServices! },
+                    { AireClaims.VerifiedAccount, user.Verified ? "1" : "0" }
                 },
                 Verified = user.Verified
             };

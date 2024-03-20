@@ -51,6 +51,16 @@ public class User_v1
         if (auth == null)
             return new UnauthorizedResult();
 
+        if (!auth.VerifiedAccount)
+        {
+            var unverifiedUser = new User
+            {
+                UUID = auth.User.ToString(),
+                Verified = false
+            };
+            return new OkObjectResult(unverifiedUser);
+        }
+
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadProfile))
             return new ForbiddenResult();
 

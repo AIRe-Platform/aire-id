@@ -46,7 +46,6 @@ public class Verify_v1
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Verification succeeded")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Invalid or expired code")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Already verified")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or invalid user token")]
     public async Task<IActionResult> VerifyCode(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify/{code}")] HttpRequestData req,
@@ -57,8 +56,8 @@ public class Verify_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.UnverifiedAccount))
-            return new ForbiddenResult();
+        if (auth.VerifiedAccount)
+            return new NoContentResult();
 
         string id = auth!.Token.Subject;
         var user = await _storage.RetrieveAsync<UserEntity>(id);
@@ -66,17 +65,14 @@ public class Verify_v1
         if (user == null)
             return new UnauthorizedResult();
 
-        if (user.Verified)
-            return new BadRequestResult();
-
         if (DateTime.UtcNow < user.VerificationCodeExpiry && user.VerificationCodeRetryCount < 10)
         {
             if (user.VerificationCode == code)
             {
                 user.Verified = true;
-                user.VerificationCode = null;
-                user.VerificationCodeExpiry = null;
-                user.VerificationCodeRetryCount = null;
+                user.VerificationCode = "";
+                user.VerificationCodeExpiry = DateTime.UtcNow;
+                user.VerificationCodeRetryCount = 0;
             }
             else
             {
@@ -117,8 +113,8 @@ public class Verify_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.UnverifiedAccount))
-            return new ForbiddenResult();
+        if (auth.VerifiedAccount)
+            return new BadRequestResult();
 
         string id = auth!.Token.Subject;
         var user = await _storage.RetrieveAsync<UserEntity>(id);

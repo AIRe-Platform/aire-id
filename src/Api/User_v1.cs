@@ -55,7 +55,7 @@ public class User_v1
         {
             var unverifiedUser = new User
             {
-                UUID = auth.User.ToString(),
+                UUID = auth.UserId,
                 Verified = false
             };
             return new OkObjectResult(unverifiedUser);
@@ -111,7 +111,7 @@ public class User_v1
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditProfile))
             return new ForbiddenResult();
 
-        if (auth!.User.ToString() != id)
+        if (auth.UserId != id)
         {
             _log.LogWarning("Not allowed to edit other user's account");
             return new ForbiddenResult();

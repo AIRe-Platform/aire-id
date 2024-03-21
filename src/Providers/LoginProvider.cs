@@ -41,7 +41,7 @@ namespace Aire.Id.Providers
 
             if(user.Role == AireRoles.DemoUser)
             {
-                var asDemoUser = await _storage.RetrieveAsync<DemoUserEntity>(user.UUID!);
+                var asDemoUser = await _storage.RetrieveAsync<DemoUserEntity>(user.UUID());
                 if(asDemoUser?.DemoGroupId != null)
                 {
                     var group = await _storage.RetrieveAsync<DemoGroupEntity>(asDemoUser.DemoGroupId);
@@ -71,7 +71,7 @@ namespace Aire.Id.Providers
             var privateData = user.GetPrivateUserData(key!);
 
             var subject = new OauthSubject {
-                Subject = user.UUID,
+                Subject = user.UUID(),
                 Role = user.Role ?? AireRoles.User,
                 Scopes = ScopeHelper.GetScopesForUser(user),
                 Claims = new Dictionary<string, object> {

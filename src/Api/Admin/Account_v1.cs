@@ -36,6 +36,7 @@ public class Admin_Account_v1
             tags: ["Admin"],
             Summary = "Get user account by ID",
             Description = "Finds user account by ID")]
+    [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Description = "Account identifier")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Account), Description = "The account object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
@@ -54,10 +55,10 @@ public class Admin_Account_v1
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
             return new ForbiddenResult();
 
-        if (!Guid.TryParse(id, out Guid guid))
+        if (string.IsNullOrWhiteSpace(id))
             return new BadRequestResult();
 
-        var entity = await _storage.RetrieveAsync<UserEntity>(guid.ToString());
+        var entity = await _storage.RetrieveAsync<UserEntity>(id);
         if (entity == null)
         {
             _log.LogWarning("Account not found");
@@ -66,7 +67,7 @@ public class Admin_Account_v1
 
         var account = new Account
         {
-            Id = guid,
+            Id = id,
             Username = entity.Username,
             Verified = entity.Verified,
             EulaAccepted = entity.EulaAccepted,
@@ -116,7 +117,7 @@ public class Admin_Account_v1
 
         var account = new Account
         {
-            Id = Guid.Parse(entity.UUID!),
+            Id = entity.RowKey,
             Username = entity.Username,
             Verified = entity.Verified,
             EulaAccepted = entity.EulaAccepted,
@@ -136,12 +137,13 @@ public class Admin_Account_v1
             tags: ["Admin"],
             Summary = "Edit user account",
             Description = "Edit user account")]
+    [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Description = "Account identifier")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiRequestBody("application/json", typeof(Account), Required = true, Description = "User account object")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Account), Description = "The saved account object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid account ID format or invalid body")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param or body")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
     public async Task<IActionResult> EditAccount(
             [HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "v1/admin/account/{id}")] HttpRequest req,
@@ -155,7 +157,7 @@ public class Admin_Account_v1
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
             return new ForbiddenResult();
 
-        if (!Guid.TryParse(id, out Guid guid))
+        if (string.IsNullOrWhiteSpace(id))
             return new BadRequestResult();
 
         var data = await req.ReadJson<Account>();
@@ -165,7 +167,7 @@ public class Admin_Account_v1
             return new BadRequestResult();
         }
 
-        var entity = await _storage.RetrieveAsync<UserEntity>(guid.ToString());
+        var entity = await _storage.RetrieveAsync<UserEntity>(id);
         if (entity == null)
         {
             _log.LogWarning("Account not found");
@@ -199,7 +201,7 @@ public class Admin_Account_v1
 
         var account = new Account
         {
-            Id = guid,
+            Id = id,
             Username = entity.Username,
             Verified = entity.Verified,
             EulaAccepted = entity.EulaAccepted,

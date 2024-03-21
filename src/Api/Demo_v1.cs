@@ -44,7 +44,6 @@ public class Demo_v1
         operationId: "getDemoGroups",
         tags: ["Demo"],
         Summary = "Get list of demo groups")]
-    [OpenApiParameter("group", Description = "Group name", In = ParameterLocation.Path)]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoGroup>), Description = "List of demo groups")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
@@ -63,7 +62,7 @@ public class Demo_v1
         var query = await _storage.QueryAsync<DemoGroupEntity>(_ => true);
         var groups = await query.Select(x => new DemoGroup
         {
-            Id = x.Id,
+            Id = x.RowKey,
             Name = x.Name,
             Active = x.Active
         }).ToListAsync();
@@ -80,6 +79,7 @@ public class Demo_v1
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoUser>), Description = "List of demo users")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authotization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoUsers(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/demo/group/{id}")] HttpRequest req,
@@ -92,6 +92,9 @@ public class Demo_v1
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
             return new ForbiddenResult();
+
+        if (string.IsNullOrWhiteSpace(id))
+            return new BadRequestResult();
 
         var group = await _storage.RetrieveAsync<DemoGroupEntity>(id);
         if (group == null)
@@ -109,6 +112,7 @@ public class Demo_v1
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(User), Description = "Demo user profile")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoUser(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/demo/user/{id}")] HttpRequest req,
@@ -121,6 +125,9 @@ public class Demo_v1
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
             return new ForbiddenResult();
+
+        if (string.IsNullOrWhiteSpace(id))
+            return new BadRequestResult();
 
         var user = await _storage.RetrieveAsync<DemoUserEntity>(id);
         if (user == null || user.Role != AireRoles.DemoUser)
@@ -175,18 +182,16 @@ public class Demo_v1
 
         for (int i = 0; i < group.Count!; i++)
         {
-            var uuid = Guid.NewGuid().ToString();
             var accessCode = RandomNumberGenerator.GetHexString(8, true);
             var entity = new DemoUserEntity()
             {
-                UUID = uuid,
                 Role = AireRoles.DemoUser,
                 Username = $"{group.UsernamePrefix!}{i}",
                 DemoGroupId = groupId,
                 DemoAccessCode = accessCode,
                 Verified = true
             };
-            entity.GenerateEncryptionKey(uuid, accessCode);
+            entity.GenerateEncryptionKey(accessCode);
             entity.ChangePassword(null, accessCode);
 
             var key = entity.GetEncryptionKey(accessCode)!;
@@ -198,16 +203,15 @@ public class Demo_v1
 
             subjects.Add(new DemoUser
             {
-                Id = uuid,
+                Id = entity.UUID(),
                 GroupId = groupId,
                 Username = entity.Username,
                 AccessCode = accessCode
             });
         }
 
-        var groupEntity = new DemoGroupEntity
+        var groupEntity = new DemoGroupEntity(groupId)
         {
-            Id = groupId,
             Name = group.Name,
             UsernamePrefix = group.UsernamePrefix,
             Users = subjects,
@@ -219,7 +223,7 @@ public class Demo_v1
 
         var response = new DemoGroup
         {
-            Id = groupEntity.Id,
+            Id = groupEntity.Id(),
             Name = groupEntity.Name,
             Active = true
         };
@@ -259,11 +263,14 @@ public class Demo_v1
         if (string.IsNullOrWhiteSpace(group.Name))
             return new BadRequestResult();
 
+        if (string.IsNullOrWhiteSpace(id))
+            return new BadRequestResult();
+
         var entity = await _storage.RetrieveAsync<DemoGroupEntity>(id);
         if (entity == null)
             return new NotFoundResult();
 
-        if (group.Id != null && entity.Id != group.Id)
+        if (group.Id != null && entity.RowKey != group.Id)
             return new BadRequestResult();
 
         if (!string.IsNullOrWhiteSpace(group.Name))
@@ -277,7 +284,7 @@ public class Demo_v1
 
         var result = new DemoGroup
         {
-            Id = entity.Id,
+            Id = entity.Id(),
             Name = entity.Name,
             Active = entity.Active
         };
@@ -294,6 +301,7 @@ public class Demo_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Operation completed succesfully")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> DeleteResearchGroup(
         [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/demo/group/{id}")] HttpRequest req,
@@ -306,6 +314,9 @@ public class Demo_v1
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.DeleteDemoGroups))
             return new ForbiddenResult();
+
+        if (string.IsNullOrWhiteSpace(id))
+            return new BadRequestResult();
 
         var group = await _storage.RetrieveAsync<DemoGroupEntity>(id);
         if (group == null)
@@ -334,7 +345,7 @@ public class Demo_v1
             {
                 bool deleteData = await memoryService.DeleteUserData(true);
                 if (!deleteData)
-                    throw new Exception($"Failure to destroy user '{entity.UUID}' data from Memory");
+                    throw new Exception($"Failure to destroy user '{entity.RowKey}' data from Memory");
             }
 
             // Delete user entity
@@ -342,7 +353,7 @@ public class Demo_v1
             {
                 bool deleteResult = await _storage.DeleteAsync(entity);
                 if (!deleteResult)
-                    throw new Exception($"Failure to delete demo user '{entity.UUID}'");
+                    throw new Exception($"Failure to delete demo user '{entity.RowKey}'");
             }
         }
 

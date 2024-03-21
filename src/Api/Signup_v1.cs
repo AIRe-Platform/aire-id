@@ -60,16 +60,13 @@ public class Signup_v1
         if (ent != null)
             return new BadRequestResult();
 
-        var uuid = Guid.NewGuid().ToString();
         var pw = request.Credentials!.Password!;
-
         var user = new UserEntity()
         {
-            UUID = uuid,
             EmailHash = hash,
             Role = AireRoles.User
         };
-        user.GenerateEncryptionKey(uuid, pw);
+        user.GenerateEncryptionKey(pw);
         user.ChangePassword(null, pw);
 
         string verificationCode = user.GenerateVerificationCode();

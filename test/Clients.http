@@ -1,0 +1,41 @@
+@base=http://localhost:7072/api
+@token=eyJhbGciOiJBMjU2S1ciLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwidHlwIjoiSldUIiwiY3R5IjoiSldUIn0.RE6KhIvLbZruIAru-0YFZ4eDKkNGbMQlGitsx-AS0JGxvYNiQtGS09Taf5ODfdjSAjyIY9IPQ4bFAc5nQQKOr78jRjCXE6yC.73VRNmh9wKeybLnicj7pRQ.OeInlaaMtg2ATkOhVcQHVRh4qEOkYbAJ4RcCzZ-rTun0L5APw2wpCe88uU8grFoy8QSi4bxsgzysItSEAFS7KfqzwW5aDOauwI2MmezB2_RX0gBUjHUZm50AF-WQSxVwiI_XWlIG7-4Am9ddSX4xYG6x8KFbgYqTMVnAdkCqTvS-mKpzIikx6NV2AO-FhxYl-qWDdGvJmgTNEYq_CcicUXO3Jj9BaThJWtRLwU4eMv63yHaS0g1xkKYT76TRB4OqExAyUSHxrWdmXJSvqN95UoH4Uagnl-d40pWcE2iKeqMWrPnZiTJPVdbac_PLUKcT4DLsrl8_QSSeJJwbxuLPrYWZuINqef18hkGjDal4MeI550M58FQfWWBN5IMz3GTUZYPNMeCmM7AbJFG-UAlefTsGX0gFiRWxknDG6CEKra0LDEL-rHJGtki1tnoPfWf4PnsptV-lFvAYf_WkiSDe5qN8duyzijC2pYcdB2If1RSu7UEx5vJXfGsgvQDzcMKPvWBIONVrl6Pg_m4dTsyXzshi3pGkk0DAttbxyfyfJZW-701I8Jd4XO0Y2y0_M9xMKFzLVWtwKrrG0MdwEjfebUewG5G2XSQwY1J2D7qCMwwkrOCZKT2D2UtpUnI0OPpRL-_zfg2Qg_fK5cZhuQ7o57IsoPQEOMuDTewMI_9l1q5DBDIclU367YnY2S9h0rANZZ29WOlEGtvJkuFcjLybuSyIvce3Bc48nogAUU4z7ZvoBG4Saq1LwGgNPQF9_omGjjUUdL5OC3QWapn7XOAMepO_bLnS7mTARN_Jf147wd_x3JooaJ6xvJTp2dxeWXPJveg50a4qZbWr0VffavIoY7TBXE2WOOm9kmCjjjBUXB1qeRMr7lg_HYBt9m83F9mxvvXnTminGRw4NDvtq4HP1QyXsScFIHRXXN5ZhctW9uTwZpmS6ggMEUpC2XqdXNT5EO5b2JZ9mEGdLwpxtJB1Nx2GD1_5Rlyh86T0moEozRmmC60f2xt45zHGEgwmX9ZsWNnCbwTNViwnHxiV0NzQN6mI3GnG9zsDw3Jgcr3N09kIM0FwMctT2KbwxbGKFhx7aEn7oPtY4pEQjsyOGagRTzpfSZnNC1OEqmXttH5iD4uerIZZSeUrAWzRpVjYEi3Gr9P1B7wpdfmVNMlJphuf4ONBAFT38KzD519XpF5pMZBFXz7TUnNFZLNF3acEg1No.RU9TgLjGoiSbelcd0tt03z3OwhdJYa8IfywzYMhzXuU
+@client_id=0ee5b4de-b73e-442f-b79c-dfaae7e19278
+
+### Create Client
+POST {{base}}/v1/admin/client HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name": "My test client",
+    "scopes": ["profile-read", "profile-edit"],
+    "redirect_uri": "http://localhost:8080/authorize",
+    "active": true,
+}
+
+### Get clients
+GET {{base}}/v1/admin/clients HTTP/1.1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Get client
+GET {{base}}/v1/admin/client/{{client_id}} HTTP/1.1
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Edit client
+PUT {{base}}/v1/admin/client/{{client_id}} HTTP/1.1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Accept: application/json
+
+{
+    "id": "{{client_id}}",
+    "name": "My Test Client"
+}
+
+### Delete client
+DELETE {{base}}/v1/admin/client/{{client_id}} HTTP/1.1
+Authorization: Bearer {{token}}

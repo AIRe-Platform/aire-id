@@ -17,23 +17,23 @@ using Microsoft.OpenApi.Models;
 
 namespace Aire.Id.Api.Admin;
 
-public class Admin_Account_v1
+public class Account_v1
 {
     private readonly IJwtTokenService _jwt;
     private readonly ITableStorageService _storage;
-    private readonly ILogger<Admin_Account_v1> _log;
+    private readonly ILogger<Account_v1> _log;
 
-    public Admin_Account_v1(IJwtTokenService jwt, ITableStorageService storage, ILogger<Admin_Account_v1> log)
+    public Account_v1(IJwtTokenService jwt, ITableStorageService storage, ILogger<Account_v1> log)
     {
         _jwt = jwt;
         _storage = storage;
         _log = log;
     }
 
-    [Function("Admin_GetAccountById_v1")]
+    [Function("GetAccountById_v1")]
     [OpenApiOperation(
             operationId: "getAccountById",
-            tags: ["Admin"],
+            tags: ["Admin", "Accounts"],
             Summary = "Get user account by ID",
             Description = "Finds user account by ID")]
     [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Description = "Account identifier")]
@@ -80,10 +80,10 @@ public class Admin_Account_v1
         return new OkObjectResult(account);
     }
 
-    [Function("Admin_FindAccount_v1")]
+    [Function("FindAccount_v1")]
     [OpenApiOperation(
             operationId: "findAccount",
-            tags: ["Admin"],
+            tags: ["Admin", "Accounts"],
             Summary = "Find account",
             Description = "Find account by using email or usernaname")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
@@ -131,10 +131,10 @@ public class Admin_Account_v1
         return new OkObjectResult(account);
     }
 
-    [Function("Admin_EditAccount_v1")]
+    [Function("EditAccount_v1")]
     [OpenApiOperation(
             operationId: "editAccount",
-            tags: ["Admin"],
+            tags: ["Admin", "Accounts"],
             Summary = "Edit user account",
             Description = "Edit user account")]
     [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Description = "Account identifier")]

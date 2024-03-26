@@ -4,5 +4,6 @@
   "azureFunctions.projectRuntime": "~4",
   "debug.internalConsoleOptions": "neverOpen",
   "azureFunctions.preDeployTask": "publish (functions)",
-  "editor.codeLens": true
+  "editor.codeLens": true,
+  "rest-client.followredirect": false
 }

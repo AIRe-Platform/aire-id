@@ -7,82 +7,82 @@ using Aire.Id.Oauth2.Providers;
 using Microsoft.Extensions.Logging;
 using Aire.Id.Helpers;
 
-namespace Aire.Id.Providers
-{
-    public class LoginProvider : IOauthLoginProvider
-    {
-        private readonly ITableStorageService _storage;
-        private readonly ILogger<LoginProvider> _log;
+namespace Aire.Id.Providers;
 
-        public LoginProvider(ITableStorageService storage, ILogger<LoginProvider> log)
+public class LoginProvider : IOauthLoginProvider
+{
+    private readonly ITableStorageService _storage;
+    private readonly ILogger<LoginProvider> _log;
+
+    public LoginProvider(ITableStorageService storage, ILogger<LoginProvider> log)
+    {
+        _storage = storage;
+        _log = log;
+    }
+
+    public async Task<OauthSubject?> Login(string username, string password)
+    {
+        var hash = Crypto.SHA256Base16(username);
+
+        var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash || x.Username == username);
+        var user = await query.FirstOrDefaultAsync();
+
+        if (user == null)
         {
-            _storage = storage;
-            _log = log;
+            _log.LogWarning("User does not exist");
+            return null;
         }
 
-        public async Task<OauthSubject?> Login(string username, string password)
+        if (!user.CheckPassword(password))
         {
-            var hash = Crypto.SHA256Base16(username);
+            _log.LogWarning("Incorrect password");
+            return null;
+        }
 
-            var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash || x.Username == username);
-            var user = await query.FirstOrDefaultAsync();
-
-            if(user == null)
+        if (user.Role == AireRoles.DemoUser)
+        {
+            var asDemoUser = await _storage.RetrieveAsync<DemoUserEntity>(user.UUID());
+            if (asDemoUser?.DemoGroupId != null)
             {
-                _log.LogWarning("User does not exist");
-                return null;
-            }
-
-            if(!user.CheckPassword(password))
-            {
-                _log.LogWarning("Incorrect password");
-                return null;
-            }
-
-            if(user.Role == AireRoles.DemoUser)
-            {
-                var asDemoUser = await _storage.RetrieveAsync<DemoUserEntity>(user.UUID());
-                if(asDemoUser?.DemoGroupId != null)
+                var group = await _storage.RetrieveAsync<DemoGroupEntity>(asDemoUser.DemoGroupId);
+                if (group == null || group.Active == false)
                 {
-                    var group = await _storage.RetrieveAsync<DemoGroupEntity>(asDemoUser.DemoGroupId);
-                    if(group == null || group.Active == false)
-                    {
-                        _log.LogWarning("The demo user is deactivated");
-                        return null;
-                    }
+                    _log.LogWarning("The demo user is deactivated");
+                    return null;
                 }
             }
-            
-            var key = user.GetEncryptionKey(password)!;
-            var subject = GetSubject(user, key);
-
-            user.LastLogin = DateTime.UtcNow;
-            if(!await _storage.UpsertAsync(user))
-            {
-                _log.LogError("Failed to update user last login!");
-                return null;
-            }
-
-            return subject;
         }
 
-        public OauthSubject GetSubject(UserEntity user, string key)
-        {
-            var privateData = user.GetPrivateUserData(key!);
+        var key = user.GetEncryptionKey(password)!;
+        var subject = GetSubject(user, key);
 
-            var subject = new OauthSubject {
-                Subject = user.UUID(),
-                Role = user.Role ?? AireRoles.User,
-                Scopes = ScopeHelper.GetScopesForUser(user),
-                Claims = new Dictionary<string, object> {
+        user.LastLogin = DateTime.UtcNow;
+        if (!await _storage.UpsertAsync(user))
+        {
+            _log.LogError("Failed to update user last login!");
+            return null;
+        }
+
+        return subject;
+    }
+
+    public OauthSubject GetSubject(UserEntity user, string key)
+    {
+        var privateData = user.GetPrivateUserData(key!);
+
+        var subject = new OauthSubject
+        {
+            Subject = user.UUID(),
+            Role = user.Role ?? AireRoles.User,
+            Scopes = ScopeHelper.GetScopesForUser(user),
+            Claims = new Dictionary<string, object> {
                     { AireClaims.UserEncryptionKey, key },
                     { AireClaims.ConnectedServices, privateData!.ConnectedServices! },
                     { AireClaims.VerifiedAccount, user.Verified ? "1" : "0" }
                 },
-                Verified = user.Verified
-            };
+            Verified = user.Verified
+        };
 
-            return subject;
-        } 
+        return subject;
     }
 }

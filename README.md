@@ -31,6 +31,7 @@ You should create `local.settings.json` in the root of the repository when devel
         "TOKEN_SIGNING_KEY": "<signing key shared between platform modules>",
         "TOKEN_ISSUER": "http://localhost:7072",
         "TOKEN_AUDIENCE": "http://localhost",
+        "GLOBAL_RECOVERY_KEY": "<encryption key for recovering accounts>",
     },
     "Host": {
         "LocalHttpPort": 7072,
@@ -60,6 +61,7 @@ Publish the Functions app and then setup the following required environment valu
 - `TOKEN_ENCRYPTION_KEY` The token encryption key shared between the platform instance modules.
 - `TOKEN_ISSUER` The token issuer host URL, the same as the service's host.
 - `TOKEN_AUDIENCE` Comma-separated list of audiences. (Optional)
+- `GLOBAL_RECOVERY_KEY` Encryption key for recovery data. This is optional and will make the user data accessable by the system administrators, but allows changing account passwords without losing the data.
 - `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.
 

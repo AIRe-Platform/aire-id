@@ -1,4 +1,5 @@
 using System.Security.Cryptography;
+using System.Text;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Sdk.Models.Identity;
@@ -34,6 +35,7 @@ public class UserEntity : BaseTableEntity
     public string? DataIV { get; set; }
     public string? DataBlock { get; set; }
     public string? Encryption { get; set; }
+    public string? Recovery { get; set; }
 
     public UserEntity()
     {
@@ -46,7 +48,7 @@ public class UserEntity : BaseTableEntity
     /// Get user identifier
     /// </summary>
     /// <returns>Unique user identifier</returns>
-    public string UUID() 
+    public string UUID()
     {
         return RowKey ?? "";
     }
@@ -146,6 +148,20 @@ public class UserEntity : BaseTableEntity
     }
 
     /// <summary>
+    /// Change the password without old password. This requires that the account has recovery enabled.
+    /// </summary>
+    /// <param name="newPassword">New password</param>
+    /// <returns>True if success, otherwise false.</returns>
+    public bool RecoverAccount(string newPassword)
+    {
+        var key = RecoverEncryptionKey();
+        if(key == null)
+            return false;
+        PasswordHash = null;
+        return ChangePassword(null, newPassword);
+    }
+
+    /// <summary>
     /// Sets a random user data encryption key
     /// which is encrypted using user credentials
     /// </summary>
@@ -202,9 +218,48 @@ public class UserEntity : BaseTableEntity
     {
         if (encKeyBytes.Length != 32)
             throw new ArgumentException("Encryption key has to be 256 bits in length", nameof(encKeyBytes));
-        var key = Crypto.PasswordHash(uuid + password, null, 32, 100000);
-        var iv = RandomNumberGenerator.GetBytes(16);
         var encKey = Convert.ToBase64String(encKeyBytes);
-        Encryption = $"{encKey.EncryptString(key, iv)}.{Convert.ToBase64String(iv)}";
+
+        // Encryption with password
+        {
+            var key = Crypto.PasswordHash(uuid + password, null, 32, 100000);
+            var iv = RandomNumberGenerator.GetBytes(16);
+            Encryption = $"{encKey.EncryptString(key, iv)}.{Convert.ToBase64String(iv)}";
+        }
+
+        // Optional global recovery
+        if (AireEnvironment.GlobalRecoveryKey != null)
+        {
+            var recoveryKey = Encoding.UTF8.GetBytes(AireEnvironment.GlobalRecoveryKey);
+            if (recoveryKey.Length != 32)
+                throw new Exception("Global recovery key is not 256 bits in length");
+
+            var iv = RandomNumberGenerator.GetBytes(16);
+            Recovery = $"{encKey.EncryptString(recoveryKey, iv)}.{Convert.ToBase64String(iv)}";
+        }
+    }
+
+    /// <summary>
+    /// If the account has global recovery enabled, the encryption key can be accessed with a master key.
+    /// </summary>
+    /// <returns>Encryption key in base-64</returns>
+    public string? RecoverEncryptionKey()
+    {
+        string? globalRecoveryKey = AireEnvironment.GlobalRecoveryKey;
+        if (globalRecoveryKey == null)
+            return null;
+
+        var key = Encoding.UTF8.GetBytes(globalRecoveryKey);
+        if (key.Length != 32)
+            throw new Exception("Global recovery key is not 256 bits in length");
+
+        if (string.IsNullOrEmpty(Recovery))
+            return null;
+
+        var rec = Recovery.Split(".");
+        if (rec.Length != 2)
+            return null;
+
+        return rec[0].DecryptString(key, Convert.FromBase64String(rec[1]));
     }
 }

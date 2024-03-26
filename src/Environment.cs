@@ -12,6 +12,7 @@ namespace Aire
         public static string? PlatformServiceUrl => Environment.GetEnvironmentVariable("AIRE_SERVICE_BASE");
         public static string? TokenIssuer => Environment.GetEnvironmentVariable("TOKEN_ISSUER");
         public static string? TokenAudience => Environment.GetEnvironmentVariable("TOKEN_AUDIENSE");
+        public static string? GlobalRecoveryKey => Environment.GetEnvironmentVariable("GLOBAL_RECOVERY_KEY");
         public static string? OpenApiHost => Environment.GetEnvironmentVariable("OpenApi__HostNames");
     }
 }

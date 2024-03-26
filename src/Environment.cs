@@ -10,8 +10,8 @@ namespace Aire
         public static string? TokenEncryptionKey => Environment.GetEnvironmentVariable("TOKEN_ENCRYPTION_KEY");
         public static string? PlatformServiceKey => Environment.GetEnvironmentVariable("AIRE_SERVICE_KEY");
         public static string? PlatformServiceUrl => Environment.GetEnvironmentVariable("AIRE_SERVICE_BASE");
-        public static string? TokenIssuer => Environment.GetEnvironmentVariable("TokenIssuer");
-        public static string? TokenAudience => Environment.GetEnvironmentVariable("TokenAudience");
+        public static string? TokenIssuer => Environment.GetEnvironmentVariable("TOKEN_ISSUER");
+        public static string? TokenAudience => Environment.GetEnvironmentVariable("TOKEN_AUDIENSE");
         public static string? OpenApiHost => Environment.GetEnvironmentVariable("OpenApi__HostNames");
     }
 }

@@ -29,8 +29,8 @@ You should create `local.settings.json` in the root of the repository when devel
         "AIRE_SERVICE_KEY": "<service key secret>",
         "TOKEN_ENCRYPTION_KEY": "<enryption key shared between platform modules>",
         "TOKEN_SIGNING_KEY": "<signing key shared between platform modules>",
-        "TokenIssuer": "http://localhost:7072",
-        "TokenAudience": "http://localhost",
+        "TOKEN_ISSUER": "http://localhost:7072",
+        "TOKEN_AUDIENCE": "http://localhost",
     },
     "Host": {
         "LocalHttpPort": 7072,
@@ -58,8 +58,8 @@ Publish the Functions app and then setup the following required environment valu
 - `AIRE_SERVICE_KEY` The service key for the AIRe Services module.
 - `TOKEN_SIGNING_KEY` The token signing key shared between the platform instance modules.
 - `TOKEN_ENCRYPTION_KEY` The token encryption key shared between the platform instance modules.
-- `TokenIssuer` The token issuer host URL, the same as the service's host.
-- `TokenAudience` Comma-separated list of audiences. (Optional)
+- `TOKEN_ISSUER` The token issuer host URL, the same as the service's host.
+- `TOKEN_AUDIENCE` Comma-separated list of audiences. (Optional)
 - `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.
 

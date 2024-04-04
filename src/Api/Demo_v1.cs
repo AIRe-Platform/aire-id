@@ -60,12 +60,7 @@ public class Demo_v1
             return new ForbiddenResult();
 
         var query = await _storage.QueryAsync<DemoGroupEntity>(_ => true);
-        var groups = await query.Select(x => new DemoGroup
-        {
-            Id = x.RowKey,
-            Name = x.Name,
-            Active = x.Active
-        }).ToListAsync();
+        var groups = await query.Select(x => x.ToModel()).ToListAsync();
 
         return new OkObjectResult(groups);
     }
@@ -221,14 +216,7 @@ public class Demo_v1
         if (!await _storage.UpsertAsync(groupEntity))
             throw new SystemException("Failed to insert group entity");
 
-        var response = new DemoGroup
-        {
-            Id = groupEntity.Id(),
-            Name = groupEntity.Name,
-            Active = true
-        };
-
-        return new OkObjectResult(response);
+        return new OkObjectResult(groupEntity.ToModel());
     }
 
     [Function("EditDemoGroup_v1")]
@@ -282,14 +270,7 @@ public class Demo_v1
         if (!await _storage.UpsertAsync(entity))
             throw new SystemException("Failed to insert group entity");
 
-        var result = new DemoGroup
-        {
-            Id = entity.Id(),
-            Name = entity.Name,
-            Active = entity.Active
-        };
-
-        return new OkObjectResult(result);
+        return new OkObjectResult(entity.ToModel());
     }
 
     [Function("DeleteDemoGroup_v1")]

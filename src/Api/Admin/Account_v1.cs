@@ -1,6 +1,5 @@
 using System.Net;
 using System.Web.Http;
-using Aire.Id.Helpers;
 using Aire.Id.Models;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Auth;
@@ -65,19 +64,7 @@ public class Account_v1
             return new NotFoundResult();
         }
 
-        var account = new Account
-        {
-            Id = id,
-            Username = entity.Username,
-            Verified = entity.Verified,
-            EulaAccepted = entity.EulaAccepted,
-            LastLogin = entity.LastLogin,
-            OverrideScopes = entity.Scopes != null && entity.Scopes.Length > 0,
-            Scopes = ScopeHelper.GetScopesForUser(entity),
-            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
-        };
-
-        return new OkObjectResult(account);
+        return new OkObjectResult(entity.ToAccountModel());
     }
 
     [Function("FindAccount_v1")]
@@ -115,20 +102,7 @@ public class Account_v1
             return new NotFoundResult();
         }
 
-        var account = new Account
-        {
-            Id = entity.RowKey,
-            Username = entity.Username,
-            Verified = entity.Verified,
-            EulaAccepted = entity.EulaAccepted,
-            LastLogin = entity.LastLogin,
-            Role = entity.Role ?? AireRoles.User,
-            OverrideScopes = entity.Scopes != null && entity.Scopes.Length > 0,
-            Scopes = ScopeHelper.GetScopesForUser(entity),
-            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
-        };
-
-        return new OkObjectResult(account);
+        return new OkObjectResult(entity.ToAccountModel());
     }
 
     [Function("EditAccount_v1")]
@@ -183,6 +157,9 @@ public class Account_v1
         if (data.AdditionalScopes != null)
             entity.AdditionalScopes = string.Join(" ", data.AdditionalScopes);
 
+        if (data.PublicName != null)
+            entity.PublicName = data.PublicName;
+
         if (data.OverrideScopes)
         {
             if (data.Scopes == null)
@@ -199,19 +176,6 @@ public class Account_v1
         if (!edit)
             return new InternalServerErrorResult();
 
-        var account = new Account
-        {
-            Id = id,
-            Username = entity.Username,
-            Verified = entity.Verified,
-            EulaAccepted = entity.EulaAccepted,
-            LastLogin = entity.LastLogin,
-            Role = entity.Role,
-            OverrideScopes = entity.Scopes != null && entity.Scopes.Length > 0,
-            Scopes = ScopeHelper.GetScopesForUser(entity),
-            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(entity)
-        };
-
-        return new OkObjectResult(account);
+        return new OkObjectResult(entity.ToAccountModel());
     }
 }

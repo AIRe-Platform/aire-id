@@ -40,4 +40,14 @@ public class DemoGroupEntity : BaseTableEntity
     {
         return RowKey ?? "";
     }
+
+    public DemoGroup ToModel()
+    {
+        return new DemoGroup
+        {
+            Id = Id(),
+            Name = Name,
+            Active = Active
+        };
+    }
 }

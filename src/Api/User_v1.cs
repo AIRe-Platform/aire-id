@@ -78,6 +78,9 @@ public class User_v1
                 return new ForbiddenResult();
             }
 
+            if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ConnectProfile))
+                user.ConnectedServices = null;
+
             return new OkObjectResult(user);
         }
 
@@ -141,15 +144,22 @@ public class User_v1
         // Read-only fields
         {
             userData.Email = user.Email;
-            userData.ConnectedServices = user.ConnectedServices;
         }
-        entity.SetPrivateUserData(userData, auth!.UserKey);
 
+        bool allowConnect = _jwt.CheckAuthorization(auth, AireScopes.ConnectProfile);
+        if (!allowConnect)
+            userData.ConnectedServices = user.ConnectedServices;
+
+        entity.SetPrivateUserData(userData, auth!.UserKey);
 
         bool result = await _storage.UpsertAsync(entity);
         if (result)
         {
             var updated = entity.GetUserData(auth!.UserKey);
+
+            if(!allowConnect)
+                updated.ConnectedServices = null;
+
             return new OkObjectResult(updated);
         }
         else

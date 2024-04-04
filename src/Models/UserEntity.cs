@@ -1,7 +1,10 @@
 using System.Security.Cryptography;
 using System.Text;
+using Aire.Id.Helpers;
+using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
+using Aire.Sdk.Models.Admin;
 using Aire.Sdk.Models.Identity;
 
 namespace Aire.Id.Models;
@@ -14,6 +17,7 @@ public class UserEntity : BaseTableEntity
 {
     public string? Username { get; set; }
     public string? EmailHash { get; set; }
+    public string? PublicName { get; set; }
     public string? Role { get; set; }
     public string? Scopes { get; set; }
     public string? AdditionalScopes { get; set; }
@@ -155,7 +159,7 @@ public class UserEntity : BaseTableEntity
     public bool RecoverAccount(string newPassword)
     {
         var key = RecoverEncryptionKey();
-        if(key == null)
+        if (key == null)
             return false;
         PasswordHash = null;
         return ChangePassword(null, newPassword);
@@ -261,5 +265,26 @@ public class UserEntity : BaseTableEntity
             return null;
 
         return rec[0].DecryptString(key, Convert.FromBase64String(rec[1]));
+    }
+
+    /// <summary>
+    /// Construct an account model from the entity
+    /// </summary>
+    /// <returns>Account model</returns>
+    public Account ToAccountModel()
+    {
+        return new Account
+        {
+            Id = RowKey,
+            Username = Username,
+            PublicName = PublicName,
+            Verified = Verified,
+            EulaAccepted = EulaAccepted,
+            LastLogin = LastLogin,
+            Role = Role ?? AireRoles.User,
+            OverrideScopes = Scopes != null && Scopes.Length > 0,
+            Scopes = ScopeHelper.GetScopesForUser(this),
+            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(this)
+        };
     }
 }

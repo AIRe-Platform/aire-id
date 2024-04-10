@@ -64,7 +64,7 @@ var host = new HostBuilder()
                 Info = new OpenApiInfo {
                     Version = "0.1.0",
                     Title = "AIRe ID Module",
-                    Description = "This is the reference implementation of AIRe Platform ID module."
+                    Description = "This is the reference implementation of the AIRe Platform ID module."
                 },                
                 Servers = [
                     new OpenApiServer { Url = AireEnvironment.OpenApiHost ?? "/api" }

@@ -66,13 +66,49 @@ namespace Aire.Id.Oauth2.Models
 		}
 	}
 
+	public class OauthAuthCodeGrantRequest : OauthTokenRequest
+	{
+		// Required
+		public string? Code { get; set; }
+
+		// Required
+		public string? RedirectUri { get; set; }
+
+		// Required
+		public string? ClientId { get; set; }
+
+        public OauthAuthCodeGrantRequest() : base(OauthGrantType.AuthorizationCode)
+		{
+		}
+
+		public new static OauthAuthCodeGrantRequest FromRequest(HttpRequest req)
+		{
+			var codeGrant = new OauthAuthCodeGrantRequest
+			{
+				Code = req.ReadParam("code"),
+				RedirectUri = req.ReadParam("redirect_uri"),
+				ClientId = req.ReadParam("client_id"),
+				State = req.ReadParam("state")
+			};
+
+			if (string.IsNullOrWhiteSpace(codeGrant.Code) ||
+				string.IsNullOrWhiteSpace(codeGrant.RedirectUri) ||
+				string.IsNullOrWhiteSpace(codeGrant.ClientId))
+			{
+				throw new OauthException(OauthError.InvalidRequest);
+			}
+
+			return codeGrant;
+		}
+	}
+
 	public abstract class OauthTokenRequest
 	{
 		// Required
 		public OauthGrantType GrantType { get; private set; }
 
 		// If set, required for the error response.
-		public virtual string? State { get => null; }
+		public string? State { get; set; }
 
 		public OauthTokenRequest(OauthGrantType grantType)
 		{
@@ -82,12 +118,12 @@ namespace Aire.Id.Oauth2.Models
 		public static OauthGrantType? GetOauthGrantType(HttpRequest req)
 		{
 			string? grant = req?.ReadParam("grant_type");
-			
-			return grant switch {
-				"password" 				=> OauthGrantType.Password,
-				"client_credentials" 	=> OauthGrantType.ClientCredentials,
-				"authorization_code" 	=> OauthGrantType.AuthorizationCode,
-				"refresh_token" 		=> OauthGrantType.RefreshToken,
+			return grant switch
+			{
+				"password" => OauthGrantType.Password,
+				"client_credentials" => OauthGrantType.ClientCredentials,
+				"authorization_code" => OauthGrantType.AuthorizationCode,
+				"refresh_token" => OauthGrantType.RefreshToken,
 				_ => null
 			};
 		}
@@ -95,13 +131,14 @@ namespace Aire.Id.Oauth2.Models
 		public static OauthTokenRequest FromRequest(HttpRequest req)
 		{
 			var grant = GetOauthGrantType(req);
-            // TODO: Add other grant types
-            return grant switch
-            {
-                OauthGrantType.Password => OauthTokenPasswordGrantRequest.FromRequest(req),
+			return grant switch
+			{
+				OauthGrantType.Password => OauthTokenPasswordGrantRequest.FromRequest(req),
 				OauthGrantType.RefreshToken => OauthTokenRefreshRequest.FromRequest(req),
-                _ => throw new OauthException(OauthError.UnsupportedGrantType),
-            };
-        }
-    }
+				OauthGrantType.AuthorizationCode => OauthAuthCodeGrantRequest.FromRequest(req),
+				// Client credentials unsupported
+				_ => throw new OauthException(OauthError.UnsupportedGrantType),
+			};
+		}
+	}
 }

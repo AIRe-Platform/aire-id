@@ -1,13 +1,12 @@
 using Newtonsoft.Json;
 
-namespace Aire.Id.Models
-{
-    public class PasswordChangeRequest
-    {
-        [JsonProperty("current_password", Required = Required.Always)]
-        public string? CurrentPassword { get; set; }
+namespace Aire.Id.Models;
 
-        [JsonProperty("new_password", Required = Required.Always)]
-        public string? NewPassword { get; set; }
-    }
+public class PasswordChangeRequest
+{
+    [JsonProperty("current_password", Required = Required.Always)]
+    public string? CurrentPassword { get; set; }
+
+    [JsonProperty("new_password", Required = Required.Always)]
+    public string? NewPassword { get; set; }
 }

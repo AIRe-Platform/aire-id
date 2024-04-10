@@ -7,4 +7,6 @@ public class DemoUserEntity : UserEntity
 {
     public string? DemoGroupId { get; set; }
     public string? DemoAccessCode { get; set; }
+
+    public DemoUserEntity() : base() { }
 }

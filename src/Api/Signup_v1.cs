@@ -25,7 +25,7 @@ public class Signup_v1
     public Signup_v1(ITableStorageService storage, QueueServiceClient queues, ILogger<Signup_v1> log)
     {
         _storage = storage;
-        _mail_queue = queues.GetQueueClient(AireConstants.MailQueue);
+        _mail_queue = queues.GetQueueClient(AireConstants.Queues.Mail);
         _mail_queue.CreateIfNotExists();
         _log = log;
     }

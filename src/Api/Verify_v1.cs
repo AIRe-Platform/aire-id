@@ -32,7 +32,7 @@ public class Verify_v1
     {
         _storage = storage;
         _jwt = jwt;
-        _mail_queue = queues.GetQueueClient("mail-queue");
+        _mail_queue = queues.GetQueueClient(AireConstants.Queues.Mail);
         _log = log;
     }
 

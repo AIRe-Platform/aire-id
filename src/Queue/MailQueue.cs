@@ -22,7 +22,7 @@ public class MailQueue
     }
 
     [Function(nameof(MailQueue))]
-    public async Task Run([QueueTrigger(AireConstants.MailQueue, Connection = "StorageConnectionString")] MailTemplate mail)
+    public async Task Run([QueueTrigger(AireConstants.Queues.Mail, Connection = "StorageConnectionString")] MailTemplate mail)
     {
         if (string.IsNullOrEmpty(mail.TemplateName))
         {

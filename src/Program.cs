@@ -40,14 +40,12 @@ var host = new HostBuilder()
 
         services.AddAzureClients(builder => {
             builder
-                .AddEmailClient(AireEnvironment.CommunicationServiceConnectionString)
-                .WithName("acs");
+                .AddEmailClient(AireEnvironment.CommunicationServiceConnectionString);
 
             builder.AddQueueServiceClient(AireEnvironment.StorageConnectionString)
                 .ConfigureOptions(options => {
                     options.MessageEncoding = QueueMessageEncoding.Base64;
-                })
-                .WithName("queue-client");
+                });
         });
 
         services

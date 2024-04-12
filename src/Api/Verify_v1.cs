@@ -12,7 +12,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
@@ -28,12 +27,12 @@ public class Verify_v1
     public Verify_v1(
         ITableStorageService storage,
         IJwtTokenService jwt,
-        IAzureClientFactory<QueueServiceClient> clientFactory,
+        QueueServiceClient queues,
         ILogger<Verify_v1> log)
     {
         _storage = storage;
         _jwt = jwt;
-        _mail_queue = clientFactory.CreateClient("queue-client").GetQueueClient("mail-queue");
+        _mail_queue = queues.GetQueueClient("mail-queue");
         _log = log;
     }
 

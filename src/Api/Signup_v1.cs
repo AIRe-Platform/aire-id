@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
@@ -23,12 +22,10 @@ public class Signup_v1
     private readonly QueueClient _mail_queue;
     private readonly ILogger<Signup_v1> _log;
 
-    public Signup_v1(ITableStorageService storage, IAzureClientFactory<QueueServiceClient> clientFactory, ILogger<Signup_v1> log)
+    public Signup_v1(ITableStorageService storage, QueueServiceClient queues, ILogger<Signup_v1> log)
     {
         _storage = storage;
-        _mail_queue = clientFactory
-            .CreateClient("queue-client")
-            .GetQueueClient(AireConstants.MailQueue);
+        _mail_queue = queues.GetQueueClient(AireConstants.MailQueue);
         _mail_queue.CreateIfNotExists();
         _log = log;
     }

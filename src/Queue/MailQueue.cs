@@ -2,7 +2,6 @@ using Aire.Id.Models;
 using Aire.Sdk.Azure;
 using Azure.Communication.Email;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 
 namespace Aire.Id.Queue;
@@ -15,9 +14,9 @@ public class MailQueue
 
     private const string fallbackLocale = "en";
 
-    public MailQueue(IAzureClientFactory<EmailClient> clientFactory, ITableStorageService tables, ILogger<MailQueue> logger)
+    public MailQueue(EmailClient client, ITableStorageService tables, ILogger<MailQueue> logger)
     {
-        _client = clientFactory.CreateClient("acs");
+        _client = client;
         _tables = tables;
         _logger = logger;
     }

@@ -13,6 +13,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Aire.Sdk.AspNetCore;
 
 namespace Aire.Id.Api;
 
@@ -42,7 +43,7 @@ public class Signup_v1
     public async Task<IActionResult> Signup(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/signup")] HttpRequest req)
     {
-        var request = await req.ReadFromJsonAsync<SignupRequest>();
+        var request = await req.ReadJson<SignupRequest>();
 
         if (request == null)
             return new BadRequestResult();
@@ -85,10 +86,10 @@ public class Signup_v1
         {
             Locale = userData.Language,
             Recipient = request.Credentials.Email,
-            TemplateName = "verification",
+            TemplateName = MailTemplate.Verification.Id,
             Values = new Dictionary<string, string> {
-                    { "code", verificationCode }
-                }
+                { MailTemplate.Verification.Params.Code, verificationCode }
+            }
         };
 
         {

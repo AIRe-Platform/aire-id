@@ -6,4 +6,6 @@ public static class AireConstants
     {
         public const string Mail = "mail-queue";
     }
+
+    public const int MaxVerificationRetryCount = 10;
 }

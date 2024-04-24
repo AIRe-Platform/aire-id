@@ -162,7 +162,12 @@ public class UserEntity : BaseTableEntity
         if (key == null)
             return false;
         PasswordHash = null;
-        return ChangePassword(null, newPassword);
+        if(!ChangePassword(null, newPassword))
+            return false;
+
+        var keyBytes = Convert.FromBase64String(key!);
+        SetEncryptionKey(RowKey!, newPassword, keyBytes);
+        return true;
     }
 
     /// <summary>
@@ -193,6 +198,29 @@ public class UserEntity : BaseTableEntity
         VerificationCodeExpiry = DateTime.UtcNow.AddHours(1);
         VerificationCodeRetryCount = 0;
         return code;
+    }
+
+    /// <summary>
+    /// Try setting account verified
+    /// </summary>
+    /// <param name="code">Verification code</param>
+    /// <returns>True if verification was successful. Otherwise false.</returns>
+    public bool VerifyAccount(string code)
+    {
+        if (code == VerificationCode && !string.IsNullOrWhiteSpace(code) &&
+            VerificationCodeRetryCount < AireConstants.MaxVerificationRetryCount &&
+            VerificationCodeExpiry.HasValue &&
+            VerificationCodeExpiry.Value > DateTime.UtcNow)
+        {
+            Verified = true;
+            VerificationCode = "";
+            VerificationCodeExpiry = DateTime.UtcNow;
+            VerificationCodeRetryCount = 0;
+            return true;
+        }
+
+        VerificationCodeRetryCount++;
+        return false;
     }
 
     /// <summary>

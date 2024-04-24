@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
@@ -20,18 +19,15 @@ namespace Aire.Id.Api;
 public class Verify_v1
 {
     private readonly ITableStorageService _storage;
-    private readonly IJwtTokenService _jwt;
     private readonly QueueClient _mail_queue;
     private readonly ILogger<Verify_v1> _log;
 
     public Verify_v1(
         ITableStorageService storage,
-        IJwtTokenService jwt,
         QueueServiceClient queues,
         ILogger<Verify_v1> log)
     {
         _storage = storage;
-        _jwt = jwt;
         _mail_queue = queues.GetQueueClient(AireConstants.Queues.Mail);
         _log = log;
     }
@@ -47,7 +43,7 @@ public class Verify_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Invalid or expired code")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or invalid user token")]
     public async Task<IActionResult> VerifyCode(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify/{code}")] HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify/{code}")] HttpRequest req,
         string code,
         FunctionContext context)
     {
@@ -64,34 +60,21 @@ public class Verify_v1
         if (user == null)
             return new UnauthorizedResult();
 
-        if (DateTime.UtcNow < user.VerificationCodeExpiry && user.VerificationCodeRetryCount < 10)
-        {
-            if (user.VerificationCode == code)
-            {
-                user.Verified = true;
-                user.VerificationCode = "";
-                user.VerificationCodeExpiry = DateTime.UtcNow;
-                user.VerificationCodeRetryCount = 0;
-            }
-            else
-            {
-                user.VerificationCodeRetryCount++;
-                _log.LogWarning("Incorrect verification code");
-            }
-        }
-        else
-        {
-            _log.LogWarning("Code expired or too many retries");
-        }
+        bool verified = user.VerifyAccount(code);
 
         bool result = await _storage.UpsertAsync(user);
         if (!result)
             return new InternalServerErrorResult();
 
-        if (user.Verified)
+        if (verified)
+        {
             return new NoContentResult();
+        }
         else
+        {
+            _log.LogWarning("Verification failed");
             return new ForbiddenResult();
+        }
     }
 
     [Function("ResendVerify_v1")]
@@ -137,10 +120,10 @@ public class Verify_v1
         {
             Locale = userData.Language,
             Recipient = userData.Email,
-            TemplateName = "verification",
+            TemplateName = MailTemplate.Verification.Id,
             Values = new Dictionary<string, string> {
-                    { "code", verificationCode }
-                }
+                { MailTemplate.Verification.Params.Code, verificationCode }
+            }
         };
 
         {

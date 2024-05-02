@@ -11,9 +11,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Aire.Sdk.AspNetCore;
 
 namespace Aire.Id.Api;
 
@@ -23,12 +23,10 @@ public class Signup_v1
     private readonly QueueClient _mail_queue;
     private readonly ILogger<Signup_v1> _log;
 
-    public Signup_v1(ITableStorageService storage, IAzureClientFactory<QueueServiceClient> clientFactory, ILogger<Signup_v1> log)
+    public Signup_v1(ITableStorageService storage, QueueServiceClient queues, ILogger<Signup_v1> log)
     {
         _storage = storage;
-        _mail_queue = clientFactory
-            .CreateClient("queue-client")
-            .GetQueueClient(AireConstants.MailQueue);
+        _mail_queue = queues.GetQueueClient(AireConstants.Queues.Mail);
         _mail_queue.CreateIfNotExists();
         _log = log;
     }
@@ -45,7 +43,7 @@ public class Signup_v1
     public async Task<IActionResult> Signup(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/signup")] HttpRequest req)
     {
-        var request = await req.ReadFromJsonAsync<SignupRequest>();
+        var request = await req.ReadJson<SignupRequest>();
 
         if (request == null)
             return new BadRequestResult();
@@ -88,10 +86,10 @@ public class Signup_v1
         {
             Locale = userData.Language,
             Recipient = request.Credentials.Email,
-            TemplateName = "verification",
+            TemplateName = MailTemplate.Verification.Id,
             Values = new Dictionary<string, string> {
-                    { "code", verificationCode }
-                }
+                { MailTemplate.Verification.Params.Code, verificationCode }
+            }
         };
 
         {

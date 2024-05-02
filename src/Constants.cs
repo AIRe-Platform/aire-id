@@ -1,7 +1,11 @@
-namespace Aire.Id
+namespace Aire.Id;
+
+public static class AireConstants
 {
-    public static class AireConstants
+    public static class Queues
     {
-        public const string MailQueue = "mail-queue";
+        public const string Mail = "mail-queue";
     }
+
+    public const int MaxVerificationRetryCount = 10;
 }

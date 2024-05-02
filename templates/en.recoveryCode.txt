@@ -1,0 +1,11 @@
+AIRe Account Recovery
+
+Here's the code to recover your account:
+
+{{code}}
+
+If you did not request to recover your account, please ignore this message.
+
+Best regards,
+
+AIRe Development Team

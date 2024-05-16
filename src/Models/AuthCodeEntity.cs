@@ -11,7 +11,7 @@ public class AuthCodeEntity : BaseTableEntity
     public string? UserKey { get; set; }
     public string? Scopes { get; set; }
     public string? State { get; set; }
-    public string? RedirectUri { get; set; }
+    public string? RedirectUri { get; set; }
     public DateTime? Expires { get; set; }
 
     public AuthCodeEntity() { }

@@ -31,10 +31,10 @@ public class Account_v1
 
     [Function("GetAccountById_v1")]
     [OpenApiOperation(
-            operationId: "getAccountById",
-            tags: ["Admin", "Accounts"],
-            Summary = "Get user account by ID",
-            Description = "Finds user account by ID")]
+        operationId: "getAccountById",
+        tags: ["Admin", "Accounts"],
+        Summary = "Get user account by ID",
+        Description = "Finds user account by ID")]
     [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Description = "Account identifier")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Account), Description = "The account object")]
@@ -69,10 +69,10 @@ public class Account_v1
 
     [Function("FindAccount_v1")]
     [OpenApiOperation(
-            operationId: "findAccount",
-            tags: ["Admin", "Accounts"],
-            Summary = "Find account",
-            Description = "Find account by using email or usernaname")]
+        operationId: "findAccount",
+        tags: ["Admin", "Accounts"],
+        Summary = "Find account",
+        Description = "Find account by using email or usernaname")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiParameter("login_name", In = ParameterLocation.Query, Description = "Username or email address")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Account), Description = "The account object")]
@@ -107,10 +107,10 @@ public class Account_v1
 
     [Function("EditAccount_v1")]
     [OpenApiOperation(
-            operationId: "editAccount",
-            tags: ["Admin", "Accounts"],
-            Summary = "Edit user account",
-            Description = "Edit user account")]
+        operationId: "editAccount",
+        tags: ["Admin", "Accounts"],
+        Summary = "Edit user account",
+        Description = "Edit user account")]
     [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Description = "Account identifier")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiRequestBody("application/json", typeof(Account), Required = true, Description = "User account object")]

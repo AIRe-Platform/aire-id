@@ -29,10 +29,10 @@ public class Client_v1
 
     [Function("GetClientById_v1")]
     [OpenApiOperation(
-            operationId: "getClientById",
-            tags: ["Admin", "Clients"],
-            Summary = "Get a client by its ID",
-            Description = "Finds an OAuth 2.0 client by the its ID")]
+        operationId: "getClientById",
+        tags: ["Admin", "Clients"],
+        Summary = "Get a client by its ID",
+        Description = "Finds an OAuth 2.0 client by the its ID")]
     [OpenApiParameter("id", In = ParameterLocation.Path, Required = true, Description = "Client identifier")]
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Client), Description = "The client object")]

@@ -49,7 +49,7 @@ public class Demo_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoGroups(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/demo/groups")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/demo/groups")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -77,7 +77,7 @@ public class Demo_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoUsers(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/demo/group/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/demo/group/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {
@@ -110,7 +110,7 @@ public class Demo_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> GetDemoUser(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/demo/user/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/demo/user/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {
@@ -144,7 +144,7 @@ public class Demo_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> CreateDemoGroup(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/demo/group")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/demo/group")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -233,7 +233,7 @@ public class Demo_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> EditDemoGroup(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "v1/demo/group/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "api/v1/demo/group/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {
@@ -285,7 +285,7 @@ public class Demo_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
     public async Task<IActionResult> DeleteResearchGroup(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/demo/group/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/demo/group/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {

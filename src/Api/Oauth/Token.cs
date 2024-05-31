@@ -32,7 +32,7 @@ namespace Aire.Id.Api
         [OpenApiResponseWithBody(HttpStatusCode.InternalServerError, "application/json", typeof(OauthErrorResponse), Description = "OAuth error response")]
         [OpenApiResponseWithBody(HttpStatusCode.ServiceUnavailable, "application/json", typeof(OauthErrorResponse), Description = "OAuth error response")]
         public async Task<IActionResult> Oauth_Token_Post(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "oauth/token")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/oauth/token")] HttpRequest req)
         {
             return await _svc.HandleTokenRequest(req);
         }
@@ -52,7 +52,7 @@ namespace Aire.Id.Api
         [OpenApiRequestBody("application/x-www-form-urlencoded", typeof(TokenInfoRequestBody), Required = true)]
         [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(OauthTokenResponse), Description = "Token response")]
         public IActionResult Oauth_TokenInfo(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "oauth/tokeninfo")] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/oauth/tokeninfo")] HttpRequest req)
         {
             var token = req.ReadParam("token");
 

@@ -30,6 +30,7 @@ var host = new HostBuilder()
             EncryptionKey = AireEnvironment.TokenEncryptionKey
         });
         worker.UseOauth<TokenProvider, LoginProvider>();
+        
     })
     .ConfigureServices(services =>
     {

@@ -44,7 +44,7 @@ public class Recovery_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Returned always whether an account is found or not.")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "Account recovery is not supported by the platform.")]
     public async Task<IActionResult> RequestRecoveryCode(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/recovery/code")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/code")] HttpRequest req)
     {
         if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
@@ -108,7 +108,7 @@ public class Recovery_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "The account is not recoverable or the request was invalid.")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "Account recovery is not supported by the platform.")]
     public async Task<IActionResult> RecoveryPasswordChange(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/recovery/password")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/password")] HttpRequest req)
     {
         if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);

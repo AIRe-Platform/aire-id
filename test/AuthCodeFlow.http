@@ -2,8 +2,8 @@
 
 # Registered OAuth 2.0 client
 @client_id=0ee5b4de-b73e-442f-b79c-dfaae7e19278
-@redirect_uri=http://localhost:8080/authorize
-@scopes=profile-read profile-edit
+@redirect_uri=http://localhost:8080/auth_callback
+@scopes=
 @state=tester
 
 # For consent

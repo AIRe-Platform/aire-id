@@ -41,7 +41,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid client id")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client does not exist")]
     public async Task<IActionResult> GetClientById(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {
@@ -73,7 +73,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     public async Task<IActionResult> GetClients(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/clients")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/clients")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -102,7 +102,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid body")]
     public async Task<IActionResult> CreateClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/admin/client")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/admin/client")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -152,7 +152,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid body or ID")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client was not found")]
     public async Task<IActionResult> EditClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {
@@ -215,7 +215,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid id")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client was not found")]
     public async Task<IActionResult> DeleteClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {

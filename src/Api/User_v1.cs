@@ -44,7 +44,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     public async Task<IActionResult> GetUser(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/user")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/user")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -103,7 +103,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
     public async Task<IActionResult> EditUser(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "v1/user/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "api/v1/user/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {
@@ -184,7 +184,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
     public async Task<IActionResult> ChangePassword(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/user/{id}/password")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/user/{id}/password")] HttpRequest req,
         FunctionContext context,
         string id)
     {
@@ -255,7 +255,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
     public async Task<IActionResult> DeleteUser(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/user/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/user/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {

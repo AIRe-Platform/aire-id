@@ -80,7 +80,7 @@ Publish the Functions app and then setup the following required environment valu
 - `TOKEN_ISSUER` The token issuer host URL, the same as the service's host.
 - `TOKEN_AUDIENCE` Comma-separated list of audiences. (Optional)
 - `GLOBAL_RECOVERY_KEY` Encryption key for recovery data. This is optional and will make the user data accessable by the system administrators, but allows changing account passwords without losing the data.
-- `AUTH_CONSENT_REDIRECT_URI` Address to which the user is redirected to when requesting consent to share their data.
+- `AUTH_LOGIN_REDIRECT` Address to which the user is redirected to when requesting consent to share their data or logging in.
 - `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.
 

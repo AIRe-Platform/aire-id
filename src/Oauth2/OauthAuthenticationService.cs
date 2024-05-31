@@ -73,7 +73,7 @@ namespace Aire.Id.Oauth2
                                 throw new OauthException(OauthError.UnsupportedResponseType);
                         }
                     else
-                        return await RedirectToConsentPage(authRequest, req);
+                        return await RedirectToLoginPage(authRequest, req);
                 }
             }
             catch (OauthException ex)
@@ -103,6 +103,7 @@ namespace Aire.Id.Oauth2
                 tokenRequest = OauthTokenRequest.FromRequest(req);
                 if (tokenRequest != null)
                 {
+                    // TODO: Disable password grant
                     if (tokenRequest is OauthTokenPasswordGrantRequest)
                     {
                         return await PasswordGrant((OauthTokenPasswordGrantRequest)tokenRequest!);
@@ -229,20 +230,21 @@ namespace Aire.Id.Oauth2
             return new OkObjectResult(response);
         }
 
-        private async Task<IActionResult> RedirectToConsentPage(OauthAuthRequest req, HttpRequest httpRequest)
+        private async Task<IActionResult> RedirectToLoginPage(OauthAuthRequest req, HttpRequest httpRequest)
         {
             var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
             if (client == null)
+            {
                 throw new OauthException(OauthError.UnauthorizedClient)
                 {
                     Redirect = req.RedirectUri,
                     State = req.State
                 };
+            }
 
-            var redirect_uri = AireEnvironment.AuthConsentRedirectUri;
-            if (string.IsNullOrWhiteSpace(redirect_uri))
+            if (!Uri.TryCreate(AireEnvironment.AuthLoginRedirect, UriKind.Absolute, out Uri? redirect_uri))
             {
-                _log.LogError("AUTH_CONSENT_REDIRECT_URI is not configured properly");
+                _log.LogError("AUTH_LOGIN_REDIRECT is not configured properly");
                 throw new OauthException(OauthError.TemporarilyUnavailable)
                 {
                     Redirect = req.RedirectUri,
@@ -254,10 +256,10 @@ namespace Aire.Id.Oauth2
             query["service"] = client.Name;
             query["response_type"] = req.ResponseType.ObjectToJson();
             query["client_id"] = req.ClientId;
-            query["redirect_uri"] = ValidateRedirectUri(req, client).AbsoluteUri;
+            query["redirect_uri"] = GetClientRedirectUri(req, client).AbsoluteUri;
             query["scope"] = string.Join(" ", ValidateScopes(req, client, null));
             query["state"] = req.State;
-            var uri = QueryHelpers.AddQueryString(redirect_uri, query);
+            var uri = QueryHelpers.AddQueryString(redirect_uri.AbsoluteUri, query);
             return new RedirectResult(uri, false, false);
         }
 
@@ -272,7 +274,7 @@ namespace Aire.Id.Oauth2
                 };
 
             var scopes = ValidateScopes(req, client, auth);
-            var redirect = ValidateRedirectUri(req, client);
+            var redirect = GetClientRedirectUri(req, client);
             string code = RandomNumberGenerator.GetHexString(32, true);
 
             var codeEntity = new AuthCodeEntity(code)
@@ -306,7 +308,7 @@ namespace Aire.Id.Oauth2
             return new RedirectResult(redirectUri, false, false);
         }
 
-        private Uri ValidateRedirectUri(OauthAuthRequest req, ClientEntity client)
+        private Uri GetClientRedirectUri(OauthAuthRequest req, ClientEntity client)
         {
             if (string.IsNullOrWhiteSpace(client.RedirectUri))
             {

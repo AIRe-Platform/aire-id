@@ -41,7 +41,7 @@ public class Signup_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid email format, account already exists, or password does not meet minimum requirements")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error, try again later.")]
     public async Task<IActionResult> Signup(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/signup")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/signup")] HttpRequest req)
     {
         var request = await req.ReadJson<SignupRequest>();
 

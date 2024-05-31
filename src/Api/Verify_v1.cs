@@ -43,7 +43,7 @@ public class Verify_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Invalid or expired code")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or invalid user token")]
     public async Task<IActionResult> VerifyCode(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify/{code}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/verify/{code}")] HttpRequest req,
         string code,
         FunctionContext context)
     {
@@ -88,7 +88,7 @@ public class Verify_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or invalid user token")]
     public async Task<IActionResult> ResendVerify(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/verify/resend")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/verify/resend")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();

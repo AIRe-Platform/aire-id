@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="../static/favicon.ico">
+    <link rel="stylesheet" href="../static/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIRe ID</title>
+</head>
+
+<style>
+    #login_dialog {
+        gap: 1rem;
+        max-width: 320px;
+    }
+</style>
+
+<body>
+    <div class="main">
+        <div id="busy_dialog">
+            <div class="spinner"></div>
+        </div>
+        <div id="login_dialog" class="hidden panel">
+            <h1 id="title"></h1>
+            <form id="login_form" class="form" onsubmit="onLogin(event)">
+                <input type="hidden" id="code" />
+                <div class="form-field">
+                    <label for="username" id="label_username"></label>
+                    <input type="text" id="username" autocomplete="username" />
+                </div>
+                <div class="form-field">
+                    <label for="password" id="label_password"></label>
+                    <input type="password" id="password" autocomplete="current-password" />
+                </div>
+                <input type="submit" id="button_login" />
+            </form>
+        </div>
+        <div id="consent_dialog" class="panel">
+            <div id="session_user_label"></div>
+            <div id="session_user_name"></div>
+            <div id="consent_message"></div>
+            <div id="app_name"></div>
+            <button id="button_consent" onclick="onConsent()"></button>
+            <button id="button_cancel" onclick="onCancel()"></button>
+        </div>
+        <div id="verification_dialog" class="panel">
+            <label for="verification_code" id="label_verification"></label>
+            <input type="text" id="verification_code" autocomplete="off" />
+            <div id="verification_instruction"></div>
+        </div>
+        <div id="error_dialog" class="hidden panel"></div>
+    </div>
+</body>
+
+<script src="../static/main.js"></script>
+<script>
+    const showDialog = (name) => {
+        this.busy_dialog.classList.toggle("hidden", name !== "busy");
+        this.login_dialog.classList.toggle("hidden", name !== "login");
+        this.verification_dialog.classList.toggle("hidden", name !== "verification");
+        this.consent_dialog.classList.toggle("hidden", name !== "consent");
+    }
+
+    const setError = (visible) => {
+        this.error_dialog.classList.toggle("hidden", !visible);
+    }
+
+    const onLogin = (e) => {
+        e.preventDefault();
+        login(this.username.value, this.password.value)
+            .then(ok => {
+                if(ok) {
+                    showDialog("")
+                }
+            })
+    }
+
+    const onConsent = () => {
+        console.log("consent given")
+    }
+
+    const onCancel = () => {
+        console.log("auth canceled");
+    }
+
+    const init = () => {
+        // Load localized strings
+
+        this.title.innerText = localize("title")
+        this.label_username.innerText = localize("username")
+        this.label_password.innerText = localize("password")
+        this.button_login.value = localize("button_login")
+        this.error_dialog.innerText = localize("login_error")
+
+        // Restore session and enable UI
+
+        setTimeout(() => showDialog("login"), 1000)
+    }
+
+    init();
+</script>
+
+</html>

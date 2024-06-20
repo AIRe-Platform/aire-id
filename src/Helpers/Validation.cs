@@ -41,7 +41,7 @@ namespace Aire.Id.Helpers
             bool uppercaseLetters = Regex.IsMatch(password, @"[A-Z]");
             
             return !string.IsNullOrWhiteSpace(password) 
-                && (password.Length >= 6)
+                && (password.Length >= AireConstants.MinPasswordLength)
                 && (digits && lowercaseLetters && uppercaseLetters);
         }
 

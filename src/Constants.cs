@@ -8,4 +8,5 @@ public static class AireConstants
     }
 
     public const int MaxVerificationRetryCount = 10;
+    public const int MinPasswordLength = 8;
 }

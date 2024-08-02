@@ -14,15 +14,15 @@ namespace Aire.Id.Pages;
 /// <summary>
 /// Login page for OAuth 2.0 authentication code flow
 /// </summary>
-public class LoginPage
+public class Login_v1
 {
     private readonly IJwtTokenService _jwt;
     private readonly IOauthLoginProvider _loginProvider;
-    private readonly ILogger<LoginPage> _log;
+    private readonly ILogger<Login_v1> _log;
 
     private const string AuthScope = "authorize";
 
-    public LoginPage(IJwtTokenService jwt, IOauthLoginProvider loginProvider, ILogger<LoginPage> log)
+    public Login_v1(IJwtTokenService jwt, IOauthLoginProvider loginProvider, ILogger<Login_v1> log)
     {
         _jwt = jwt;
         _loginProvider = loginProvider;
@@ -44,28 +44,9 @@ public class LoginPage
         public string? Token { get; set; }
     }
 
-    [Function("GetLoginPage")]
-    [OpenApiIgnore]
-    public IActionResult GetLoginPage([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "login")] HttpRequest req)
-    {
-        var path = Path.Combine(Environment.CurrentDirectory, $"www/pages/login.html");
-
-        if(!File.Exists(path))
-            return new NotFoundResult();
-
-        var stream = File.OpenRead(path);
-        if(!stream.CanRead)
-        {
-            _log.LogError("Cannot read file {filePath}", path);
-            return new InternalServerErrorResult();
-        }
-
-        return new FileStreamResult(stream, "text/html");
-    }
-
     [Function("ValidateSession")]
     [OpenApiIgnore]
-    public async Task<IActionResult> ValidateSession([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login/session")] HttpRequest req)
+    public async Task<IActionResult> ValidateSession([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login/validate")] HttpRequest req)
     {
         var session = await req.ReadJson<Session>();
         if(session == null || string.IsNullOrWhiteSpace(session.Token))
@@ -78,11 +59,10 @@ public class LoginPage
         return new OkResult();
     }
 
-    [Function("PostLoginForm")]
+    [Function("PostLogin")]
     [OpenApiIgnore]
-    public IActionResult PostLoginForm([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")] HttpRequest req)
+    public IActionResult PostLogin([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")] HttpRequest req)
     {
-
         return new NotFoundResult();
     }
 

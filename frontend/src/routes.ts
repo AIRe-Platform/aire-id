@@ -1,10 +1,15 @@
-import { createMemoryHistory, createRouter } from "vue-router"
-import LoginPrompt from "@/components/LoginPrompt.vue"
+import { createRouter, createWebHistory } from "vue-router";
+import NotFoundView from "@/views/NotFoundView.vue";
+import AuthView from "@/views/AuthView.vue";
 
 const router = createRouter({
-    history: createMemoryHistory(),
+    history: createWebHistory("app"),
     routes: [
-        { path: "/login", component: LoginPrompt }
+        { path: "/auth", component: AuthView },
+        {
+            path: "/:pathMatch(.*)*",
+            component: NotFoundView,
+        },
     ]
 });
 

@@ -31,9 +31,6 @@
     <None Update="local.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-    </None>    
-    <None Update="www/**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -53,4 +50,13 @@
     <ProjectReference Include="submodules\aire-dotnet-sdk\Aire.Sdk.Models\Aire.Sdk.Models.csproj" />
     <ProjectReference Include="submodules\aire-dotnet-sdk\Aire.Sdk.Platform\Aire.Sdk.Platform.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <FrontendFiles Include="frontend\dist\**" />
+  </ItemGroup>
+  <Target Name="CopyFrontendAfterBuild" AfterTargets="AfterBuild">
+    <Copy SourceFiles="@(FrontendFiles)" DestinationFolder="$(OutDir)www\%(RecursiveDir)" />
+  </Target>
+  <Target Name="CopyFrontendOnPublish" AfterTargets="Publish">
+    <Copy SourceFiles="@(FrontendFiles)" DestinationFolder="$(PublishDir)www\%(RecursiveDir)" />
+  </Target>
 </Project>

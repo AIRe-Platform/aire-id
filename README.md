@@ -31,6 +31,17 @@ Configure `local.settings.json` as instructed. You should be running the AIRe Se
 
 Hit F5 and you should be good to go.
 
+## Updating frontend
+
+Either run the VSCode task `Build frontend` or build manually:
+
+```sh
+cd frontend
+npm run build
+```
+
+Running the default debug build task in VSCode also builds the frontend. For this, you need to have Node and NPM available on your system.
+
 ## Configuration
 
 You should create `local.settings.json` in the root of the repository when developing locally. It should look something like this:

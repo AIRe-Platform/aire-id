@@ -9,4 +9,6 @@ public static class AireConstants
 
     public const int MaxVerificationRetryCount = 10;
     public const int MinPasswordLength = 8;
+    public const int MaxUserFirstNameAndLastNameLength = 50;
+    public const int MaxUserBioLength = 2000;
 }

@@ -142,10 +142,22 @@ public class User_v1
         }
 
         // Read-only fields
-        {
+        {//  wtf¿?
             userData.Email = user.Email;
         }
 
+        if(userData.FirstName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength){
+            _log.LogWarning( "Failed to save into database: First Name too long");
+            return new BadRequestResult();
+        }
+        if(userData.LastName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength){
+            _log.LogWarning( "Failed to save into database: Last Name is too long");
+            return new BadRequestResult();
+        }
+        if(userData.Bio?.Length > AireConstants.MaxUserBioLength){
+            _log.LogWarning( "Failed to save into database: Bio is too long");
+            return new BadRequestResult();
+        }
         bool allowConnect = _jwt.CheckAuthorization(auth, AireScopes.ConnectProfile);
         if (!allowConnect)
             userData.ConnectedServices = user.ConnectedServices;

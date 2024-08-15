@@ -1,8 +1,10 @@
 using System.Net;
+using System.Security.Cryptography;
 using System.Web.Http;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
+using Aire.Sdk.Helpers;
 using Aire.Sdk.Models.Admin;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -127,12 +129,24 @@ public class Client_v1
             Name = client.Name,
             Active = client.Active ?? false,
             AllowedScopes = string.Join(" ", client.Scopes),
-            RedirectUri = redirectUri.AbsoluteUri
-        };
+            RedirectUri = redirectUri.AbsoluteUri,
+            Public = client.Public ?? true,
+            RequireConsent = client.RequireConsent ?? true,
+        };    
+
+        string? clientSecret = null;
+        if(client.Public == false)
+        {
+            clientSecret = RandomNumberGenerator.GetHexString(32, true);
+            entity.SecretHash = Crypto.SHA256Base64(clientSecret);
+        }
 
         var insert = await _storage.UpsertAsync(entity);
         if (!insert)
             return new InternalServerErrorResult();
+
+        var model = entity.ToModel();
+        model.Secret = clientSecret;
 
         return new OkObjectResult(entity.ToModel());
     }
@@ -185,6 +199,9 @@ public class Client_v1
 
         if (data.Active.HasValue)
             client.Active = data.Active.Value;
+
+        if (data.RequireConsent.HasValue)
+            client.RequireConsent = data.RequireConsent.Value;
 
         if (data.RedirectUri != null)
         {

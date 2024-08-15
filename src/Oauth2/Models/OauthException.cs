@@ -1,4 +1,3 @@
-using System;
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
@@ -12,13 +11,13 @@ namespace Aire.Id.Oauth2.Models
 		public OauthError Error { get; private set; } = OauthError.ServerError;
 
         // Optional
-        public string? ErrorUri { get; set; }
+        public string? ErrorUri { get; private set; }
 
         // Required if state was present in the authorization request
-        public string? State { get; set; }
+        public string? State { get; private set; }
 
         // Set to use redirection
-        public string? Redirect { get; set; }
+        public string? Redirect { get; private set; }
 
 		public OauthException(OauthError error)
 			: base("")
@@ -31,6 +30,21 @@ namespace Aire.Id.Oauth2.Models
 		{
 			Error = error;
 		}
+
+        public OauthException(OauthError error, OauthAuthRequest? req, string? description = null)
+            : base(description)
+        {
+            Error = error;
+            Redirect = req?.RedirectUri;
+            State = req?.State;
+        }
+
+        public OauthException(OauthError error, OauthTokenRequest? req, string? description = null)
+            : base(description)
+        {
+            Error = error;
+            State = req?.State;
+        }
 
 		public IActionResult OauthErrorResult()
 		{

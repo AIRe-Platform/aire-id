@@ -77,6 +77,12 @@ namespace Aire.Id.Oauth2.Models
 		// Required
 		public string? ClientId { get; set; }
 
+		// Optional
+		public string? ClientSecret { get; set; }
+
+		// Optional
+		public string? CodeVerifier { get; set; }
+
         public OauthAuthCodeGrantRequest() : base(OauthGrantType.AuthorizationCode)
 		{
 		}
@@ -88,6 +94,8 @@ namespace Aire.Id.Oauth2.Models
 				Code = req.ReadParam("code"),
 				RedirectUri = req.ReadParam("redirect_uri"),
 				ClientId = req.ReadParam("client_id"),
+				ClientSecret = req.ReadParam("client_secret"),
+				CodeVerifier = req.ReadParam("code_verifier"),
 				State = req.ReadParam("state")
 			};
 

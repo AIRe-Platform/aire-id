@@ -12,6 +12,9 @@ public class ClientEntity : BaseTableEntity
     public string? AllowedScopes { get; set; }
     public string? RedirectUri { get; set; }
     public bool Active { get; set; }
+    public bool Public { get; set; }
+    public bool RequireConsent { get; set; }
+    public string? SecretHash { get; set; }
 
     public ClientEntity()
     {
@@ -41,7 +44,9 @@ public class ClientEntity : BaseTableEntity
                 .Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .ToList(),
             RedirectUri = RedirectUri,
-            Active = Active
+            Active = Active,
+            Public = Public,
+            RequireConsent = RequireConsent
         };
     }
 }

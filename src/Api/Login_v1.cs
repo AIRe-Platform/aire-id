@@ -1,4 +1,4 @@
-using System.Web.Http;
+using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Auth;
@@ -6,27 +6,19 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Aire.Id.Pages;
 
-/// <summary>
-/// Login page for OAuth 2.0 authentication code flow
-/// </summary>
 public class Login_v1
 {
-    private readonly IJwtTokenService _jwt;
     private readonly IOauthLoginProvider _loginProvider;
-    private readonly ILogger<Login_v1> _log;
+    private readonly IOauthTokenProvider _tokenProvider;
 
-    private const string AuthScope = "authorize";
-
-    public Login_v1(IJwtTokenService jwt, IOauthLoginProvider loginProvider, ILogger<Login_v1> log)
+    public Login_v1(IOauthLoginProvider loginProvider, IOauthTokenProvider tokenProvider)
     {
-        _jwt = jwt;
         _loginProvider = loginProvider;
-        _log = log;
+        _tokenProvider = tokenProvider;
     }
 
     class LoginForm
@@ -42,34 +34,66 @@ public class Login_v1
     {
         [JsonProperty("token", Required = Required.Always)]
         public string? Token { get; set; }
+
+        [JsonProperty("verified", NullValueHandling = NullValueHandling.Ignore)]
+        public bool? Verified { get; set; }
     }
 
-    [Function("ValidateSession")]
+    /// <summary>
+    /// Check login session authentication
+    /// </summary>
+    [Function("GetLoginAuth_v1")]
     [OpenApiIgnore]
-    public async Task<IActionResult> ValidateSession([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login/validate")] HttpRequest req)
+    public static IActionResult GetLoginAuth(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/login/auth")] HttpRequest req,
+        FunctionContext context)
     {
-        var session = await req.ReadJson<Session>();
-        if(session == null || string.IsNullOrWhiteSpace(session.Token))
+        var auth = context.Features.Get<JwtAuthFeature>();
+        if (auth == null)
+            return new UnauthorizedResult();
+        
+        var session = new Session {
+            Token = auth.JwtEncodedToken
+        };
+        
+        return new OkObjectResult(session);
+    }
+
+    /// <summary>
+    /// Login using user credentials
+    /// </summary>
+    /// <returns>Authentication session token</returns>
+    [Function("PostLogin_v1")]
+    [OpenApiIgnore]
+    public async Task<IActionResult> PostLogin([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/login")] HttpRequest req)
+    {
+        var form = await req.ReadJson<LoginForm>();
+        if (form == null || string.IsNullOrWhiteSpace(form.Username) || string.IsNullOrWhiteSpace(form.Password))
             return new BadRequestResult();
 
-        var token = _jwt.ValidateToken(session.Token);
-        if(token == null)
-            return new UnauthorizedResult();
+        var subject = await _loginProvider.Login(form.Username, form.Password);
+        if (subject == null)
+            return new ForbiddenResult();
 
-        return new OkResult();
-    }
+        if (subject.Verified)
+            subject.Scopes = [AireScopes.Auth];
+        else
+            subject.Scopes = [];
 
-    [Function("PostLogin")]
-    [OpenApiIgnore]
-    public IActionResult PostLogin([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login")] HttpRequest req)
-    {
-        return new NotFoundResult();
-    }
+        var desc = new OauthTokenDescription
+        {
+            Subject = subject,
+            Lifetime = AireConstants.AppAuthSessionTTL
+        };
 
-    [Function("PostConsent")]
-    [OpenApiIgnore]
-    public IActionResult PostConsent([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "login/consent")] HttpRequest req)
-    {
-        return new NotFoundResult();
+        var token = _tokenProvider.IssueNewToken(desc);
+
+        var session = new Session
+        {
+            Token = token,
+            Verified = subject.Verified
+        };
+
+        return new OkObjectResult(session);
     }
 }

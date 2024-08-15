@@ -1,3 +1,3 @@
 <template>
-    <div>Not found</div>
+    <div>{{ $t('not_found') }}</div>
 </template>

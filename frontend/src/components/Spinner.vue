@@ -18,6 +18,7 @@
     mask: radial-gradient(farthest-side, #0000 calc(100% - 9px), #000 0);
     animation: spinner-frames 1s infinite linear;
     margin: 1rem;
+    align-self: center;
 }
 
 @keyframes spinner-frames {

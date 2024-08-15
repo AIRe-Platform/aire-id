@@ -44,13 +44,6 @@ public class Frontend
         return new FileStreamResult(stream, mime);
     }
 
-    [Function("Favicon")]
-    [OpenApiIgnore]
-    public IActionResult GetFavicon([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "favicon.ico")] HttpRequest req)
-    {
-        return ServeStaticFile("favicon.ico");
-    }
-
     [Function("Assets")]
     [OpenApiIgnore]
     public IActionResult GetStaticFile(

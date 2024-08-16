@@ -142,22 +142,31 @@ public class User_v1
         }
 
         // Read-only fields
-        {//  wtf¿?
+        {
+            // Make sure the incoming data does not override
+            // the fields that are not meant to be edited.
+            // SetPrivateUserData will process the entire object.
             userData.Email = user.Email;
         }
 
-        if(userData.FirstName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength){
-            _log.LogWarning( "Failed to save into database: First Name too long");
+        if (userData.FirstName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength)
+        {
+            _log.LogWarning("Failed to save into database: First Name too long");
             return new BadRequestResult();
         }
-        if(userData.LastName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength){
-            _log.LogWarning( "Failed to save into database: Last Name is too long");
+
+        if (userData.LastName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength)
+        {
+            _log.LogWarning("Failed to save into database: Last Name is too long");
             return new BadRequestResult();
         }
-        if(userData.Bio?.Length > AireConstants.MaxUserBioLength){
-            _log.LogWarning( "Failed to save into database: Bio is too long");
+
+        if (userData.Bio?.Length > AireConstants.MaxUserBioLength)
+        {
+            _log.LogWarning("Failed to save into database: Bio is too long");
             return new BadRequestResult();
         }
+
         bool allowConnect = _jwt.CheckAuthorization(auth, AireScopes.ConnectProfile);
         if (!allowConnect)
             userData.ConnectedServices = user.ConnectedServices;
@@ -169,7 +178,7 @@ public class User_v1
         {
             var updated = entity.GetUserData(auth!.UserKey);
 
-            if(!allowConnect)
+            if (!allowConnect)
                 updated.ConnectedServices = null;
 
             return new OkObjectResult(updated);

@@ -13,5 +13,6 @@ public static class AireConstants
     public const int MaxUserBioLength = 2000;
 
     public const string AppAuthPath = "/app/auth";
+    public const string AppLogoutPath = "/app/logout";
     public static readonly TimeSpan AppAuthSessionTTL = TimeSpan.FromDays(14);
 }

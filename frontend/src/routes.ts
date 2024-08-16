@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import NotFoundView from "@/views/NotFoundView.vue";
 import AuthView from "@/views/AuthView.vue";
 import LoginView from "@/views/LoginView.vue";
+import LogoutView from "@/views/LogoutView.vue";
 import ConsentView from "./views/ConsentView.vue";
 import VerificationView from "./views/VerificationView.vue";
 import RecoveryView from "./views/RecoveryView.vue";
@@ -11,6 +12,7 @@ const router = createRouter({
     history: createWebHistory("app"),
     routes: [
         { path: "/login", component: LoginView, meta: { requireSession: false } },
+        { path: "/logout", component: LogoutView, meta: { requireSession: false } },
         { path: "/consent", component: ConsentView, meta: { requireSession: true }  },
         { path: "/verify", component: VerificationView, meta: { requireSession: true }  },
         { path: "/recovery", component: RecoveryView, meta: { requireSession: false }  },

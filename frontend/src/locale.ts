@@ -14,6 +14,10 @@ const STRINGS = {
             recover_password: "Forgot password?",
             failed: "Login failed! Please check the username and password."
         },
+        logout: {
+            please_wait: "Logging out...",
+            logged_out: "You have been logged out. You can now close this page."
+        },
         consent: {
             title: "Confirm Login",
             logged_in_as: "You are logged in as {username}.",
@@ -58,6 +62,10 @@ const STRINGS = {
             cancel: "Peruuta",
             failed: "Kirjautuminen epäonnistui! Tarkista käyttäjätunnus ja salasana.",
             recover_password: "Salasana unohtunut?"
+        },
+        logout: {
+            please_wait: "Kirjaudutaan ulos...",
+            logged_out: "Sinut on kirjattu ulos. Voit sulkea tämän sivun."
         },
         consent: {
             title: "Vahvista kirjautuminen",

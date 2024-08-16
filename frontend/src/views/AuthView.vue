@@ -68,11 +68,4 @@ onMounted(onInitSession);
     align-items: center;
     gap: 1rem;
 }
-
-.auth-view-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
 </style>

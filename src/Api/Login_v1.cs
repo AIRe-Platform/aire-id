@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Newtonsoft.Json;
 
-namespace Aire.Id.Pages;
+namespace Aire.Id.Api;
 
 public class Login_v1
 {

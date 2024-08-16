@@ -23,7 +23,6 @@ const state = reactive<{
     valid_code: false,
     code_sent: false,
     code: "",
-    error: "verification.failed",
     busy: false
 })
 
@@ -63,10 +62,14 @@ const onVerify = () => {
         return;
 
     state.busy = true;
-    AccountUtils.verify(session.session.token, state.code)
+    session.verify(state.code)
         .then(res => {
-            if (res.ok)
-                router.replace("/")
+            if (res)
+                router.replace({
+                    path: "/auth",
+                    replace: true,
+                    query: route.query
+                })
             else
                 state.error = 'verification.failed'
         })

@@ -1,3 +1,4 @@
+import AccountUtils from "@/utils/account";
 import { apiUrl } from "@/utils/api";
 import { reactive } from "vue";
 
@@ -7,8 +8,14 @@ export interface Session {
     verified?: boolean;
 }
 
+interface Credentials {
+    username: string;
+    password: string;
+}
+
 class SessionContext {
     session?: Session
+    verification_credentials?: Credentials;
 
     constructor() { }
 
@@ -34,7 +41,7 @@ class SessionContext {
         this.store();
     }
 
-    public async verifyAuth(): Promise<boolean> {
+    public async validate(): Promise<boolean> {
         if (!this.session)
             return false;
 
@@ -45,9 +52,9 @@ class SessionContext {
             }
         })
             .then((res) => {
-                if (!res.ok) {
+                if (!res.ok)
                     this.session = undefined;
-                }
+
                 return res.ok;
             })
             .catch((err) => {
@@ -61,7 +68,7 @@ class SessionContext {
     }
 
     public async login(username: string, password: string): Promise<boolean> {
-        const credentials = {
+        const credentials: Credentials = {
             username: username,
             password: password
         };
@@ -82,6 +89,10 @@ class SessionContext {
                         verified: body.verified,
                         username: username
                     };
+
+                    if (!this.session.verified)
+                        this.verification_credentials = credentials;
+
                     this.store();
                 }
                 return res.ok;
@@ -90,6 +101,26 @@ class SessionContext {
                 console.log(err);
                 return false;
             })
+    }
+
+    public async verify(code: string): Promise<boolean> {
+        if (!this.verification_credentials || !this.session)
+            return false;
+
+        this.session.verified = await AccountUtils.verify(this.session.token, code)
+            .then(res => res.ok)
+
+        if (this.session.verified)
+            return this.login(
+                this.verification_credentials.username,
+                this.verification_credentials.password)
+                .then(res => {
+                    this.verification_credentials = undefined;
+                    return res;
+                });
+        else
+            return false;
+
     }
 }
 

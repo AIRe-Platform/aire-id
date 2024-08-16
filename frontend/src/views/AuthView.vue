@@ -5,8 +5,8 @@ import OauthUtils from "@/utils/oauth";
 import { onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-const session = useSession();
 const query = new URLSearchParams(window.location.search);
+const session = useSession();
 const router = useRouter();
 const route = useRoute();
 
@@ -26,6 +26,14 @@ const redirectToLogin = () => {
     })
 }
 
+const redirectToVerification = () => {
+    router.push({
+        path: "/verify",
+        replace: true,
+        query: route.query
+    })
+}
+
 const onAuthorize = () => {
     if (session.session)
         OauthUtils.authorize(session.session);
@@ -33,21 +41,26 @@ const onAuthorize = () => {
 
 const onInitSession = () => {
     if (session.restore()) {
-        session.verifyAuth()
+        session.validate()
             .then(valid => {
                 if (valid) {
-                    if (["false", "False", "0"].includes(query.get("consent") || "1"))
-                        onAuthorize()
-                    else
-                        redirectToConsent()
+                    if (session.session?.verified) {
+                        if (["false", "False", "0"].includes(query.get("consent") || "1"))
+                            onAuthorize();
+                        else
+                            redirectToConsent();
+                    }
+                    else {
+                        redirectToVerification();
+                    }
                 }
                 else {
-                    redirectToLogin()
+                    redirectToLogin();
                 }
             })
     }
     else {
-        redirectToLogin()
+        redirectToLogin();
     }
 }
 

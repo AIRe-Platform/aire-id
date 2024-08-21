@@ -14,6 +14,7 @@ public class ClientEntity : BaseTableEntity
     public bool Active { get; set; }
     public bool Public { get; set; }
     public bool RequireConsent { get; set; }
+    public string? GrantTypes { get; set; }
     public string? SecretHash { get; set; }
 
     public ClientEntity()
@@ -46,7 +47,10 @@ public class ClientEntity : BaseTableEntity
             RedirectUri = RedirectUri,
             Active = Active,
             Public = Public,
-            RequireConsent = RequireConsent
+            RequireConsent = RequireConsent,
+            GrantTypes = GrantTypes?
+                .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList()
         };
     }
 }

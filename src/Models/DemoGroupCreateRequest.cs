@@ -6,7 +6,7 @@
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Newtonsoft.Json;
 
-namespace Aire.Sdk.Models.Demo;
+namespace Aire.Id.Models;
 
 public class DemoGroupCreateRequest
 {

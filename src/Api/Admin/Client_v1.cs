@@ -6,6 +6,7 @@
 using System.Net;
 using System.Security.Cryptography;
 using System.Web.Http;
+using Aire.Id.Models;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;

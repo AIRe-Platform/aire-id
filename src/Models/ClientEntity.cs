@@ -3,9 +3,10 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
+using Aire.Sdk.Azure;
 using Aire.Sdk.Models.Admin;
 
-namespace Aire.Sdk.Azure;
+namespace Aire.Id.Models;
 
 /// <summary>
 /// Client ID = PartitionKey, RowKey

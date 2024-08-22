@@ -3,7 +3,9 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
-namespace Aire.Sdk.Azure;
+using Aire.Sdk.Azure;
+
+namespace Aire.Id.Models;
 
 /// <summary>
 /// Code = PartitionKey (first 5 chars), RowKey

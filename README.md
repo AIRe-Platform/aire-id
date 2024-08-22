@@ -31,6 +31,10 @@ Configure `local.settings.json` as instructed. You should be running the AIRe Se
 
 Hit F5 and you should be good to go.
 
+## Registering client applications for development
+
+Import `test/Clients.csv` into the `Clients` table using Azure Storage Explorer. Create the table if it does not exist. Make sure you have Azure Storage emulator services running.
+
 ## Updating frontend
 
 Either run the VSCode task `Build frontend` or build manually:

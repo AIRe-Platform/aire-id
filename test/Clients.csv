@@ -1,0 +1,3 @@
+PartitionKey;RowKey;Name;Name@type;AllowedScopes;AllowedScopes@type;RedirectUri;RedirectUri@type;Active;Active@type;Public;Public@type;RequireConsent;RequireConsent@type;GrantTypes;GrantTypes@type
+4cfec0df-c8ca-46b2-9f38-8d3e3f64f3ac;4cfec0df-c8ca-46b2-9f38-8d3e3f64f3ac;AIRe Hub;String;*;String;http://localhost:8081/auth/callback;String;true;Boolean;true;Boolean;true;Boolean;authorization_code;String
+b25e388d-ec5e-4f8b-adc4-5793cfe75621;b25e388d-ec5e-4f8b-adc4-5793cfe75621;AIRe Talk;String;*;String;http://localhost:8080/auth/callback;String;true;Boolean;true;Boolean;true;Boolean;authorization_code;String

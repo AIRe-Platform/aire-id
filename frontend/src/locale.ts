@@ -48,7 +48,15 @@ const STRINGS = {
             failed: "This account cannot be recovered. Please contact support.",
             password_requirements_not_met: "The password must contain at least 8 characters as well as upper and lower case letters"
         },
-        not_found: "The requested page does not exist. (404)"
+        not_found: "The requested page does not exist. (404)",
+        error: {
+            title: "Authentication failed",
+            details: `Failed to authenticate. Please try again later.
+
+                Error: {error}
+                Description: {description}
+            `
+        }
     },
     fi: {
         auth: {
@@ -97,7 +105,15 @@ const STRINGS = {
             failed: "Tätä tiliä ei voida palauttaa. Ole hyvä ja ota yhteys tukeen.",
             password_requirements_not_met: "Salasanan tulee olla vähintään 8 merkkiä pitkä sekä sisältää isoja ja pieniä kirjaimia."
         },
-        not_found: "Pyydettyä sivua ei löydy. (404)"
+        not_found: "Pyydettyä sivua ei löydy. (404)",
+        error: {
+            title: "Tunnistautuminen epäonnistui",
+            details: `Tunnistautuminen ei onnistunut. Yritä myöhemmin uudelleen.
+
+                Virhe: {error}
+                Lisätiedot: {description}
+            `
+        }
     }
 };
 

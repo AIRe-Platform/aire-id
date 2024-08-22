@@ -1,5 +1,7 @@
 import { Session } from "@/context/session";
 import { apiUrl } from "./api";
+import router from "@/routes";
+import ErrorResponse from "@/models/error_response";
 
 const OauthUtils = {
     cancelAuth() {
@@ -29,9 +31,20 @@ const OauthUtils = {
             },
             body: data.toString()
         })
-            .then((res) => {
+            .then(async (res) => {
                 if (res.redirected) {
-                        window.location.replace(res.url);
+                    window.location.replace(res.url);
+                }
+                else {
+                    const err = await res.json() as ErrorResponse;
+                    router.push({
+                        path: "/error",
+                        query: {
+                            error: err.error,
+                            description: err.error_description
+                        },
+                        replace: true
+                    })
                 }
             })
             .catch((err) => {

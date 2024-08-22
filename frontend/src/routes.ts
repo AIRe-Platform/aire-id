@@ -6,12 +6,14 @@ import LogoutView from "@/views/LogoutView.vue";
 import ConsentView from "./views/ConsentView.vue";
 import VerificationView from "./views/VerificationView.vue";
 import RecoveryView from "./views/RecoveryView.vue";
+import ErrorView from "./views/ErrorView.vue";
 import useSession from "./context/session";
 
 const router = createRouter({
     history: createWebHistory("app"),
     routes: [
         { path: "/login", component: LoginView, meta: { requireSession: false } },
+        { path: "/error", component: ErrorView, meta: { requireSession: false } },
         { path: "/logout", component: LogoutView, meta: { requireSession: false } },
         { path: "/consent", component: ConsentView, meta: { requireSession: true }  },
         { path: "/verify", component: VerificationView, meta: { requireSession: true }  },

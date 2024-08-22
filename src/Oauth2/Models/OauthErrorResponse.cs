@@ -26,7 +26,7 @@ namespace Aire.Id.Oauth2.Models
 		{
 			var dict = new Dictionary<string, string?>
 			{
-				{ "error", Error.ObjectToJson() }
+				{ "error", Error.ObjectToJson().Trim('"') }
 			};
 
 			if(ErrorDescription != null)

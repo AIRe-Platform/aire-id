@@ -31,6 +31,21 @@ Configure `local.settings.json` as instructed. You should be running the AIRe Se
 
 Hit F5 and you should be good to go.
 
+## Registering client applications for development
+
+Import `test/Clients.csv` into the `Clients` table using Azure Storage Explorer. Create the table if it does not exist. Make sure you have Azure Storage emulator services running.
+
+## Updating frontend
+
+Either run the VSCode task `Build frontend` or build manually:
+
+```sh
+cd frontend
+npm run build
+```
+
+Running the default debug build task in VSCode also builds the frontend. For this, you need to have Node and NPM available on your system.
+
 ## Configuration
 
 You should create `local.settings.json` in the root of the repository when developing locally. It should look something like this:
@@ -80,7 +95,7 @@ Publish the Functions app and then setup the following required environment valu
 - `TOKEN_ISSUER` The token issuer host URL, the same as the service's host.
 - `TOKEN_AUDIENCE` Comma-separated list of audiences. (Optional)
 - `GLOBAL_RECOVERY_KEY` Encryption key for recovery data. This is optional and will make the user data accessable by the system administrators, but allows changing account passwords without losing the data.
-- `AUTH_CONSENT_REDIRECT_URI` Address to which the user is redirected to when requesting consent to share their data.
+- `AUTH_LOGIN_REDIRECT` Address to which the user is redirected to when requesting consent to share their data or logging in.
 - `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.
 

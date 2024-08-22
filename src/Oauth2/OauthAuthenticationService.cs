@@ -19,6 +19,7 @@ using Aire.Sdk.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Web;
+using Aire.Id.Helpers;
 
 namespace Aire.Id.Oauth2
 {
@@ -70,15 +71,24 @@ namespace Aire.Id.Oauth2
                 if (authRequest != null)
                 {
                     if (auth != null)
-                        switch (authRequest.ResponseType)
+                    {
+                        if (!_jwt.CheckAuthorization(auth, AireScopes.Auth))
+                            throw new OauthException(OauthError.AccessDenied, authRequest);
+
+                        return authRequest.ResponseType switch
                         {
-                            case OauthResponseType.Code:
-                                return await AuthorizationCodeResponse(authRequest, auth);
-                            default:
-                                throw new OauthException(OauthError.UnsupportedResponseType);
-                        }
+                            OauthResponseType.Code => await AuthorizationCodeResponse(authRequest, auth),
+                            _ => throw new OauthException(OauthError.UnsupportedResponseType, authRequest),
+                        };
+                    }
                     else
-                        return await RedirectToConsentPage(authRequest, req);
+                    {
+                        return await RedirectToLoginPage(authRequest, req);
+                    }
+                }
+                else
+                {
+                    throw new OauthException(OauthError.InvalidRequest, "Invalid or malformed request.");
                 }
             }
             catch (OauthException ex)
@@ -88,16 +98,9 @@ namespace Aire.Id.Oauth2
             catch (Exception ex)
             {
                 _log.LogError(ex, "An exception occurred while handling OAuth token request");
-                var oex = new OauthException(OauthError.ServerError)
-                {
-                    Redirect = authRequest?.RedirectUri,
-                    State = authRequest?.State,
-                };
+                var oex = new OauthException(OauthError.ServerError, authRequest, ex.Message);
                 return oex.OauthErrorResult();
             }
-
-            var unsupported = new OauthException(OauthError.UnsupportedResponseType);
-            return unsupported.OauthErrorResult();
         }
 
         public async Task<IActionResult> HandleTokenRequest(HttpRequest req)
@@ -121,6 +124,10 @@ namespace Aire.Id.Oauth2
                     //     return await RefreshTokenGrant((OauthTokenRefreshRequest) tokenRequest!);
                     // }
                 }
+                else
+                {
+                    throw new OauthException(OauthError.InvalidRequest, "Invalid or malformed request.");
+                }
             }
             catch (OauthException ex)
             {
@@ -129,10 +136,7 @@ namespace Aire.Id.Oauth2
             catch (Exception ex)
             {
                 _log.LogError(ex, "An exception occurred while handling OAuth token request");
-                var oex = new OauthException(OauthError.ServerError)
-                {
-                    State = tokenRequest?.State,
-                };
+                var oex = new OauthException(OauthError.ServerError, tokenRequest, ex.Message);
                 return oex.OauthErrorResult();
             }
 
@@ -151,9 +155,23 @@ namespace Aire.Id.Oauth2
 
         private async Task<IActionResult> PasswordGrant(OauthTokenPasswordGrantRequest req)
         {
+            var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
+            if (client == null)
+                throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+
+            if (!VerifyClientSecret(client.SecretHash, req.ClientSecret))
+                throw new OauthException(OauthError.UnauthorizedClient, req, "Missing or invalid client secret");
+
+            var scopes = ValidateClientScopes(req.Scope, client);
+            if (scopes == null)
+                throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
+
+            if (!ValidateGrantType(client, req.GrantType))
+                throw new OauthException(OauthError.InvalidGrant, req, "Grant type not allowed");
+
             var subject = await _loginProvider.Login(req.Username!, req.Password!);
             if (subject == null)
-                throw new OauthException(OauthError.InvalidGrant);
+                throw new OauthException(OauthError.AccessDenied, req, "Invalid credentials");
 
             subject.Scopes ??= [];
             if (!string.IsNullOrWhiteSpace(req.Scope))
@@ -184,35 +202,35 @@ namespace Aire.Id.Oauth2
 
         private async Task<IActionResult> AuthCodeGrant(OauthAuthCodeGrantRequest req)
         {
+            var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
+            if (client == null)
+                throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+
+            if (!VerifyClientSecret(client.SecretHash, req.ClientSecret))
+                throw new OauthException(OauthError.UnauthorizedClient, req, "Missing or invalid client secret");
+
+            if (!ValidateGrantType(client, req.GrantType))
+                throw new OauthException(OauthError.InvalidGrant, req, "Grant type not allowed");
+
             var code = await _storage.RetrieveAsync<AuthCodeEntity>(req.Code![..5], req.Code!);
             if (code == null)
-                throw new OauthException(OauthError.InvalidGrant)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+                throw new OauthException(OauthError.InvalidGrant, req, "Invalid code");
 
-            if (code.Expires < DateTime.UtcNow)
-                throw new OauthException(OauthError.InvalidGrant)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+            if (!await _storage.DeleteAsync(code))
+                _log.LogError("Failed to delete auth code entity");
 
             if (req.State != code.State || req.RedirectUri != code.RedirectUri || req.ClientId != code.ClientId)
-                throw new OauthException(OauthError.InvalidGrant)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+                throw new OauthException(OauthError.InvalidGrant, req, "Invalid grant"); ;
+
+            if (code.Verifier != null && req.CodeVerifier != code.Verifier)
+                throw new OauthException(OauthError.InvalidGrant, req, "Invalid verifier"); ;
+
+            if (code.Expires < DateTime.UtcNow)
+                throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
             var user = await _storage.RetrieveAsync<UserEntity>(code.UserId!);
             if (user == null)
-                throw new OauthException(OauthError.InvalidGrant)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+                throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
             var tokenDescription = new OauthTokenDescription
             {
@@ -234,35 +252,32 @@ namespace Aire.Id.Oauth2
             return new OkObjectResult(response);
         }
 
-        private async Task<IActionResult> RedirectToConsentPage(OauthAuthRequest req, HttpRequest httpRequest)
+        private async Task<IActionResult> RedirectToLoginPage(OauthAuthRequest req, HttpRequest httpRequest)
         {
             var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
             if (client == null)
-                throw new OauthException(OauthError.UnauthorizedClient)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+                throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
 
-            var redirect_uri = AireEnvironment.AuthConsentRedirectUri;
-            if (string.IsNullOrWhiteSpace(redirect_uri))
-            {
-                _log.LogError("AUTH_CONSENT_REDIRECT_URI is not configured properly");
-                throw new OauthException(OauthError.TemporarilyUnavailable)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
-            }
+            var scopes = ValidateClientScopes(req.Scope, client);
+            if (scopes == null)
+                throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
 
             var query = httpRequest.Query.ToDictionary();
             query["service"] = client.Name;
-            query["response_type"] = req.ResponseType.ObjectToJson();
+            query["response_type"] = req.ResponseType.ObjectToJson().Trim('"');
             query["client_id"] = req.ClientId;
-            query["redirect_uri"] = ValidateRedirectUri(req, client).AbsoluteUri;
-            query["scope"] = string.Join(" ", ValidateScopes(req, client, null));
+            query["redirect_uri"] = GetClientRedirectUri(req, client).AbsoluteUri;
+            query["scope"] = string.Join(" ", scopes);
             query["state"] = req.State;
-            var uri = QueryHelpers.AddQueryString(redirect_uri, query);
+            query["consent"] = client.RequireConsent ? "1" : "0";
+
+            if (req.CodeChallenge != null)
+                query["code_challenge"] = req.CodeChallenge;
+
+            if (req.CodeChallengeMethod != null)
+                query["code_challenge_method"] = req.CodeChallengeMethod.ObjectToJson().Trim('"');
+
+            var uri = QueryHelpers.AddQueryString(AireConstants.AppAuthPath, query);
             return new RedirectResult(uri, false, false);
         }
 
@@ -270,34 +285,47 @@ namespace Aire.Id.Oauth2
         {
             var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
             if (client == null)
-                throw new OauthException(OauthError.UnauthorizedClient)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+                throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
 
-            var scopes = ValidateScopes(req, client, auth);
-            var redirect = ValidateRedirectUri(req, client);
+            var user = await _storage.RetrieveAsync<UserEntity>(auth.UserId);
+            if (user == null)
+                throw new OauthException(OauthError.AccessDenied, req, "Access denied");
+
+            var scopes = ValidateClientScopes(req.Scope, client);
+            if (scopes == null)
+                throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
+
+            scopes = FilterUserScopes(user, scopes);
+
+            var redirect = GetClientRedirectUri(req, client);
             string code = RandomNumberGenerator.GetHexString(32, true);
+
+            if (req.CodeChallengeMethod.HasValue && string.IsNullOrWhiteSpace(req.CodeChallenge))
+                throw new OauthException(OauthError.InvalidRequest, req, "Missing code challenge");
+
+            string? codeVerifier = req.CodeChallengeMethod switch
+            {
+                OauthCodeChallengeMethod.Plain => req.CodeChallenge,
+                OauthCodeChallengeMethod.SHA256 => Crypto.SHA256Base16(req.CodeChallenge!).ToLower(),
+                _ => null
+            };
 
             var codeEntity = new AuthCodeEntity(code)
             {
                 ClientId = client.Id(),
+                ClientSecretHash = client.Public ? null : client.SecretHash,
                 UserId = auth.UserId,
                 UserKey = auth.UserKey,
                 Scopes = string.Join(" ", scopes),
                 State = req.State,
-                RedirectUri = req.RedirectUri,
+                RedirectUri = GetClientRedirectUri(req, client).AbsoluteUri,
+                Verifier = codeVerifier,
                 Expires = DateTime.UtcNow.AddMinutes(5)
             };
 
             bool created = await _storage.UpsertAsync(codeEntity);
             if (!created)
-                throw new OauthException(OauthError.TemporarilyUnavailable)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+                throw new OauthException(OauthError.TemporarilyUnavailable, req, "Internal error");
 
             var query = HttpUtility.ParseQueryString(redirect.Query);
             query["code"] = code;
@@ -311,17 +339,10 @@ namespace Aire.Id.Oauth2
             return new RedirectResult(redirectUri, false, false);
         }
 
-        private Uri ValidateRedirectUri(OauthAuthRequest req, ClientEntity client)
+        private Uri GetClientRedirectUri(OauthAuthRequest req, ClientEntity client)
         {
             if (string.IsNullOrWhiteSpace(client.RedirectUri))
-            {
-                _log.LogError($"Client '{client.Id()}' is missing property RedirectUri");
-                throw new OauthException(OauthError.TemporarilyUnavailable)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
-            }
+                throw new OauthException(OauthError.TemporarilyUnavailable, req, "Client is not configured correctly.");
 
             if (string.IsNullOrWhiteSpace(req.RedirectUri))
                 return new Uri(client.RedirectUri);
@@ -329,68 +350,74 @@ namespace Aire.Id.Oauth2
             var reqUri = new Uri(req.RedirectUri);
             var clientUri = new Uri(client.RedirectUri);
 
-            if (reqUri.Host != clientUri.Host || reqUri.AbsolutePath != clientUri.AbsolutePath)
+            if (reqUri.Scheme != clientUri.Scheme ||
+                reqUri.Host != clientUri.Host ||
+                reqUri.AbsolutePath != clientUri.AbsolutePath)
             {
-                _log.LogError($"Requested redirect URI host and path must match with the configured client's URI");
-                throw new OauthException(OauthError.InvalidRequest)
-                {
-                    Redirect = req.RedirectUri,
-                    State = req.State
-                };
+                req.RedirectUri = null;
+                throw new OauthException(OauthError.InvalidRequest, req, "Redirect URI does not match.");
             }
 
             return reqUri;
         }
 
-        private string[] ValidateScopes(OauthAuthRequest req, ClientEntity client, JwtAuthFeature? auth)
+        private static string[]? ValidateClientScopes(string? reqScopes, ClientEntity client)
         {
-            bool automaticScopes = false;
-            var scopes = req.Scope?.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var clientScopes = client.AllowedScopes?.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var scopes = reqScopes?
+                .Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var clientScopes = client.AllowedScopes?
+                .Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-            if (clientScopes != null && clientScopes.FirstOrDefault() == "*")
-                clientScopes = null;
+            bool allowAllClientScopes = clientScopes?.Contains("*") ?? false;
+            bool grantAllAvailableScopes = scopes == null || scopes.Contains("*") || scopes.Length == 0;
 
-            if (scopes != null && scopes.FirstOrDefault() == "*")
-            {
-                automaticScopes = true;
+            if (allowAllClientScopes)
+                clientScopes = AireScopes.AllClientScopes.ToArray();
+
+            if (grantAllAvailableScopes)
                 scopes = clientScopes;
-            }
 
             scopes ??= [];
 
-            // Check client scopes
+            // Check that client scopes include requested scopes
             if (clientScopes != null)
             {
                 var not_allowed = scopes.Where(x => !clientScopes.Contains(x)).ToList();
-
                 if (not_allowed.Count > 0)
-                    throw new OauthException(OauthError.AccessDenied)
-                    {
-                        Redirect = req.RedirectUri,
-                        State = req.State
-                    };
-            }
-
-            // Check user scopes
-            if (auth != null)
-            {
-                if (automaticScopes)
-                {
-                    scopes = scopes.Where(x => _jwt.CheckAuthorization(auth, x)).ToArray();
-                }
-                else
-                {
-                    if (!_jwt.CheckAuthorization(auth, new AireScopes(scopes)))
-                        throw new OauthException(OauthError.AccessDenied)
-                        {
-                            Redirect = req.RedirectUri,
-                            State = req.State
-                        };
-                }
+                    return null;
             }
 
             return scopes;
+        }
+
+        private static string[] FilterUserScopes(UserEntity user, IEnumerable<string> requested)
+        {
+            var scopes = ScopeHelper.GetScopesForUser(user);
+
+            // Ignore all scopes not allowed for the user
+            return requested.Where(x => scopes.Contains(x)).ToArray();
+        }
+
+        private static bool ValidateGrantType(ClientEntity client, OauthGrantType grantType)
+        {
+            var allowed = (client.GrantTypes ?? "")
+                .Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .ToList();
+
+            var requested = grantType.ObjectToJson().Trim('"');
+            return allowed.Contains(requested);
+        }
+
+        private static bool VerifyClientSecret(string? secret_hash, string? secret)
+        {
+            if (string.IsNullOrWhiteSpace(secret_hash))
+                return true;
+
+            if (string.IsNullOrWhiteSpace(secret))
+                return false;
+
+            var hash = Crypto.SHA256Base64(secret);
+            return hash == secret_hash;
         }
     }
 }

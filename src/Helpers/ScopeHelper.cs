@@ -12,26 +12,10 @@ public static class ScopeHelper
 {
     public static List<string> GetScopesForUser(UserEntity entity)
     {
-        List<string> scopes = [];
+        List<string> scopes = GetBaseScopesForUser(entity);
 
-        if (!entity.Verified)
-            return [];
-
-        if (!string.IsNullOrWhiteSpace(entity.Scopes)) // scope override
+        if(string.IsNullOrWhiteSpace(entity.Scopes)) // if not overridden
         {
-            scopes = entity.Scopes
-                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .ToList();
-        }
-        else // defaults + additional scopes
-        {
-            if (entity.Role != null
-                && AireScopes.DefaultRoleScopes != null
-                && AireScopes.DefaultRoleScopes.TryGetValue(entity.Role, out var roleScopes))
-            {
-                scopes.AddRange(roleScopes);
-            }
-
             var additionalScopes = GetAdditionalScopesForUser(entity);
 
             if (additionalScopes != null)
@@ -44,9 +28,6 @@ public static class ScopeHelper
     public static List<string> GetBaseScopesForUser(UserEntity entity)
     {
         List<string> scopes = [];
-
-        if (!entity.Verified)
-            return [];
 
         if (!string.IsNullOrWhiteSpace(entity.Scopes)) // scope override
         {
@@ -62,6 +43,13 @@ public static class ScopeHelper
             {
                 scopes.AddRange(roleScopes);
             }
+        }
+
+        if (!entity.Verified) {
+            if(scopes.Contains(AireScopes.PasswordChange))
+                return [ AireScopes.PasswordChange ];
+            else
+                return [];
         }
 
         return scopes;

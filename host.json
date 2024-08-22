@@ -16,7 +16,7 @@
     },
     "extensions": {
         "http": {
-            "routePrefix": "api",
+            "routePrefix": "",
             "customHeaders": {
                 "Cache-Control": "no-cache",
                 "Referrer-Policy": "no-referrer",

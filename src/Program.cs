@@ -35,6 +35,7 @@ var host = new HostBuilder()
             EncryptionKey = AireEnvironment.TokenEncryptionKey
         });
         worker.UseOauth<TokenProvider, LoginProvider>();
+        
     })
     .ConfigureServices(services =>
     {
@@ -61,6 +62,12 @@ var host = new HostBuilder()
                 .ConfigureOptions(options =>
                 {
                     options.MessageEncoding = QueueMessageEncoding.Base64;
+                });
+
+            builder.AddBlobServiceClient(AireEnvironment.StorageConnectionString)
+                .ConfigureOptions(options =>
+                {
+                    options.Diagnostics.IsLoggingEnabled = false;
                 });
         });
 

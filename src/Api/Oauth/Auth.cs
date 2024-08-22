@@ -42,7 +42,7 @@ namespace Aire.Id.Api
         [OpenApiParameter("state", Required = false, In = ParameterLocation.Query)]
         [OpenApiResponseWithoutBody(HttpStatusCode.Redirect, Description = "Redirect to the consent page or the redirect URI")]
         public async Task<IActionResult> Oauth_Authorize_Get(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "oauth/authorize")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/oauth/authorize")] HttpRequest req,
             FunctionContext context)
         {
             var auth = context.Features.Get<JwtAuthFeature>();
@@ -58,7 +58,7 @@ namespace Aire.Id.Api
         [OpenApiRequestBody("application/x-www-form-urlencoded", typeof(OauthAuthRequest), Description = "Auth request")]
         [OpenApiResponseWithoutBody(HttpStatusCode.Redirect, Description = "Redirect to the consent page or the redirect URI")]
         public async Task<IActionResult> Oauth_Authorize_Post(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "oauth/authorize")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/oauth/authorize")] HttpRequest req,
             FunctionContext context)
         {
             var auth = context.Features.Get<JwtAuthFeature>();

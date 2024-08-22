@@ -4,10 +4,13 @@
 
 
 using System.Net;
+using System.Security.Cryptography;
 using System.Web.Http;
+using Aire.Id.Models;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
+using Aire.Sdk.Helpers;
 using Aire.Sdk.Models.Admin;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -46,7 +49,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid client id")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client does not exist")]
     public async Task<IActionResult> GetClientById(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {
@@ -78,7 +81,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     public async Task<IActionResult> GetClients(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/clients")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/clients")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -107,7 +110,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid body")]
     public async Task<IActionResult> CreateClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/admin/client")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/admin/client")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -132,12 +135,24 @@ public class Client_v1
             Name = client.Name,
             Active = client.Active ?? false,
             AllowedScopes = string.Join(" ", client.Scopes),
-            RedirectUri = redirectUri.AbsoluteUri
-        };
+            RedirectUri = redirectUri.AbsoluteUri,
+            Public = client.Public ?? true,
+            RequireConsent = client.RequireConsent ?? true,
+        };    
+
+        string? clientSecret = null;
+        if(client.Public == false)
+        {
+            clientSecret = RandomNumberGenerator.GetHexString(32, true);
+            entity.SecretHash = Crypto.SHA256Base64(clientSecret);
+        }
 
         var insert = await _storage.UpsertAsync(entity);
         if (!insert)
             return new InternalServerErrorResult();
+
+        var model = entity.ToModel();
+        model.Secret = clientSecret;
 
         return new OkObjectResult(entity.ToModel());
     }
@@ -157,7 +172,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid body or ID")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client was not found")]
     public async Task<IActionResult> EditClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {
@@ -191,6 +206,9 @@ public class Client_v1
         if (data.Active.HasValue)
             client.Active = data.Active.Value;
 
+        if (data.RequireConsent.HasValue)
+            client.RequireConsent = data.RequireConsent.Value;
+
         if (data.RedirectUri != null)
         {
             if (!Uri.TryCreate(data.RedirectUri, UriKind.Absolute, out Uri? uri))
@@ -220,7 +238,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid id")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client was not found")]
     public async Task<IActionResult> DeleteClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {

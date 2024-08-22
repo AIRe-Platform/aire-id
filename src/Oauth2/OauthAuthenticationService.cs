@@ -216,6 +216,9 @@ namespace Aire.Id.Oauth2
             if (code == null)
                 throw new OauthException(OauthError.InvalidGrant, req, "Invalid code");
 
+            if (!await _storage.DeleteAsync(code))
+                _log.LogError("Failed to delete auth code entity");
+
             if (req.State != code.State || req.RedirectUri != code.RedirectUri || req.ClientId != code.ClientId)
                 throw new OauthException(OauthError.InvalidGrant, req, "Invalid grant"); ;
 

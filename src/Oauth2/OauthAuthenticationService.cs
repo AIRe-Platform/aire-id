@@ -364,17 +364,16 @@ namespace Aire.Id.Oauth2
             var clientScopes = client.AllowedScopes?
                 .Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
-            if (clientScopes != null && clientScopes.FirstOrDefault() == "*")
-            {
-                clientScopes = scopes; // Allow all requested scopes
-            }
+            bool allowAllClientScopes = clientScopes?.Contains("*") ?? false;
+            bool grantAllAvailableScopes = scopes == null || scopes.Contains("*") || scopes.Length == 0;
 
-            if (scopes != null && scopes.FirstOrDefault() == "*")
-            {
-                scopes = clientScopes; // Grant all available scopes
-            }
+            if (allowAllClientScopes)
+                clientScopes = AireScopes.AllClientScopes.ToArray();
 
-            scopes ??= clientScopes ?? [];
+            if (grantAllAvailableScopes)
+                scopes = clientScopes;
+
+            scopes ??= [];
 
             // Check that client scopes include requested scopes
             if (clientScopes != null)

@@ -318,7 +318,7 @@ namespace Aire.Id.Oauth2
                 UserKey = auth.UserKey,
                 Scopes = string.Join(" ", scopes),
                 State = req.State,
-                RedirectUri = req.RedirectUri,
+                RedirectUri = GetClientRedirectUri(req, client).AbsoluteUri,
                 Verifier = codeVerifier,
                 Expires = DateTime.UtcNow.AddMinutes(5)
             };
@@ -354,6 +354,7 @@ namespace Aire.Id.Oauth2
                 reqUri.Host != clientUri.Host ||
                 reqUri.AbsolutePath != clientUri.AbsolutePath)
             {
+                req.RedirectUri = null;
                 throw new OauthException(OauthError.InvalidRequest, req, "Redirect URI does not match.");
             }
 

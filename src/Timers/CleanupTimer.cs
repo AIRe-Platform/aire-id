@@ -22,7 +22,7 @@ namespace Aire.Id.Timers
         }
 
         [Function("CleanupTimer")]
-        public async Task Run([TimerTrigger("0 0 0 * * *")] TimerInfo _)
+        public async Task Run([TimerTrigger("0 0 0 * * *")] TimerInfo timer)
         {
             _logger.LogInformation($"Running clean up at: {DateTime.UtcNow}");
 

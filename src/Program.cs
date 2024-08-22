@@ -63,6 +63,12 @@ var host = new HostBuilder()
                 {
                     options.MessageEncoding = QueueMessageEncoding.Base64;
                 });
+
+            builder.AddBlobServiceClient(AireEnvironment.StorageConnectionString)
+                .ConfigureOptions(options =>
+                {
+                    options.Diagnostics.IsLoggingEnabled = false;
+                });
         });
 
         services.AddSingleton<ITableStorageService, TableStorageService>();

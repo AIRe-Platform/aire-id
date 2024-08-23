@@ -29,6 +29,13 @@ On VS Code: Install the recommended extensions.
 
 Configure `local.settings.json` as instructed. You should be running the AIRe Services module locally with Azurite. Add `mail-queue` queue into the Table Storage if it does not exist.
 
+To build the frontend, you need to have NPM available. Install the dependencies for the frontend:
+
+```sh
+cd frontend
+npm install
+```
+
 Hit F5 and you should be good to go.
 
 ## Registering client applications for development

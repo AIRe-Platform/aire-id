@@ -5,13 +5,13 @@
 
 using System.Net;
 using System.Security.Cryptography;
-using System.Web.Http;
 using Aire.Id.Models;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Sdk.Models.Admin;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -107,6 +107,7 @@ public class Client_v1
     [OpenApiRequestBody("application/json", typeof(Client), Required = true, Description = "Client model")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Client), Description = "The client object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Conflict, Description = "A client with the same name already exists")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid body")]
     public async Task<IActionResult> CreateClient(
@@ -130,6 +131,14 @@ public class Client_v1
             return new BadRequestResult();
         }
 
+        var existing_query = await _storage.QueryAsync<ClientEntity>(x => x.Name == client.Name);
+        var existing_entity = await existing_query.FirstOrDefaultAsync();
+
+        if (existing_entity != null)
+        {
+            return new ConflictResult();
+        }
+
         var entity = new ClientEntity()
         {
             Name = client.Name,
@@ -138,10 +147,10 @@ public class Client_v1
             RedirectUri = redirectUri.AbsoluteUri,
             Public = client.Public ?? true,
             RequireConsent = client.RequireConsent ?? true,
-        };    
+        };
 
         string? clientSecret = null;
-        if(client.Public == false)
+        if (client.Public == false)
         {
             clientSecret = RandomNumberGenerator.GetHexString(32, true);
             entity.SecretHash = Crypto.SHA256Base64(clientSecret);
@@ -149,7 +158,7 @@ public class Client_v1
 
         var insert = await _storage.UpsertAsync(entity);
         if (!insert)
-            return new InternalServerErrorResult();
+            throw new RequestFailedException("Failed to insert entity");
 
         var model = entity.ToModel();
         model.Secret = clientSecret;
@@ -201,7 +210,17 @@ public class Client_v1
             client.AllowedScopes = string.Join(" ", data.Scopes);
 
         if (data.Name != null)
+        {
             client.Name = data.Name;
+            
+            var existing_query = await _storage.QueryAsync<ClientEntity>(x => x.Name == client.Name);
+            var existing_entity = await existing_query.FirstOrDefaultAsync();
+
+            if (existing_entity != null && existing_entity.Id() != client.Id())
+            {
+                return new ConflictResult();
+            }
+        }
 
         if (data.Active.HasValue)
             client.Active = data.Active.Value;
@@ -219,7 +238,7 @@ public class Client_v1
 
         var update = await _storage.UpsertAsync(client);
         if (!update)
-            return new InternalServerErrorResult();
+            throw new RequestFailedException("Failed to update entity");
 
         return new OkObjectResult(client.ToModel());
     }
@@ -258,7 +277,7 @@ public class Client_v1
 
         var delete = await _storage.DeleteAsync(client);
         if (!delete)
-            return new InternalServerErrorResult();
+            throw new RequestFailedException("Failed to delete entity");
 
         return new NoContentResult();
     }

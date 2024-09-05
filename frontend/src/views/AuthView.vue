@@ -76,7 +76,7 @@ onMounted(onInitSession);
 <template>
     <div class="auth-view">
         <Spinner />
-        <div>{{ $t('auth.please_wait') }}</div>
+        <div>{{ $t('auth_please_wait') }}</div>
     </div>
 </template>
 

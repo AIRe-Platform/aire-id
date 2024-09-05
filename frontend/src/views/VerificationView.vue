@@ -49,7 +49,7 @@ const onResend = () => {
             if (res.ok)
                 state.code_sent = true;
             else
-                state.error = "verification.resend_failed"
+                state.error = "verification_resend_failed"
         })
         .finally(() => { state.busy = false })
 }
@@ -77,7 +77,7 @@ const onVerify = () => {
                     query: route.query
                 })
             else
-                state.error = 'verification.failed'
+                state.error = 'verification_failed'
         })
         .finally(() => { state.busy = false })
 }
@@ -85,27 +85,27 @@ const onVerify = () => {
 
 <template>
     <Logo />
-    <Heading>{{ $t('verification.title') }}</Heading>
+    <Heading>{{ $t('verification_title') }}</Heading>
     <Panel id="verification-view" class="main-panel">
-        <div>{{ $t('verification.description') }}</div>
+        <div>{{ $t('verification_description') }}</div>
         <div id="verification-error" v-if="state.error && !state.busy">{{ $t(state.error) }}</div>
         <form id="verification-form" @submit.prevent="onVerify">
             <input id="verification-code" type="text" maxlength="6" autocomplete="off" autofocus="true"
                 v-model="state.code" :readonly="state.busy" inputmode="numeric" @input="checkCode" />
-            <input type="submit" :value="$t('verification.button_confirm')" :disabled="!state.valid_code"
+            <input type="submit" :value="$t('verification_button_confirm')" :disabled="!state.valid_code"
                 v-if="!state.busy" />
         </form>
         <Spinner v-if="state.busy" />
         <template v-if="!state.busy">
             <TextButton v-if="!state.code_sent" @click="onResend">
-                {{ $t('verification.resend') }}
+                {{ $t('verification_resend') }}
             </TextButton>
             <span v-if="state.code_sent" id="resend-verification-notify">
-                {{ $t('verification.code_sent') }}
+                {{ $t('verification_code_sent') }}
             </span>
         </template>
     </Panel>
-    <TextButton @click="onCancel" v-if="!state.busy">{{ $t('verification.logout') }}</TextButton>
+    <TextButton @click="onCancel" v-if="!state.busy">{{ $t('verification_logout') }}</TextButton>
 </template>
 
 <style scoped>
@@ -133,5 +133,4 @@ const onVerify = () => {
     color: var(--text-color-dark);
     padding: 1rem;
 }
-
 </style>

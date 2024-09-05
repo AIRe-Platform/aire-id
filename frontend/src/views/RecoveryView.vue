@@ -10,7 +10,7 @@ import Logo from '@/components/Logo.vue';
 import Panel from '@/components/Panel.vue';
 import Spinner from '@/components/Spinner.vue';
 import TextButton from '@/components/TextButton.vue';
-import { requested_locale } from '@/locale';
+import { getUILanguage } from "@/locales";
 import AccountUtils from '@/utils/account';
 import ValidationUtils from '@/utils/validation';
 import { reactive } from 'vue';
@@ -57,12 +57,12 @@ const onSubmitEmail = (e: Event) => {
     state.busy = true;
     state.error = undefined;
 
-    AccountUtils.requestRecoveryCode(state.email, requested_locale())
+    AccountUtils.requestRecoveryCode(state.email, getUILanguage())
         .then(res => {
             if (res.ok)
                 state.step = Steps.Step2_PasswordReset;
             else
-                state.error = "recovery.failed";
+                state.error = "recovery_failed";
         })
         .finally(() => { state.busy = false; })
 }
@@ -73,19 +73,19 @@ const onSubmitPassword = (e: Event) => {
         return;
 
     if (!ValidationUtils.checkPasswordRequirements(state.password)) {
-        state.error = "recovery.password_requirements_not_met";
+        state.error = "recovery_password_requirements_not_met";
         return;
     }
 
     state.busy = true;
     state.error = undefined;
 
-    AccountUtils.recover(state.code, state.email, state.password, requested_locale())
+    AccountUtils.recover(state.code, state.email, state.password, getUILanguage())
         .then(res => {
             if (res.ok)
                 state.step = Steps.Step3_Completed;
             else
-                state.error = "recovery.failed"
+                state.error = "recovery_failed"
         })
         .finally(() => { state.busy = false; })
 }
@@ -101,32 +101,32 @@ const onCancel = () => {
 
 <template>
     <Logo />
-    <Heading>{{ $t('recovery.title') }}</Heading>
+    <Heading>{{ $t('recovery_title') }}</Heading>
     <Panel id="recovery-view" class="main-panel">
         <div class="recovery-error" v-if="state.error">{{ $t(state.error) }}</div>
         <form class="recovery-form" @submit.prevent="onSubmitEmail" v-if="state.step == Steps.Step1_Email">
-            <div class="recovery-instruction">{{ $t('recovery.step1') }}</div>
+            <div class="recovery-instruction">{{ $t('recovery_step1') }}</div>
             <input id="recovery-email" type="email" autocomplete="email" :required="true" :readonly="state.busy"
                 v-model="state.email" />
-            <input type="submit" :value="$t('recovery.button_continue')" v-if="!state.busy" />
+            <input type="submit" :value="$t('recovery_button_continue')" v-if="!state.busy" />
         </form>
         <form class="recovery-form" @submit.prevent="onSubmitPassword" v-if="state.step == Steps.Step2_PasswordReset">
-            <div class="recovery-instruction">{{ $t('recovery.step2') }}</div>
+            <div class="recovery-instruction">{{ $t('recovery_step2') }}</div>
 
-            <label for="recovery-code">{{ $t('recovery.label_code') }}</label>
+            <label for="recovery-code">{{ $t('recovery_label_code') }}</label>
             <input id="recovery-code" type="text" autocomplete="off" :required="true" :readonly="state.busy"
                 @input="checkCode" v-model="state.code" />
 
-            <label for="recovery-password">{{ $t('recovery.label_password') }}</label>
+            <label for="recovery-password">{{ $t('recovery_label_password') }}</label>
             <input id="recovery-password" type="password" autocomplete="new-password" :required="true"
                 :readonly="state.busy" v-model="state.password" minlength="8" />
 
-            <input type="submit" :value="$t('recovery.button_continue')" v-if="!state.busy" />
+            <input type="submit" :value="$t('recovery_button_continue')" v-if="!state.busy" />
         </form>
-        <div class="recovery-completed" v-if="state.step == Steps.Step3_Completed">{{ $t('recovery.step3') }}</div>
+        <div class="recovery-completed" v-if="state.step == Steps.Step3_Completed">{{ $t('recovery_step3') }}</div>
         <Spinner v-if="state.busy" />
     </Panel>
-    <TextButton @click="onCancel" v-if="!state.busy">{{ $t('recovery.button_back') }}</TextButton>
+    <TextButton @click="onCancel" v-if="!state.busy">{{ $t('recovery_button_back') }}</TextButton>
 </template>
 
 <style scoped>

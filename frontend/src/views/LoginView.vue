@@ -15,6 +15,7 @@ import { useRoute, useRouter } from "vue-router";
 import Spinner from "@/components/Spinner.vue";
 import TextButton from "@/components/TextButton.vue";
 import OauthUtils from "@/utils/oauth";
+import LanguageSelector from "@/components/settings/LanguageSelector.vue";
 
 const session = useSession();
 const router = useRouter();
@@ -77,25 +78,27 @@ const recoverPassword = () => {
 
 <template>
     <Logo />
-    <Heading>{{ $t('login.title') }}</Heading>
+    <Heading>{{ $t('login_title') }}</Heading>
     <Panel id="login-view" class="main-panel">
         <form id="credentials" class="form" @submit.prevent="onLogin">
             <div class="form-field">
-                <label for="username" id="label-username">{{ $t('login.username') }}</label>
-                <input type="text" id="username" autocomplete="username" :required="true" v-model="state.username" :readonly="state.busy" />
+                <label for="username" id="label-username">{{ $t('login_username') }}</label>
+                <input type="text" id="username" autocomplete="username" :required="true" v-model="state.username"
+                    :readonly="state.busy" />
             </div>
             <div class="form-field">
-                <label for="password" id="label-password">{{ $t('login.password') }}</label>
+                <label for="password" id="label-password">{{ $t('login_password') }}</label>
                 <input type="password" id="password" autocomplete="current-password" :required="true"
-                    v-model="state.password" :readonly="state.busy"/>
+                    v-model="state.password" :readonly="state.busy" />
             </div>
             <ErrorLabel v-if="state.failed">{{ $t('login.failed') }}</ErrorLabel>
-            <input type="submit" id="button-login" :value="$t('login.submit')" v-if="!state.busy" />
+            <input type="submit" id="button-login" :value="$t('login_submit')" v-if="!state.busy" />
             <Spinner v-if="state.busy" />
         </form>
+        <LanguageSelector />
     </Panel>
-    <TextButton @click="recoverPassword">{{ $t('login.recover_password') }}</TextButton>
-    <TextButton @click="onCancel">{{ $t('login.cancel') }}</TextButton>
+    <TextButton @click="recoverPassword">{{ $t('login_recover_password') }}</TextButton>
+    <TextButton @click="onCancel">{{ $t('login_cancel') }}</TextButton>
 </template>
 
 <style scoped>

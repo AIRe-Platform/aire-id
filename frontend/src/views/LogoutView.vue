@@ -34,9 +34,9 @@ onMounted(onLogout);
     <div class="logout-view">
         <template v-if="!state.logged_out">
             <Spinner />
-            <div>{{ $t('logout.please_wait') }}</div>
+            <div>{{ $t('logout_please_wait') }}</div>
         </template>
-        <div v-if="state.logged_out">{{ $t('logout.logged_out') }}</div>
+        <div v-if="state.logged_out">{{ $t('logout_logged_out') }}</div>
     </div>
 </template>
 

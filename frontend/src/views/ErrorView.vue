@@ -10,14 +10,14 @@ import Panel from '@/components/Panel.vue';
 
 <template>
     <Panel id="error-panel" class="main-panel">
-        <h1 class="error-title">{{ $t('error.title') }}</h1>
+        <h1 class="error-title">{{ $t('error_title') }}</h1>
         <code class="error-details">
             {{
-                $t('error.details', {
-                    error: $route.query.error,
-                    description: $route.query.description
-                })
-            }}
+            $t('error_details', {
+                error: $route.query.error,
+                description: $route.query.description
+            })
+        }}
         </code>
     </Panel>
 </template>

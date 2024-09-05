@@ -5,5 +5,5 @@
 -->
 
 <template>
-    <div>{{ $t('not_found') }}</div>
+    <div>{{ $t('error_not_found') }}</div>
 </template>

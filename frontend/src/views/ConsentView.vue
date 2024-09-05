@@ -39,7 +39,7 @@ const onLogout = () => {
 }
 
 const onConsent = () => {
-    if(session.session)
+    if (session.session)
         OauthUtils.authorize(session.session);
 }
 
@@ -50,17 +50,17 @@ const onCancel = () => {
 
 <template>
     <Logo />
-    <Heading>{{ $t('consent.title') }}</Heading>
+    <Heading>{{ $t('consent_title') }}</Heading>
     <Panel id="consent-view" class="main-panel">
         <div id="consent-user">
-            <p>{{ $t('consent.logged_in_as', { username: session.session?.username }) }}</p>
-            <TextButton @click="onLogout">{{ $t('consent.click_to_logout') }}</TextButton>
+            <p>{{ $t('consent_logged_in_as', { username: session.session?.username }) }}</p>
+            <TextButton @click="onLogout">{{ $t('consent_click_to_logout') }}</TextButton>
         </div>
-        <div id="consent-message">{{ $t('consent.disclaimer', { service: params.get("service") }) }}</div>
+        <div id="consent-message">{{ $t('consent_disclaimer', { service: params.get("service") }) }}</div>
         <div id="consent-buttons">
             <button @click="onConsent()" class="positive" :disabled="state.busy">{{
-                $t('consent.button_consent') }}</button>
-            <button @click="onCancel()" class="negative" :disabled="state.busy">{{ $t('consent.button_cancel')
+        $t('consent_button_consent') }}</button>
+            <button @click="onCancel()" class="negative" :disabled="state.busy">{{ $t('consent_button_cancel')
                 }}</button>
         </div>
     </Panel>

@@ -21,20 +21,23 @@ public class Frontend
         _log.LogInformation("Request static file: {filePath}", filePath);
 
         var root = Path.Combine(Environment.CurrentDirectory, "www");
-        var path = Path.Combine(root, filePath); 
+        var path = Path.Combine(root, filePath);
         var relative = Path.GetRelativePath(root, path);
 
-        if(relative.StartsWith('.'))
+        if (relative.StartsWith('.'))
         {
             _log.LogWarning("Not a valid path: {filePath}", relative);
             return new NotFoundResult();
         }
 
-        if(!File.Exists(path))
+        if (!File.Exists(path))
+        {
+            _log.LogError("File not found: {filePath}", path);
             return new NotFoundResult();
+        }
 
         var stream = File.OpenRead(path);
-        if(!stream.CanRead)
+        if (!stream.CanRead)
         {
             _log.LogError("Cannot read file: {filePath}", path);
             return new InternalServerErrorResult();
@@ -50,7 +53,7 @@ public class Frontend
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "assets/{*file}")] HttpRequest req,
         string? file)
     {
-        if(string.IsNullOrEmpty(file))
+        if (string.IsNullOrEmpty(file))
             return new NotFoundResult();
 
         var path = Path.Combine("assets", file);

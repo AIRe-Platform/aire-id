@@ -20,7 +20,12 @@ public class Frontend
     {
         _log.LogInformation("Request static file: {filePath}", filePath);
 
+#if DEBUG
         var root = Path.Combine(Environment.CurrentDirectory, "www");
+#else
+        var home = Environment.GetEnvironmentVariable("HOME") ?? "";
+        var root = Path.Combine(home, "site", "wwwroot", "www");
+#endif
         var path = Path.Combine(root, filePath);
         var relative = Path.GetRelativePath(root, path);
 

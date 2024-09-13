@@ -91,7 +91,7 @@ const recoverPassword = () => {
                 <input type="password" id="password" autocomplete="current-password" :required="true"
                     v-model="state.password" :readonly="state.busy" />
             </div>
-            <ErrorLabel v-if="state.failed">{{ $t('login.failed') }}</ErrorLabel>
+            <ErrorLabel v-if="state.failed">{{ $t('login_failed') }}</ErrorLabel>
             <input type="submit" id="button-login" :value="$t('login_submit')" v-if="!state.busy" />
             <Spinner v-if="state.busy" />
         </form>

@@ -1,3 +1,8 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using Aire.Sdk.AspNetCore;
 using Microsoft.AspNetCore.Http;
 
@@ -24,11 +29,14 @@ namespace Aire.Id.Oauth2.Models
 			{
 				Username = req.ReadParam("username"),
 				Password = req.ReadParam("password"),
-				Scope = req.ReadParam("scope")
+				Scope = req.ReadParam("scope"),
+				ClientId = req.ReadParam("client_id"),
+				ClientSecret = req.ReadParam("client_secret"),
 			};
 
 			if (string.IsNullOrWhiteSpace(passwordGrantRequest.Username) ||
-				string.IsNullOrWhiteSpace(passwordGrantRequest.Password))
+				string.IsNullOrWhiteSpace(passwordGrantRequest.Password) ||
+				string.IsNullOrWhiteSpace(passwordGrantRequest.ClientId))
 			{
 				throw new OauthException(OauthError.InvalidRequest);
 			}
@@ -74,8 +82,8 @@ namespace Aire.Id.Oauth2.Models
 		// Required
 		public string? RedirectUri { get; set; }
 
-		// Required
-		public string? ClientId { get; set; }
+		// Optional
+		public string? CodeVerifier { get; set; }
 
         public OauthAuthCodeGrantRequest() : base(OauthGrantType.AuthorizationCode)
 		{
@@ -88,6 +96,8 @@ namespace Aire.Id.Oauth2.Models
 				Code = req.ReadParam("code"),
 				RedirectUri = req.ReadParam("redirect_uri"),
 				ClientId = req.ReadParam("client_id"),
+				ClientSecret = req.ReadParam("client_secret"),
+				CodeVerifier = req.ReadParam("code_verifier"),
 				State = req.ReadParam("state")
 			};
 
@@ -103,7 +113,13 @@ namespace Aire.Id.Oauth2.Models
 	}
 
 	public abstract class OauthTokenRequest
-	{
+	{	
+		// Required
+		public string? ClientId { get; set; }
+
+		// Optional
+		public string? ClientSecret { get; set; }
+
 		// Required
 		public OauthGrantType GrantType { get; private set; }
 

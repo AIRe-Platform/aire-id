@@ -1,3 +1,8 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Hosting;
@@ -30,6 +35,7 @@ var host = new HostBuilder()
             EncryptionKey = AireEnvironment.TokenEncryptionKey
         });
         worker.UseOauth<TokenProvider, LoginProvider>();
+        
     })
     .ConfigureServices(services =>
     {
@@ -56,6 +62,12 @@ var host = new HostBuilder()
                 .ConfigureOptions(options =>
                 {
                     options.MessageEncoding = QueueMessageEncoding.Base64;
+                });
+
+            builder.AddBlobServiceClient(AireEnvironment.StorageConnectionString)
+                .ConfigureOptions(options =>
+                {
+                    options.Diagnostics.IsLoggingEnabled = false;
                 });
         });
 

@@ -1,11 +1,22 @@
 {
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Attach to .NET Functions",
-      "type": "coreclr",
-      "request": "attach",
-      "processId": "${command:azureFunctions.pickProcess}"
-    }
-  ]
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Attach to .NET Functions",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:azureFunctions.pickProcess}"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Launch Chrome against localhost",
+            "url": "http://localhost:8082",
+            "webRoot": "${workspaceFolder}/frontend",
+            "preLaunchTask": "npm: dev",
+            "runtimeArgs": [
+                "--user-data-dir=./tmp"
+            ]
+        }
+    ]
 }

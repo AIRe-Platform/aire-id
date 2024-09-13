@@ -1,3 +1,8 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using System.Net;
 using System.Web.Http;
 using Microsoft.AspNetCore.Http;
@@ -44,7 +49,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Not allowed to access the resource")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     public async Task<IActionResult> GetUser(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/user")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/user")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -103,7 +108,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
     public async Task<IActionResult> EditUser(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "v1/user/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "api/v1/user/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {
@@ -143,7 +148,28 @@ public class User_v1
 
         // Read-only fields
         {
+            // Make sure the incoming data does not override
+            // the fields that are not meant to be edited.
+            // SetPrivateUserData will process the entire object.
             userData.Email = user.Email;
+        }
+
+        if (userData.FirstName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength)
+        {
+            _log.LogWarning("Failed to save into database: First Name too long");
+            return new BadRequestResult();
+        }
+
+        if (userData.LastName?.Length > AireConstants.MaxUserFirstNameAndLastNameLength)
+        {
+            _log.LogWarning("Failed to save into database: Last Name is too long");
+            return new BadRequestResult();
+        }
+
+        if (userData.Bio?.Length > AireConstants.MaxUserBioLength)
+        {
+            _log.LogWarning("Failed to save into database: Bio is too long");
+            return new BadRequestResult();
         }
 
         bool allowConnect = _jwt.CheckAuthorization(auth, AireScopes.ConnectProfile);
@@ -157,7 +183,7 @@ public class User_v1
         {
             var updated = entity.GetUserData(auth!.UserKey);
 
-            if(!allowConnect)
+            if (!allowConnect)
                 updated.ConnectedServices = null;
 
             return new OkObjectResult(updated);
@@ -184,7 +210,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
     public async Task<IActionResult> ChangePassword(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/user/{id}/password")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/user/{id}/password")] HttpRequest req,
         FunctionContext context,
         string id)
     {
@@ -255,7 +281,7 @@ public class User_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The user does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Failed to save changes")]
     public async Task<IActionResult> DeleteUser(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/user/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/user/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
     {

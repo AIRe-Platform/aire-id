@@ -1,3 +1,8 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using System.Net;
 using System.Web.Http;
 using Aire.Id.Models;
@@ -41,7 +46,7 @@ public class Signup_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid email format, account already exists, or password does not meet minimum requirements")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error, try again later.")]
     public async Task<IActionResult> Signup(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/signup")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/signup")] HttpRequest req)
     {
         var request = await req.ReadJson<SignupRequest>();
 

@@ -1,3 +1,8 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using System.Net;
 using System.Web.Http;
 using Aire.Id.Models;
@@ -43,7 +48,7 @@ public class Account_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid account ID format")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
     public async Task<IActionResult> GetAccountById(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/account/{id}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/account/{id}")] HttpRequest req,
             FunctionContext context,
             string id)
     {
@@ -81,7 +86,7 @@ public class Account_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid query")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
     public async Task<IActionResult> FindAccount(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/account")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/account")] HttpRequest req,
             FunctionContext context,
             [FromQuery] string login_name)
     {
@@ -120,7 +125,7 @@ public class Account_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param or body")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
     public async Task<IActionResult> EditAccount(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "v1/admin/account/{id}")] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "PUT", Route = "api/v1/admin/account/{id}")] HttpRequest req,
             FunctionContext context,
             string id)
     {

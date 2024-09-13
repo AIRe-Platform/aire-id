@@ -1,9 +1,17 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using System.Net;
-using System.Web.Http;
+using System.Security.Cryptography;
+using Aire.Id.Models;
 using Aire.Sdk.AspNetCore;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
+using Aire.Sdk.Helpers;
 using Aire.Sdk.Models.Admin;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -41,7 +49,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid client id")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client does not exist")]
     public async Task<IActionResult> GetClientById(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {
@@ -73,7 +81,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     public async Task<IActionResult> GetClients(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "v1/admin/clients")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/admin/clients")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -99,10 +107,11 @@ public class Client_v1
     [OpenApiRequestBody("application/json", typeof(Client), Required = true, Description = "Client model")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Client), Description = "The client object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Conflict, Description = "A client with the same name already exists")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid body")]
     public async Task<IActionResult> CreateClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/admin/client")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/admin/client")] HttpRequest req,
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
@@ -122,17 +131,37 @@ public class Client_v1
             return new BadRequestResult();
         }
 
+        var existing_query = await _storage.QueryAsync<ClientEntity>(x => x.Name == client.Name);
+        var existing_entity = await existing_query.FirstOrDefaultAsync();
+
+        if (existing_entity != null)
+        {
+            return new ConflictResult();
+        }
+
         var entity = new ClientEntity()
         {
             Name = client.Name,
             Active = client.Active ?? false,
             AllowedScopes = string.Join(" ", client.Scopes),
-            RedirectUri = redirectUri.AbsoluteUri
+            RedirectUri = redirectUri.AbsoluteUri,
+            Public = client.Public ?? true,
+            RequireConsent = client.RequireConsent ?? true,
         };
+
+        string? clientSecret = null;
+        if (client.Public == false)
+        {
+            clientSecret = RandomNumberGenerator.GetHexString(32, true);
+            entity.SecretHash = Crypto.SHA256Base64(clientSecret);
+        }
 
         var insert = await _storage.UpsertAsync(entity);
         if (!insert)
-            return new InternalServerErrorResult();
+            throw new RequestFailedException("Failed to insert entity");
+
+        var model = entity.ToModel();
+        model.Secret = clientSecret;
 
         return new OkObjectResult(entity.ToModel());
     }
@@ -152,7 +181,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid body or ID")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client was not found")]
     public async Task<IActionResult> EditClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "put", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {
@@ -181,10 +210,23 @@ public class Client_v1
             client.AllowedScopes = string.Join(" ", data.Scopes);
 
         if (data.Name != null)
+        {
             client.Name = data.Name;
+            
+            var existing_query = await _storage.QueryAsync<ClientEntity>(x => x.Name == client.Name);
+            var existing_entity = await existing_query.FirstOrDefaultAsync();
+
+            if (existing_entity != null && existing_entity.Id() != client.Id())
+            {
+                return new ConflictResult();
+            }
+        }
 
         if (data.Active.HasValue)
             client.Active = data.Active.Value;
+
+        if (data.RequireConsent.HasValue)
+            client.RequireConsent = data.RequireConsent.Value;
 
         if (data.RedirectUri != null)
         {
@@ -196,7 +238,7 @@ public class Client_v1
 
         var update = await _storage.UpsertAsync(client);
         if (!update)
-            return new InternalServerErrorResult();
+            throw new RequestFailedException("Failed to update entity");
 
         return new OkObjectResult(client.ToModel());
     }
@@ -215,7 +257,7 @@ public class Client_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid id")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The client was not found")]
     public async Task<IActionResult> DeleteClient(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "v1/admin/client/{id}")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/admin/client/{id}")] HttpRequest req,
         FunctionContext context,
         [FromRoute] string id)
     {
@@ -235,7 +277,7 @@ public class Client_v1
 
         var delete = await _storage.DeleteAsync(client);
         if (!delete)
-            return new InternalServerErrorResult();
+            throw new RequestFailedException("Failed to delete entity");
 
         return new NoContentResult();
     }

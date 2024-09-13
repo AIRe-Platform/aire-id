@@ -1,3 +1,8 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using System.Net;
 using System.Web.Http;
 using Aire.Id.Models;
@@ -43,8 +48,9 @@ public class Recovery_v1
     [OpenApiRequestBody("application/json", typeof(RecoveryCodeRequest), Description = "Password recovery code request body", Required = true)]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Returned always whether an account is found or not.")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "Account recovery is not supported by the platform.")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request.")]
     public async Task<IActionResult> RequestRecoveryCode(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/recovery/code")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/code")] HttpRequest req)
     {
         if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
@@ -53,7 +59,7 @@ public class Recovery_v1
         if (body == null || !body.Validate())
         {
             _log.LogError("Invalid request");
-            return new NoContentResult();
+            return new BadRequestResult();
         }
 
         var hash = Crypto.SHA256Base16(body.Email!);
@@ -105,10 +111,12 @@ public class Recovery_v1
         Summary = "Change the password using a recovery code")]
     [OpenApiRequestBody("application/json", typeof(RecoveryPasswordChangeRequest), Description = "Password recovery change request body", Required = true)]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Success")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "The account is not recoverable or the request was invalid.")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request.")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "Account recovery is not supported by the platform.")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.UnprocessableEntity, Description = "The account is not recoverable.")]
     public async Task<IActionResult> RecoveryPasswordChange(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "v1/recovery/password")] HttpRequest req)
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/password")] HttpRequest req)
     {
         if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
@@ -120,10 +128,10 @@ public class Recovery_v1
         var hash = Crypto.SHA256Base16(body.Email!);
         var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
         var user = await query.FirstOrDefaultAsync();
-        if (user == null || string.IsNullOrWhiteSpace(user.Recovery))
+        if (user == null)
         {
-            _log.LogWarning("Non-recoverable account");
-            return new BadRequestResult();
+            _log.LogWarning("Account does not exist");
+            return new NotFoundResult();
         }
 
         bool verified = user.VerifyAccount(body.Code!);
@@ -141,7 +149,7 @@ public class Recovery_v1
         if (!recovered)
         {
             _log.LogWarning("This account cannot be recovered");
-            return new BadRequestResult();
+            return new UnprocessableEntityResult();
         }
 
         {

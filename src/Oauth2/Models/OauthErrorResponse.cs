@@ -1,3 +1,8 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at https://mozilla.org/MPL/2.0/.
+
+
 using Aire.Sdk.Helpers;
 using Newtonsoft.Json;
 
@@ -21,7 +26,7 @@ namespace Aire.Id.Oauth2.Models
 		{
 			var dict = new Dictionary<string, string?>
 			{
-				{ "error", Error.ObjectToJson() }
+				{ "error", Error.ObjectToJson().Trim('"') }
 			};
 
 			if(ErrorDescription != null)

@@ -1,0 +1,48 @@
+@base=http://localhost:7072/api
+
+### Register AIRe Hub client
+
+POST {{base}}/setup/client HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "AIRe Hub",
+    "active": true,
+    "redirect_uri": "http://localhost:8081/auth/callback",
+    "public": true,
+    "scopes": [
+        "questionnaire-read", "questionnaire-write", "questionnaire-delete",
+        "content-read", "content-write", "content-delete",
+        "document-read", "document-write", "document-delete",
+        "demo-group-read", "demo-group-write", "demo-group-delete",
+        "services-read", "services-edit", "services-delete",
+        "aire-hub", "keywords", "admin-accounts", "admin-clients"
+    ],
+    "require_consent": true,
+    "grant_types": [
+        "authorization_code"
+    ]
+}
+
+### Register AIRe Talk client
+
+POST {{base}}/setup/client HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "AIRe Talk",
+    "active": true,
+    "redirect_uri": "http://localhost:8080/auth/callback",
+    "public": true,
+    "scopes": [
+        "profile-read", "profile-edit", "profile-delete", "profile-connect", 
+        "chat-history-read", "chat-history-write", "chat-history-delete",
+        "questionnaire-read", "content-read", "document-read", 
+        "chat-completion", "chat-summary", "chat-token-count", "password-change", 
+        "experimental-custom-prompt"
+    ],
+    "require_consent": true,
+    "grant_types": [
+        "authorization_code"
+    ]
+}

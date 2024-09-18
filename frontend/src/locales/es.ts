@@ -61,7 +61,8 @@ const es: Locale = {
     es: "Español",
     vi: "Vietnamita",
     id: "Indonesio",
-    sw: "Suajili"
+    sw: "Suajili",
+    rw: "Kinyarwanda"
 };
 
 

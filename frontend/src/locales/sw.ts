@@ -61,7 +61,8 @@ const sw: Locale = {
     es: "Kihispania",
     vi: "Kivietinamu",
     id: "Kiindonesia",
-    sw: "Kiswahili"
+    sw: "Kiswahili",
+    rw: "Kinyarwanda"
 };
 
 

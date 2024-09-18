@@ -61,7 +61,8 @@ const en: Locale = {
     es: "Spanish",
     vi: "Vietnamese",
     id: "Indonesian",
-    sw: "Swahili"
+    sw: "Swahili",
+    rw: "Kinyarwanda"
 };
 
 export default en;

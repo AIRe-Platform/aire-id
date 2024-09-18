@@ -10,6 +10,8 @@ import es from './es';
 import vi from './vi';
 import id from './id';
 import sw from './sw';
+import rw from './rw';
+
 import { LocalizationKey } from './keys';
 import { LanguageCode } from 'iso-639-1';
 
@@ -17,7 +19,7 @@ export const l = LocalizationKey;
 export type Locale = { [id in LocalizationKey]: string };
 
 export const supportedLocales: LanguageCode[] = [
-    "en", "fi", "es", "vi", "id", "sw"
+    "en", "fi", "es", "vi", "id", "sw", "rw"
 ]
 
 export function requested_locale() {
@@ -44,6 +46,7 @@ function initLocale() {
             es: { ...es },
             id: { ...id },
             sw: { ...sw },
+            rw: { ...rw },
             vi: { ...vi }
         },
         fallbackLocale: defaultLocale,

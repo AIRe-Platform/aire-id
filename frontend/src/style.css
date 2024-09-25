@@ -21,30 +21,34 @@
   --border-radius: 0.2rem;
   --text-color-light: #dedede;
   --text-color-dark: #2c3e50;
+  --button-text-color-light: #ffffff;
+  --button-text-color-dark: #ffffff;
 }
 
 :root.light-mode {
   --background-color: #ffffff;
   --text-color: #2c3e50;
-  --accent-primary-color: #00b49d;
+  --accent-primary-color: #176087;
   --accent-secondary-color: #176087;
   --disabled-color: #80808033;
   --shadow-color: #393939;
   --border-color: #dedede;
   --panel-background-color: #f8f8f8;
   --error-color: #ff7878;
+  --button-error-color: #B6465F;
 }
 
 :root.dark-mode {
   --background-color: #373250;
   --text-color: #dedede;
-  --accent-primary-color: #00b49d;
+  --accent-primary-color: #176087;
   --accent-secondary-color: #176087;
   --disabled-color: #80808033;
   --shadow-color: #393939;
   --border-color: #282828;
   --panel-background-color: #47425e;
   --error-color: #ff7878;
+  --button-error-color: #B6465F;
 }
 
 html {
@@ -158,8 +162,8 @@ button {
 
   &.negative {
     border-color: var(--error-color);
-    background-color: var(--error-color);
-    color: var(--text-color-dark);
+    background-color: var(--button-error-color);
+    color: var(--button-text-color-light);
 
     &:hover {
       box-shadow: 0 0 5px var(--error-color);

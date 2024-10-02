@@ -34,7 +34,7 @@ function initLocale() {
     const storedLocale = localStorage.getItem("locale");
     const defaultLocale: LanguageCode = "en";
 
-    const loc = storedLocale ?? defaultLocale;
+    const loc = requested_locale() ?? storedLocale ?? defaultLocale;
     document.documentElement.lang = loc;
 
     return createI18n({

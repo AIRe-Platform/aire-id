@@ -61,7 +61,8 @@ const vi: Locale = {
     es: "Tiếng Tây Ban Nha",
     vi: "Tiếng Việt",
     id: "Tiếng Indonesia",
-    sw: "Tiếng Swahili"
+    sw: "Tiếng Swahili",
+    rw: "Tiếng Rwanda",
 };
 
 export default vi;

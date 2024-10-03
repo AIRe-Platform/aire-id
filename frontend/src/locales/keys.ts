@@ -57,4 +57,5 @@ export enum LocalizationKey {
     vi = "vi",
     id = "id",
     sw = "sw",
+    rw = "rw",
 }

@@ -41,7 +41,7 @@ public class GDPR_v1
         operationId: "gdprPersonalData",
         tags: ["GDPR"],
         Summary = "Get all personal data")]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(GDPRDataCollection), Description = "Personal data collection")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Dictionary<string, object?>), Description = "Personal data collection")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]

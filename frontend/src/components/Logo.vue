@@ -6,7 +6,7 @@
 
 <template>
     <div class="aire-logo-container">
-        <img src="/assets/aire-logo-letter.svg" class="aire-logo" />
+        <img src="/assets/aire-logo-letter.svg" class="aire-logo" alt="AIRe logo" />
     </div>
 </template>
 

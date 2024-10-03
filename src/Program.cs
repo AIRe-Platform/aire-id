@@ -35,7 +35,6 @@ var host = new HostBuilder()
             EncryptionKey = AireEnvironment.TokenEncryptionKey
         });
         worker.UseOauth<TokenProvider, LoginProvider>();
-        
     })
     .ConfigureServices(services =>
     {
@@ -89,7 +88,7 @@ var host = new HostBuilder()
                     Description = "This is the reference implementation of the AIRe Platform ID module."
                 },
                 Servers = [
-                    new OpenApiServer { Url = AireEnvironment.OpenApiHost ?? "/api" }
+                    new OpenApiServer { Url = AireEnvironment.OpenApiHost ?? "/" }
                 ],
                 OpenApiVersion = OpenApiVersionType.V3,
                 IncludeRequestingHostName = false,

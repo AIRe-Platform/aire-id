@@ -10,9 +10,9 @@ namespace Aire.Id.Helpers;
 
 public static class ScopeHelper
 {
-    public static List<string> GetScopesForUser(UserEntity entity)
+    public static AireScopes GetScopesForUser(UserEntity entity)
     {
-        List<string> scopes = GetBaseScopesForUser(entity);
+        var scopes = GetBaseScopesForUser(entity);
 
         if(string.IsNullOrWhiteSpace(entity.Scopes)) // if not overridden
         {
@@ -25,15 +25,14 @@ public static class ScopeHelper
         return scopes;
     }
 
-    public static List<string> GetBaseScopesForUser(UserEntity entity)
+    public static AireScopes GetBaseScopesForUser(UserEntity entity)
     {
-        List<string> scopes = [];
+        AireScopes scopes = [];
 
         if (!string.IsNullOrWhiteSpace(entity.Scopes)) // scope override
         {
-            scopes = entity.Scopes
-                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-                    .ToList();
+            scopes = new AireScopes(entity.Scopes
+                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
         }
         else // defaults
         {
@@ -55,10 +54,11 @@ public static class ScopeHelper
         return scopes;
     }
 
-    public static List<string>? GetAdditionalScopesForUser(UserEntity entity)
+    public static AireScopes? GetAdditionalScopesForUser(UserEntity entity)
     {
-        return entity.AdditionalScopes?
-            .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
-            .ToList();
+        var scopes = entity.AdditionalScopes?
+            .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+        return scopes != null ? new AireScopes(scopes) : null;
     }
 }

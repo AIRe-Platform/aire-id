@@ -363,16 +363,19 @@ namespace Aire.Id.Oauth2
 
         private static string[]? ValidateClientScopes(string? reqScopes, ClientEntity client)
         {
-            var scopes = reqScopes?
-                .Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var clientScopes = client.AllowedScopes?
-                .Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var scopes = reqScopes != null
+                ? new AireScopes(reqScopes.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                : null;
+
+            var clientScopes = client.AllowedScopes != null
+                ? new AireScopes(client.AllowedScopes.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                : null;
 
             bool allowAllClientScopes = clientScopes?.Contains("*") ?? false;
-            bool grantAllAvailableScopes = scopes == null || scopes.Contains("*") || scopes.Length == 0;
+            bool grantAllAvailableScopes = scopes == null || scopes.Contains("*") || scopes.Count == 0;
 
             if (allowAllClientScopes)
-                clientScopes = AireScopes.AllClientScopes.ToArray();
+                clientScopes = AireScopes.AllClientScopes;
 
             if (grantAllAvailableScopes)
                 scopes = clientScopes;
@@ -387,7 +390,7 @@ namespace Aire.Id.Oauth2
                     return null;
             }
 
-            return scopes;
+            return scopes.ToArray();
         }
 
         private static string[] FilterUserScopes(UserEntity user, IEnumerable<string> requested)

@@ -43,10 +43,10 @@ public class TokenProvider : IOauthTokenProvider
     public string IssueNewToken(OauthTokenDescription description)
     {
         return _jwt.IssueNewToken(
-            description.Subject!.Subject!,
-            description.Subject!.Role!,
-            description.Subject!.Scopes!,
-            description.Subject!.Claims!,
+            description.Subject.Subject!,
+            description.Subject.Role!,
+            description.Scopes,
+            description.Subject.Claims!,
             description.Lifetime
         );
     }

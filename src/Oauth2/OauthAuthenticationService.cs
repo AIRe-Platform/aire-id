@@ -173,19 +173,16 @@ namespace Aire.Id.Oauth2
             if (subject == null)
                 throw new OauthException(OauthError.AccessDenied, req, "Invalid credentials");
 
-            subject.Scopes ??= [];
+            if (subject.AllowedScopes != null)
+                scopes = scopes.Where(x => subject.AllowedScopes.Contains(x)).ToArray();
+
             if (!string.IsNullOrWhiteSpace(req.Scope))
             {
                 var requestedScopes = req.Scope.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                subject.Scopes = requestedScopes.Where(x => subject.Scopes.Contains(x)).ToList();
+                scopes = requestedScopes.Where(x => scopes.Contains(x)).ToArray();
             }
 
-            var desc = new OauthTokenDescription
-            {
-                Subject = subject,
-                Lifetime = _config.TokenLifetime
-            };
-
+            var desc = new OauthTokenDescription(subject, [..scopes], _config.TokenLifetime);
             var token = _tokenProvider.IssueNewToken(desc);
 
             var response = new OauthTokenResponse
@@ -193,7 +190,7 @@ namespace Aire.Id.Oauth2
                 AccessToken = token,
                 TokenType = OauthTokenType.Bearer,
                 ExpiresIn = (int)_config.TokenLifetime.TotalSeconds,
-                Scope = string.Join(" ", subject.Scopes),
+                Scope = string.Join(" ", scopes),
                 State = req.State
             };
 
@@ -232,12 +229,12 @@ namespace Aire.Id.Oauth2
             if (user == null)
                 throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
-            var tokenDescription = new OauthTokenDescription
-            {
-                Lifetime = _config.TokenLifetime,
-                Subject = _loginProvider.GetSubject(user, code.UserKey!)
-            };
+            var subject = _loginProvider.GetSubject(user, code.UserKey!);
+            var scopes = new AireScopes(
+                code.Scopes?.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? []
+            );
 
+            var tokenDescription = new OauthTokenDescription(subject, scopes, _config.TokenLifetime);
             var token = _tokenProvider.IssueNewToken(tokenDescription);
 
             var response = new OauthTokenResponse

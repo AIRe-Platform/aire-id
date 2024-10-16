@@ -79,7 +79,7 @@ public class LoginProvider : IOauthLoginProvider
         {
             Subject = user.UUID(),
             Role = user.Role ?? AireRoles.User,
-            Scopes = ScopeHelper.GetScopesForUser(user),
+            AllowedScopes = ScopeHelper.GetScopesForUser(user),
             Claims = new Dictionary<string, object> {
                     { AireClaims.UserEncryptionKey, key },
                     { AireClaims.ConnectedServices, privateData!.ConnectedServices! },

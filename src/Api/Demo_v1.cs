@@ -20,6 +20,8 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Aire.Id.Oauth2.Models;
+using Aire.Id.Helpers;
 
 namespace Aire.Id.Api;
 
@@ -320,11 +322,9 @@ public class Demo_v1
             // Delete user data from Memory (pretend to be the subject)
             var subjectKey = entity.GetEncryptionKey(subject.AccessCode!);
             var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!);
-            var token = _tokenProvider.IssueNewToken(new Oauth2.Models.OauthTokenDescription
-            {
-                Subject = oauthSubject,
-                Lifetime = TimeSpan.FromMinutes(5)
-            });
+            var scopes = ScopeHelper.GetScopesForUser(entity);
+            var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
+            var token = _tokenProvider.IssueNewToken(tokenDescriptor);
 
             var memoryService = await _clientFactory.CreateMemoryClient(token);
             if (memoryService != null)

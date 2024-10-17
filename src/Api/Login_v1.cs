@@ -80,17 +80,8 @@ public class Login_v1
         if (subject == null)
             return new ForbiddenResult();
 
-        if (subject.Verified)
-            subject.Scopes = [AireScopes.Auth];
-        else
-            subject.Scopes = [];
-
-        var desc = new OauthTokenDescription
-        {
-            Subject = subject,
-            Lifetime = AireConstants.AppAuthSessionTTL
-        };
-
+        var scopes = new AireScopes(subject.Verified ? [AireScopes.Auth] : []);
+        var desc = new OauthTokenDescription(subject, scopes, AireConstants.AppAuthSessionTTL);
         var token = _tokenProvider.IssueNewToken(desc);
 
         var session = new Session

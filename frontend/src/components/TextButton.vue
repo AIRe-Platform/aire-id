@@ -5,13 +5,18 @@
 -->
 
 <script setup lang="ts">
+import { defineEmits } from "vue";
+
 const emits = defineEmits<{
     click: []
 }>();
 </script>
 
 <template>
-    <div class="text-button" @click="emits('click')">
+    <div class="text-button"
+        tabindex="0"
+        @keydown.prevent.space.enter="emits('click')"
+        @click="emits('click')">
         <slot></slot>
     </div>
 </template>

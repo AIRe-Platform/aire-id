@@ -284,3 +284,6 @@ lerna-debug.log*
 
 # Temporary files
 **/tmp
+
+# Doxygen
+docs/Doxygen

@@ -13,10 +13,7 @@ const emits = defineEmits<{
 </script>
 
 <template>
-    <div class="text-button"
-        tabindex="0"
-        @keydown.prevent.space.enter="emits('click')"
-        @click="emits('click')">
+    <div class="text-button" tabindex="0" @keydown.prevent.space.enter="emits('click')" @click="emits('click')">
         <slot></slot>
     </div>
 </template>
@@ -31,7 +28,7 @@ const emits = defineEmits<{
     padding: 0.5rem;
 
     &:hover {
-        color: var(--accent-primary-color);
+        color: var(--hover-link-text);
     }
 }
 </style>

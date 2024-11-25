@@ -59,7 +59,7 @@ const onCancel = () => {
         <div id="consent-message">{{ $t('consent_disclaimer', { service: params.get("service") }) }}</div>
         <div id="consent-buttons">
             <button @click="onConsent()" class="positive" :disabled="state.busy">{{
-        $t('consent_button_consent') }}</button>
+                $t('consent_button_consent') }}</button>
             <button @click="onCancel()" class="negative" :disabled="state.busy">{{ $t('consent_button_cancel')
                 }}</button>
         </div>

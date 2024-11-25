@@ -28,27 +28,36 @@
 :root.light-mode {
   --background-color: #ffffff;
   --text-color: #2c3e50;
+  --button-text-color: #ffffff;
   --accent-primary-color: #176087;
   --accent-secondary-color: #176087;
+  --hover-link-text: #176087;
+  --hover-text:  #E3FFFA;
   --disabled-color: #80808033;
   --shadow-color: #393939;
   --border-color: #dedede;
   --panel-background-color: #f8f8f8;
   --error-color: #ff7878;
   --button-error-color: #B6465F;
+  --hover-button: #19547B;
 }
 
 :root.dark-mode {
   --background-color: #373250;
   --text-color: #dedede;
+  --button-text-color: #ffffff;
   --accent-primary-color: #176087;
   --accent-secondary-color: #176087;
+  --hover-link-text:  #E3FFFA;
+  --hover-text:  #E3FFFA;
   --disabled-color: #80808033;
   --shadow-color: #393939;
   --border-color: #282828;
   --panel-background-color: #47425e;
   --error-color: #ff7878;
   --button-error-color: #B6465F;
+  --hover-button: #19547B;
+  
 }
 
 html {
@@ -129,8 +138,8 @@ input:read-only {
 input[type=submit],
 input[type=file],
 button {
-  color: var(--text-color);
-  background-color: var(--background-color);
+  color: var(--button-text-color);
+  background-color: var(--accent-primary-color);
   padding: 1rem 1.5rem;
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
@@ -145,10 +154,10 @@ button {
   font-weight: bold;
 
   &:hover {
-    background-color: var(--accent-primary-color);
+    background-color: var(--hover-button);
     border-color: transparent;
-    color: var(--background-color);
-    box-shadow: 0 0 5px var(--accent-primary-color);
+    color: var(--hover-text);
+    box-shadow: 0 0 5px var(--hover-button);
   }
 
   &:active {
@@ -163,20 +172,22 @@ button {
   &.negative {
     border-color: var(--error-color);
     background-color: var(--button-error-color);
-    color: var(--button-text-color-light);
+    color: var(--button-text-color);
 
     &:hover {
       box-shadow: 0 0 5px var(--error-color);
+      color: var(--hover-text);
     }
   }
 
   &.positive {
     border-color: var(--accent-secondary-color);
     background-color: var(--accent-secondary-color);
-    color: var(--text-color-light);
+    color: var(--button-text-color);
 
     &:hover {
       box-shadow: 0 0 5px var(--accent-secondary-color);
+      color: var(--hover-text);
     }
   }
 }

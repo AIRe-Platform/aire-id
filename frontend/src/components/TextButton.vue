@@ -1,21 +1,17 @@
-<!--
-    This Source Code Form is subject to the terms of the Mozilla Public
-    License, v. 2.0. If a copy of the MPL was not distributed with this
-    file, You can obtain one at https://mozilla.org/MPL/2.0/.
--->
-
 <script setup lang="ts">
 import { defineEmits } from "vue";
 
+// Define the click event
 const emits = defineEmits<{
-    click: []
+    click: [];
 }>();
 </script>
 
 <template>
-    <div class="text-button" tabindex="0" @keydown.prevent.space.enter="emits('click')" @click="emits('click')">
+    <a href="#" @click.prevent="emits('click')" class="text-button" tabindex="0"
+        @keydown.prevent.space.enter="emits('click')" @click="emits('click')">
         <slot></slot>
-    </div>
+    </a>
 </template>
 
 <style scoped>
@@ -26,9 +22,14 @@ const emits = defineEmits<{
     transition: color 0.5s;
     margin: 0.1rem -0.5rem;
     padding: 0.5rem;
+}
 
-    &:hover {
-        color: var(--hover-link-text);
-    }
+.text-button:hover {
+    color: var(--hover-link-text);
+}
+
+.text-button:focus {
+    outline: 2px solid var(--focus-color);
+    outline-offset: 2px;
 }
 </style>

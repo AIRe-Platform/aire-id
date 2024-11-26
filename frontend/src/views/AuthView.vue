@@ -5,6 +5,7 @@
 -->
 
 <script setup lang="ts">
+import Heading from "@/components/Heading.vue";
 import Spinner from "@/components/Spinner.vue";
 import useSession from "@/context/session";
 import OauthUtils from "@/utils/oauth";
@@ -76,7 +77,7 @@ onMounted(onInitSession);
 <template>
     <div class="auth-view">
         <Spinner />
-        <div>{{ $t('auth_please_wait') }}</div>
+        <Heading>{{ $t('auth_please_wait') }}</Heading>
     </div>
 </template>
 

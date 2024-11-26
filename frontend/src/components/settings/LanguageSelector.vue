@@ -10,7 +10,6 @@ const setLang = async (e: Event) => {
 </script>
 
 <template>
-    <Heading />
     <div class="language-selector-panel">
         <label for="settings-language">{{ $t(l.settings_language) }}</label>
         <select id="settings-language" class="capitalize" @change="setLang" :value="$i18n.locale">

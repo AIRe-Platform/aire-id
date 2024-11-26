@@ -5,12 +5,13 @@
 -->
 
 <script setup lang="ts">
+import Heading from '@/components/Heading.vue';
 import Panel from '@/components/Panel.vue';
 </script>
 
 <template>
     <Panel id="error-panel" class="main-panel">
-        <h1 class="error-title">{{ $t('error_title') }}</h1>
+        <Heading class="error-title">{{ $t('error_title') }}</Heading>
         <code class="error-details">
             {{
             $t('error_details', {

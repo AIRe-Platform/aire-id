@@ -8,8 +8,7 @@ const emits = defineEmits<{
 </script>
 
 <template>
-    <a href="#" @click.prevent="emits('click')" class="text-button" tabindex="0"
-        @keydown.prevent.space.enter="emits('click')" @click="emits('click')">
+    <a href="#" class="text-button" @keydown.space="emits('click')" @click="emits('click')">
         <slot></slot>
     </a>
 </template>
@@ -28,7 +27,7 @@ const emits = defineEmits<{
 }
 
 .text-button:focus {
-    outline: 2px solid var(--focus-color);
+    outline: 2px solid;
     outline-offset: 2px;
 }
 

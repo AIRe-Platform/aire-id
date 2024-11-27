@@ -26,4 +26,11 @@ const props = defineProps({
     font-weight: normal;
     margin-top: 1rem;
 }
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+    .heading {
+        font-weight: var(--font-small);
+        margin: 0.7rem;
+    }
+}
 </style>

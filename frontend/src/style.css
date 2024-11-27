@@ -77,7 +77,7 @@ body {
 }
 
 a {
-  text-decoration: none;
+  text-decoration: underline;
   cursor: pointer;
   color: var(--text-color);
   transition: color 0.5s;
@@ -205,4 +205,49 @@ button {
   min-width: 10rem;
   width: calc(100dvw - 6rem);
   max-width: 30rem;
+}
+
+body, #app {
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  height: 100vh; /* Full viewport height */
+}
+
+@media screen and (orientation: landscape) {
+  body, #app {
+    height: 100vh; /* Ensure the container spans the full height of the viewport */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 5px; /* Add padding for smaller screens */
+    box-sizing: border-box;
+  }
+
+  .main-panel {
+    max-height: 90vh; /* Limit the height of main content to fit within the viewport */
+    overflow-y: auto; /* Add scroll for the panel itself, if necessary */
+  }
+}
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+  .aire-logo-container {
+    display: none; /* Hide logo for better usability */
+  }
+
+  .main-panel {
+    margin: 0;
+    padding: 5px; /* Reduce padding for better spacing */
+  }
+
+  form {
+    font-size: var(--font-small);
+  }
+  
+  input[type=submit],
+  input[type=file],
+  button {
+    padding: 0.3rem
+  }
+
+  h1{
+    font-size: var(--font-medium);
+  }
 }

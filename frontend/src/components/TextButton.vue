@@ -16,7 +16,6 @@ const emits = defineEmits<{
 
 <style scoped>
 .text-button {
-    text-decoration: none;
     cursor: pointer;
     color: var(--text-color);
     transition: color 0.5s;
@@ -31,5 +30,12 @@ const emits = defineEmits<{
 .text-button:focus {
     outline: 2px solid var(--focus-color);
     outline-offset: 2px;
+}
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+    .text-button {
+        font-size: small;
+        padding: 0rem;
+    }
 }
 </style>

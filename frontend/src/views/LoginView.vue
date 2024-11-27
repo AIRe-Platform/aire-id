@@ -126,4 +126,10 @@ const recoverPassword = () => {
         font-weight: lighter;
     }
 }
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+    #login-view {
+        gap: 0rem;
+    }
+}
 </style>

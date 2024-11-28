@@ -87,7 +87,7 @@ const onVerify = () => {
     <Logo />
     <Heading>{{ $t('verification_title') }}</Heading>
     <Panel id="verification-view" class="main-panel">
-        <div>{{ $t('verification_description') }}</div>
+        <label for="verification-code">{{ $t('verification_description') }}</label>
         <div id="verification-error" v-if="state.error && !state.busy">{{ $t(state.error) }}</div>
         <form id="verification-form" @submit.prevent="onVerify">
             <input id="verification-code" type="text" maxlength="6" autocomplete="off" autofocus="true"

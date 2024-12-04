@@ -28,27 +28,36 @@
 :root.light-mode {
   --background-color: #ffffff;
   --text-color: #2c3e50;
+  --button-text-color: #ffffff;
   --accent-primary-color: #176087;
   --accent-secondary-color: #176087;
+  --hover-link-text: #176087;
+  --hover-text:  #E3FFFA;
   --disabled-color: #80808033;
   --shadow-color: #393939;
   --border-color: #dedede;
   --panel-background-color: #f8f8f8;
   --error-color: #ff7878;
   --button-error-color: #B6465F;
+  --hover-button: #19547B;
 }
 
 :root.dark-mode {
   --background-color: #373250;
   --text-color: #dedede;
+  --button-text-color: #ffffff;
   --accent-primary-color: #176087;
   --accent-secondary-color: #176087;
+  --hover-link-text:  #E3FFFA;
+  --hover-text:  #E3FFFA;
   --disabled-color: #80808033;
   --shadow-color: #393939;
   --border-color: #282828;
   --panel-background-color: #47425e;
   --error-color: #ff7878;
   --button-error-color: #B6465F;
+  --hover-button: #19547B;
+  
 }
 
 html {
@@ -68,7 +77,7 @@ body {
 }
 
 a {
-  text-decoration: none;
+  text-decoration: underline;
   cursor: pointer;
   color: var(--text-color);
   transition: color 0.5s;
@@ -129,8 +138,8 @@ input:read-only {
 input[type=submit],
 input[type=file],
 button {
-  color: var(--text-color);
-  background-color: var(--background-color);
+  color: var(--button-text-color);
+  background-color: var(--accent-primary-color);
   padding: 1rem 1.5rem;
   border-radius: var(--border-radius);
   border: 1px solid var(--border-color);
@@ -145,10 +154,10 @@ button {
   font-weight: bold;
 
   &:hover {
-    background-color: var(--accent-primary-color);
+    background-color: var(--hover-button);
     border-color: transparent;
-    color: var(--background-color);
-    box-shadow: 0 0 5px var(--accent-primary-color);
+    color: var(--hover-text);
+    box-shadow: 0 0 5px var(--hover-button);
   }
 
   &:active {
@@ -163,20 +172,22 @@ button {
   &.negative {
     border-color: var(--error-color);
     background-color: var(--button-error-color);
-    color: var(--button-text-color-light);
+    color: var(--button-text-color);
 
     &:hover {
       box-shadow: 0 0 5px var(--error-color);
+      color: var(--hover-text);
     }
   }
 
   &.positive {
     border-color: var(--accent-secondary-color);
     background-color: var(--accent-secondary-color);
-    color: var(--text-color-light);
+    color: var(--button-text-color);
 
     &:hover {
-      box-shadow: 0 0 5px var(--accent-secondary-color);
+      box-shadow: 0 0 5px var(--hover-link-text);
+      color: var(--hover-text);
     }
   }
 }
@@ -194,4 +205,49 @@ button {
   min-width: 10rem;
   width: calc(100dvw - 6rem);
   max-width: 30rem;
+}
+
+body, #app {
+  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+  height: 100vh; /* Full viewport height */
+}
+
+@media screen and (orientation: landscape) {
+  body, #app {
+    height: 100vh; /* Ensure the container spans the full height of the viewport */
+    overflow-y: auto; /* Enable vertical scrolling */
+    padding: 5px; /* Add padding for smaller screens */
+    box-sizing: border-box;
+  }
+
+  .main-panel {
+    max-height: 90vh; /* Limit the height of main content to fit within the viewport */
+    overflow-y: auto; /* Add scroll for the panel itself, if necessary */
+  }
+}
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+  .aire-logo-container {
+    display: none; /* Hide logo for better usability */
+  }
+
+  .main-panel {
+    margin: 0;
+    padding: 5px; /* Reduce padding for better spacing */
+  }
+
+  form {
+    font-size: var(--font-small);
+  }
+  
+  input[type=submit],
+  input[type=file],
+  button {
+    padding: 0.3rem
+  }
+
+  h1{
+    font-size: var(--font-medium);
+  }
 }

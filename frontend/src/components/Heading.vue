@@ -5,17 +5,32 @@
 -->
 
 <script setup lang="ts">
+import { PropType } from 'vue';
+
+const props = defineProps({
+    level: {
+        type: String as PropType<'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'>,
+        default: 'h1'
+    }
+})
 </script>
 
 <template>
-    <h2 class="heading">
+    <component :is="props.level" class="heading">
         <slot></slot>
-    </h2>
+    </component>
 </template>
 
 <style scoped>
 .heading {
     font-weight: normal;
     margin-top: 1rem;
+}
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+    .heading {
+        font-weight: var(--font-small);
+        margin: 0.7rem;
+    }
 }
 </style>

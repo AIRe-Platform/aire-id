@@ -4,6 +4,10 @@
     file, You can obtain one at https://mozilla.org/MPL/2.0/.
 -->
 
+<script setup lang="ts">
+import Heading from '@/components/Heading.vue';
+</script>
+
 <template>
-    <div>{{ $t('error_not_found') }}</div>
+    <Heading>{{ $t('error_not_found') }}</Heading>
 </template>

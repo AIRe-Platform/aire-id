@@ -21,4 +21,11 @@
     margin: 1rem;
     box-shadow: 0px 0px 10px var(--shadow-color);
 }
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+    .panel {
+        padding: 0.6rem;
+        margin: 0rem;
+    }
+}
 </style>

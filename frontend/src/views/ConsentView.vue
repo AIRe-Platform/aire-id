@@ -50,20 +50,22 @@ const onCancel = () => {
 
 <template>
     <Logo />
-    <Heading>{{ $t('consent_title') }}</Heading>
-    <Panel id="consent-view" class="main-panel">
-        <div id="consent-user">
-            <p>{{ $t('consent_logged_in_as', { username: session.session?.username }) }}</p>
-            <TextButton @click="onLogout">{{ $t('consent_click_to_logout') }}</TextButton>
-        </div>
-        <div id="consent-message">{{ $t('consent_disclaimer', { service: params.get("service") }) }}</div>
-        <div id="consent-buttons">
-            <button @click="onConsent()" class="positive" :disabled="state.busy">{{
-        $t('consent_button_consent') }}</button>
-            <button @click="onCancel()" class="negative" :disabled="state.busy">{{ $t('consent_button_cancel')
-                }}</button>
-        </div>
-    </Panel>
+    <div tabindex="-1" autofocus>
+        <Heading class="consent-view-heading">{{ $t('consent_title') }}</Heading>
+        <Panel id="consent-view" class="main-panel">
+            <div id="consent-user">
+                <p>{{ $t('consent_logged_in_as', { username: session.session?.username }) }}</p>
+                <TextButton @click="onLogout">{{ $t('consent_click_to_logout') }}</TextButton>
+            </div>
+            <div id="consent-message">{{ $t('consent_disclaimer', { service: params.get("service") }) }}</div>
+            <div id="consent-buttons">
+                <button @click="onConsent()" class="positive" :disabled="state.busy">{{
+                    $t('consent_button_consent') }}</button>
+                <button @click="onCancel()" class="negative" :disabled="state.busy">{{ $t('consent_button_cancel')
+                    }}</button>
+            </div>
+        </Panel>
+    </div>
 </template>
 
 <style scoped>
@@ -71,6 +73,10 @@ const onCancel = () => {
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+.consent-view-heading {
+    text-align: center;
 }
 
 #consent-user {

@@ -5,6 +5,7 @@
 -->
 
 <script setup lang="ts">
+import Heading from "@/components/Heading.vue";
 import Spinner from "@/components/Spinner.vue";
 import useSession from "@/context/session";
 import { onMounted, reactive } from "vue";
@@ -34,7 +35,7 @@ onMounted(onLogout);
     <div class="logout-view">
         <template v-if="!state.logged_out">
             <Spinner />
-            <div>{{ $t('logout_please_wait') }}</div>
+            <Heading>{{ $t('logout_please_wait') }}</Heading>
         </template>
         <div v-if="state.logged_out">{{ $t('logout_logged_out') }}</div>
     </div>

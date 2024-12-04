@@ -9,10 +9,12 @@ function getTheme() {
         return query.get("theme") == "dark" ? "dark-mode" : "light-mode";
     }
     else {
-        return window.matchMedia("(prefers-color-scheme: dark)") ? "dark-mode" : "light-mode";
+        return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark-mode" : "light-mode";
     }
 }
 
 export function initTheme() {
-    document.documentElement.classList.add(getTheme());
+    const theme = getTheme();
+    document.documentElement.classList.add(theme);
+    return theme;
 }

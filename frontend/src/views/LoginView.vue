@@ -89,7 +89,7 @@ const recoverPassword = () => {
             <div class="form-field">
                 <label for="password" id="label-password">{{ $t('login_password') }}</label>
                 <input type="password" id="password" autocomplete="current-password" :required="true"
-                    v-model="state.password" :readonly="state.busy" />
+                    v-model="state.password" :readonly="state.busy" minlength="8" />
             </div>
             <ErrorLabel v-if="state.failed">{{ $t('login_failed') }}</ErrorLabel>
             <input type="submit" id="button-login" :value="$t('login_submit')" v-if="!state.busy" />
@@ -124,6 +124,12 @@ const recoverPassword = () => {
     input {
         font-size: 1.2rem;
         font-weight: lighter;
+    }
+}
+
+@media screen and (max-height: 400px) and (orientation: landscape) {
+    #login-view {
+        gap: 0rem;
     }
 }
 </style>

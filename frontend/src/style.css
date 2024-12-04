@@ -186,7 +186,7 @@ button {
     color: var(--button-text-color);
 
     &:hover {
-      box-shadow: 0 0 5px var(--accent-secondary-color);
+      box-shadow: 0 0 5px var(--hover-link-text);
       color: var(--hover-text);
     }
   }

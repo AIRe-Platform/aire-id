@@ -192,7 +192,7 @@ button {
   }
 }
 
-#app {
+main {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -207,14 +207,14 @@ button {
   max-width: 30rem;
 }
 
-body, #app {
+body, main {
   overflow-y: auto; /* Enable vertical scrolling */
   overflow-x: hidden; /* Prevent horizontal scrolling */
   height: 100vh; /* Full viewport height */
 }
 
 @media screen and (orientation: landscape) {
-  body, #app {
+  body, main {
     height: 100vh; /* Ensure the container spans the full height of the viewport */
     overflow-y: auto; /* Enable vertical scrolling */
     padding: 5px; /* Add padding for smaller screens */

@@ -1,20 +1,3 @@
-## TODO: Refactor this document to have an structure like this:
-## Table of Contents
-1. [Introduction](#introduction)
-2. [Installation](#installation)
-3. [Usage](#usage)
-4. [Configuration](#configuration)
-5. [Contributing](#contributing)
-6. [API Reference](#api-reference)
-7. [Testing](#testing)
-8. [Deployment](#deployment)
-9. [Roadmap](#roadmap)
-10. [FAQ](#faq)
-11. [Troubleshooting](#troubleshooting)
-12. [License](#license)
-13. [Acknowledgments](#acknowledgments)
-14. [Contact](#contact)
-
 # AIRe ID
 
 This module handles authentication and user accounts.
@@ -70,8 +53,7 @@ You should create `local.settings.json` in the root of the repository when devel
         "TOKEN_SIGNING_KEY": "<signing key shared between platform modules>",
         "TOKEN_ISSUER": "http://localhost:7072",
         "TOKEN_AUDIENCE": "http://localhost",
-        "GLOBAL_RECOVERY_KEY": "<encryption key for recovering accounts>",
-        "AUTH_CONSENT_REDIRECT_URI": "http://localhost:8080/consent"
+        "GLOBAL_RECOVERY_KEY": "<encryption key for recovering accounts>"
     },
     "Host": {
         "LocalHttpPort": 7072,
@@ -102,10 +84,5 @@ Publish the Functions app and then setup the following required environment valu
 - `TOKEN_ISSUER` The token issuer host URL, the same as the service's host.
 - `TOKEN_AUDIENCE` Comma-separated list of audiences. (Optional)
 - `GLOBAL_RECOVERY_KEY` Encryption key for recovery data. This is optional and will make the user data accessable by the system administrators, but allows changing account passwords without losing the data.
-- `AUTH_LOGIN_REDIRECT` Address to which the user is redirected to when requesting consent to share their data or logging in.
 - `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.
-
-## Disclaimer
-
-This README is a work-in-progress. The information above may be out-dated or incorrect.

@@ -24,7 +24,7 @@ const fi: Locale = {
     consent_title: "Vahvista kirjautuminen",
     consent_logged_in_as: "Olet kirjautunut käyttäjänä {username}.",
     consent_click_to_logout: "Etkö ole sinä? Kirjaudu ulos klikkaamalla tästä.",
-    consent_disclaimer: "Olet kirjautumassa palveluun {service}. Tämä antaa palvelulle pääsyn tietoihisi. Haluatko jatkaa?",
+    consent_disclaimer: "Olet kirjautumassa palveluun {service} alustalla {platform}. Tämä antaa palvelulle pääsyn tietoihisi. Haluatko jatkaa?",
     consent_button_consent: "Vahvista",
     consent_button_cancel: "Peruuta",
 

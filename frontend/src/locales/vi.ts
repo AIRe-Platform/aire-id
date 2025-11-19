@@ -24,7 +24,7 @@ const vi: Locale = {
     consent_title: "Xác nhận Đăng nhập",
     consent_logged_in_as: "Bạn đã đăng nhập với tên {username}.",
     consent_click_to_logout: "Không phải bạn? Nhấp vào đây để đăng xuất.",
-    consent_disclaimer: "Bạn đang đăng nhập vào {service}. Điều này cho phép dịch vụ truy cập vào thông tin của bạn. Bạn có muốn tiếp tục không?",
+    consent_disclaimer: "Bạn đang đăng nhập vào {service} trên {platform}. Điều này cho phép dịch vụ truy cập thông tin của bạn. Bạn có muốn tiếp tục không?",
     consent_button_consent: "Xác nhận",
     consent_button_cancel: "Hủy",
 

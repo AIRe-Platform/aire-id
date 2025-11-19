@@ -22,6 +22,7 @@ public class AuthCodeEntity : BaseTableEntity
     public string? RedirectUri { get; set; }
     public DateTime? Expires { get; set; }
     public string? Verifier { get; set; }
+    public string? Platform { get; set; }
 
     public AuthCodeEntity() { }
     public AuthCodeEntity(string code)

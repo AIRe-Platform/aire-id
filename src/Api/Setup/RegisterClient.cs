@@ -57,12 +57,15 @@ public class RegisterClient
         {
             Name = client.Name,
             Active = client.Active ?? false,
-            AllowedScopes = string.Join(" ", client.Scopes ?? ["*"]),
             RedirectUri = redirect.AbsoluteUri,
             Public = client.Public ?? true,
             RequireConsent = client.RequireConsent ?? true,
-            GrantTypes = string.Join(",", client.GrantTypes ?? ["authorization_code"]),
+            RequirePlatform = client.RequirePlatform
         };
+
+        entity.SetAllowedScopes(client.Scopes ?? ["*"]);
+        entity.SetGrantTypes(client.GrantTypes ?? ["authorization_code"]);
+        entity.SetAllowedPlatforms(client.Platforms ?? []);
 
         string? clientSecret = null;
         if (client.Public == false)

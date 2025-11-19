@@ -24,7 +24,7 @@ const rw: Locale = {
     consent_title: "Emeza Kwinjira",
     consent_logged_in_as: "Winjiye nk'umukoresha {username}.",
     consent_click_to_logout: "Si wowe? Kanda hano kugira ngo usohoke.",
-    consent_disclaimer: "Uri kwinjira muri {service}. Ibi bitanga uburenganzira ku makuru yawe. Wifuza gukomeza?",
+    consent_disclaimer: "Urimo kwinjira muri {service} kuri {platform}. Ibi biha serivisi uburenganzira bwo kubona amakuru yawe. Urifuza gukomeza?",
     consent_button_consent: "Emeza",
     consent_button_cancel: "Hagarika",
 

@@ -57,12 +57,21 @@ const onCancel = () => {
                 <p>{{ $t('consent_logged_in_as', { username: session.session?.username }) }}</p>
                 <TextButton @click="onLogout">{{ $t('consent_click_to_logout') }}</TextButton>
             </div>
-            <div id="consent-message">{{ $t('consent_disclaimer', { service: params.get("service") }) }}</div>
+            <div id="consent-message">
+                {{
+                    $t('consent_disclaimer', {
+                        service: params.get("service"),
+                        platform: params.get("platform_name")
+                    })
+                }}
+            </div>
             <div id="consent-buttons">
-                <button @click="onConsent()" class="positive" :disabled="state.busy">{{
-                    $t('consent_button_consent') }}</button>
-                <button @click="onCancel()" class="negative" :disabled="state.busy">{{ $t('consent_button_cancel')
-                    }}</button>
+                <button @click="onConsent()" class="positive" :disabled="state.busy">
+                    {{ $t('consent_button_consent') }}
+                </button>
+                <button @click="onCancel()" class="negative" :disabled="state.busy">
+                    {{ $t('consent_button_cancel') }}
+                </button>
             </div>
         </Panel>
     </div>

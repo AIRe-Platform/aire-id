@@ -24,7 +24,7 @@ const id: Locale = {
     consent_title: "Konfirmasi Masuk",
     consent_logged_in_as: "Anda masuk sebagai {username}.",
     consent_click_to_logout: "Bukan Anda? Klik di sini untuk keluar.",
-    consent_disclaimer: "Anda masuk ke {service}. Ini memberikan layanan akses ke informasi Anda. Apakah Anda ingin melanjutkan?",
+    consent_disclaimer: "Anda masuk ke {service} di {platform}. Ini memberi layanan akses ke informasi Anda. Apakah Anda ingin melanjutkan?",
     consent_button_consent: "Konfirmasi",
     consent_button_cancel: "Batal",
 

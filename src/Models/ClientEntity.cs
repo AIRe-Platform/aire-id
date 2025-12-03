@@ -4,6 +4,7 @@
 
 
 using System.Collections;
+using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Models.Admin;
 
@@ -44,9 +45,9 @@ public class ClientEntity : BaseTableEntity
         return RowKey ?? "";
     }
 
-    public List<string> GetAllowedScopes()
+    public AireScopes GetAllowedScopes()
     {
-        return [.. (AllowedScopes ?? "").Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)];
+        return AireScopes.ParseString(AllowedScopes ?? "");
     }
 
     public void SetAllowedScopes(IEnumerable<string> scopes)

@@ -14,7 +14,7 @@ public static class ScopeHelper
     {
         var scopes = GetBaseScopesForUser(entity);
 
-        if(string.IsNullOrWhiteSpace(entity.Scopes)) // if not overridden
+        if (string.IsNullOrWhiteSpace(entity.Scopes)) // if not overridden
         {
             var additionalScopes = GetAdditionalScopesForUser(entity);
 
@@ -31,8 +31,7 @@ public static class ScopeHelper
 
         if (!string.IsNullOrWhiteSpace(entity.Scopes)) // scope override
         {
-            scopes = new AireScopes(entity.Scopes
-                    .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+            scopes = AireScopes.ParseString(entity.Scopes);
         }
         else // defaults
         {
@@ -44,9 +43,10 @@ public static class ScopeHelper
             }
         }
 
-        if (!entity.Verified) {
-            if(scopes.Contains(AireScopes.PasswordChange))
-                return [ AireScopes.PasswordChange ];
+        if (!entity.Verified)
+        {
+            if (scopes.Contains(AireScopes.PasswordChange))
+                return [AireScopes.PasswordChange];
             else
                 return [];
         }
@@ -56,9 +56,6 @@ public static class ScopeHelper
 
     public static AireScopes? GetAdditionalScopesForUser(UserEntity entity)
     {
-        var scopes = entity.AdditionalScopes?
-            .Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-        return scopes != null ? new AireScopes(scopes) : null;
+        return entity.AdditionalScopes != null ? AireScopes.ParseString(entity.AdditionalScopes) : null;
     }
 }

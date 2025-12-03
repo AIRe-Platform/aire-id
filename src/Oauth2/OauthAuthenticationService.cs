@@ -171,7 +171,7 @@ public class OauthAuthenticationService(
 
         if (!string.IsNullOrWhiteSpace(req.Scope))
         {
-            var requestedScopes = req.Scope.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var requestedScopes = AireScopes.ParseString(req.Scope);
             scopes = requestedScopes.Where(x => scopes.Contains(x)).ToArray();
         }
 
@@ -227,9 +227,7 @@ public class OauthAuthenticationService(
             throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
         var subject = _loginProvider.GetSubject(user, code.UserKey!);
-        var scopes = new AireScopes(
-            code.Scopes?.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries) ?? []
-        );
+        var scopes = AireScopes.ParseString(code.Scopes ?? "");
 
         var tokenDescription = new OauthTokenDescription(subject, scopes, code.Platform, _config.TokenLifetime);
         var token = _tokenProvider.IssueNewToken(tokenDescription);
@@ -373,9 +371,7 @@ public class OauthAuthenticationService(
 
     private static string[]? ValidateClientScopes(string? reqScopes, ClientEntity client)
     {
-        var scopes = reqScopes != null
-            ? new AireScopes(reqScopes.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-            : null;
+        var scopes = reqScopes != null ? AireScopes.ParseString(reqScopes) : null;
 
         var clientScopes = client.AllowedScopes != null
             ? new AireScopes(client.GetAllowedScopes())
@@ -434,7 +430,8 @@ public class OauthAuthenticationService(
     {
         if (platform != null)
         {
-            if (!client.GetAllowedPlatforms().Contains(platform))
+            var allowedPlatforms = client.GetAllowedPlatforms();
+            if (!allowedPlatforms.Contains(platform) && allowedPlatforms.FirstOrDefault() != "*")
                 throw new OauthException(OauthError.UnauthorizedClient, "Client not authorized for platform");
         }
         else

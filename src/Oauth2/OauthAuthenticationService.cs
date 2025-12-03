@@ -166,6 +166,9 @@ public class OauthAuthenticationService(
         if (subject == null)
             throw new OauthException(OauthError.AccessDenied, req, "Invalid credentials");
 
+        if (req.Platform != null)
+            subject.Claims.Add(AireClaims.Platform, req.Platform);
+
         if (subject.AllowedScopes != null)
             scopes = scopes.Where(x => subject.AllowedScopes.Contains(x)).ToArray();
 
@@ -175,7 +178,7 @@ public class OauthAuthenticationService(
             scopes = requestedScopes.Where(x => scopes.Contains(x)).ToArray();
         }
 
-        var desc = new OauthTokenDescription(subject, [.. scopes], req.Platform, _config.TokenLifetime);
+        var desc = new OauthTokenDescription(subject, [.. scopes], _config.TokenLifetime);
         var token = _tokenProvider.IssueNewToken(desc);
 
         var response = new OauthTokenResponse
@@ -185,7 +188,6 @@ public class OauthAuthenticationService(
             ExpiresIn = (int)_config.TokenLifetime.TotalSeconds,
             Scope = string.Join(" ", scopes),
             State = req.State,
-            Platform = req.Platform
         };
 
         return new OkObjectResult(response);
@@ -227,9 +229,12 @@ public class OauthAuthenticationService(
             throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
         var subject = _loginProvider.GetSubject(user, code.UserKey!);
+        if (code.Platform != null)
+            subject.Claims.Add(AireClaims.Platform, code.Platform);
+
         var scopes = AireScopes.ParseString(code.Scopes ?? "");
 
-        var tokenDescription = new OauthTokenDescription(subject, scopes, code.Platform, _config.TokenLifetime);
+        var tokenDescription = new OauthTokenDescription(subject, scopes, _config.TokenLifetime);
         var token = _tokenProvider.IssueNewToken(tokenDescription);
 
         var response = new OauthTokenResponse
@@ -239,7 +244,6 @@ public class OauthAuthenticationService(
             ExpiresIn = (int)_config.TokenLifetime.TotalSeconds,
             Scope = code.Scopes,
             State = code.State,
-            Platform = code.Platform
         };
 
         return new OkObjectResult(response);

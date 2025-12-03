@@ -22,9 +22,6 @@ public class OauthTokenResponse
 	[JsonProperty("token_type", Required = Required.Always)]
 	public OauthTokenType TokenType { get; set; } = OauthTokenType.Bearer;
 
-	[JsonProperty("platform", NullValueHandling = NullValueHandling.Ignore)]
-	public string? Platform { get; set; }
-
 	[JsonProperty("scope", NullValueHandling = NullValueHandling.Ignore)]
 	public string? Scope { get; set; } = null;
 

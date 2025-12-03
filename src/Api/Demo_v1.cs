@@ -317,7 +317,7 @@ public class Demo_v1(
             var subjectKey = entity.GetEncryptionKey(subject.AccessCode!);
             var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!);
             var scopes = ScopeHelper.GetScopesForUser(entity);
-            var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, null, TimeSpan.FromMinutes(5));
+            var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
             var token = _tokenProvider.IssueNewToken(tokenDescriptor);
 
             var platforms = await _platformService.GetPlatformConfigurations();

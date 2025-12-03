@@ -6,20 +6,12 @@
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Aire.Sdk.Auth;
-using Microsoft.Extensions.Logging;
 
 namespace Aire.Id.Providers;
 
-public class TokenProvider : IOauthTokenProvider
+public class TokenProvider(IJwtTokenService jwt) : IOauthTokenProvider
 {
-    private readonly IJwtTokenService _jwt;
-    private readonly ILogger<TokenProvider> _log;
-
-    public TokenProvider(IJwtTokenService jwt, ILogger<TokenProvider> log)
-    {
-        _jwt = jwt;
-        _log = log;
-    }
+    private readonly IJwtTokenService _jwt = jwt;
 
     public OauthTokenResponse? GetTokenInfo(string token)
     {
@@ -43,10 +35,10 @@ public class TokenProvider : IOauthTokenProvider
     public string IssueNewToken(OauthTokenDescription description)
     {
         return _jwt.IssueNewToken(
-            description.Subject.Subject!,
-            description.Subject.Role!,
+            description.Subject.Subject,
+            description.Subject.Role,
             description.Scopes,
-            description.Subject.Claims!,
+            description.Subject.Claims,
             description.Lifetime
         );
     }

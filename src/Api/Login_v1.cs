@@ -81,7 +81,7 @@ public class Login_v1
             return new ForbiddenResult();
 
         var scopes = new AireScopes(subject.Verified ? [AireScopes.Auth] : []);
-        var desc = new OauthTokenDescription(subject, scopes, null, AireConstants.AppAuthSessionTTL);
+        var desc = new OauthTokenDescription(subject, scopes, AireConstants.AppAuthSessionTTL);
         var token = _tokenProvider.IssueNewToken(desc);
 
         var session = new Session

@@ -7,11 +7,10 @@ using Aire.Sdk.Auth;
 
 namespace Aire.Id.Oauth2.Models;
 
-public class OauthTokenDescription(OauthSubject subject, AireScopes scopes, string? platform, TimeSpan lifetime)
+public class OauthTokenDescription(OauthSubject subject, AireScopes scopes, TimeSpan lifetime)
 {
     public OauthSubject Subject { get; set; } = subject;
     public AireScopes Scopes { get; set; } = scopes;
-    public string? Platform { get; set; } = platform;
     public TimeSpan Lifetime { get; set; } = lifetime;
 }
 

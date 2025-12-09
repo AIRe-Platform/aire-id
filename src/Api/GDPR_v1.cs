@@ -58,7 +58,7 @@ public class GDPR_v1(
             var memories = platform.Value.GetModules(ModuleType.Memory, false);
             foreach (var memory in memories)
             {
-                var memoryClient = await _clientFactory.CreateMemoryClient(platform.Key, auth.JwtEncodedToken, memory.Id);
+                var memoryClient = await _clientFactory.CreateMemoryClient(memory, auth.JwtEncodedToken);
                 if (memoryClient != null)
                 {
                     var userData = await memoryClient.GetUserData();

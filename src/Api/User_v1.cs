@@ -325,7 +325,7 @@ public class User_v1(
             var memories = platform.Value.GetModules(ModuleType.Memory, false);
             foreach (var memory in memories)
             {
-                var memoryService = await _clientFactory.CreateMemoryClient(platform.Key, auth!.JwtEncodedToken, memory.Id);
+                var memoryService = await _clientFactory.CreateMemoryClient(memory, auth!.JwtEncodedToken);
                 if (memoryService != null)
                 {
                     bool dataDeleted = await memoryService.DeleteUserData(options.KeepAnonymizedData);

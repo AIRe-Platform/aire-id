@@ -328,7 +328,7 @@ public class Demo_v1(
                 {
                     try
                     {
-                        var memoryService = await _clientFactory.CreateMemoryClient(platform.Key, token, memory.Id!);
+                        var memoryService = await _clientFactory.CreateMemoryClient(memory, token);
                         if (memoryService != null)
                         {
                             bool deleteData = await memoryService.DeleteUserData(true);

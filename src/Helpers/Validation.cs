@@ -7,58 +7,57 @@ using System.Net.Mail;
 using System.Text.RegularExpressions;
 using Aire.Id.Models;
 
-namespace Aire.Id.Helpers
+namespace Aire.Id.Helpers;
+
+public static class Validation
 {
-    public static class Validation
+    public static bool IsValidEmail(string? email)
     {
-        public static bool IsValidEmail(string? email)
+        try
         {
-            try 
-            { 
-                if(email == null)
-                    return false;
-                    
-                var address = new MailAddress(email);
+            if (email == null)
+                return false;
 
-                var whitelist = AireEnvironment.EmailDomainWhitelist?
-                    .Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+            var address = new MailAddress(email);
 
-                if(whitelist != null && !whitelist.Contains(address.Host))
-                {
-                    return false;
-                }
+            var whitelist = AireIdEnvironment.EmailDomainWhitelist?
+                .Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
 
-                return true;
-            }
-            catch
+            if (whitelist != null && !whitelist.Contains(address.Host))
             {
                 return false;
             }
-        }
 
-        public static bool IsValidPassword(string? password)
+            return true;
+        }
+        catch
         {
-            if(password == null)
-                return false;
-
-            bool digits = Regex.IsMatch(password, @"\d+");
-            bool lowercaseLetters = Regex.IsMatch(password, @"[a-z]");
-            bool uppercaseLetters = Regex.IsMatch(password, @"[A-Z]");
-            
-            return !string.IsNullOrWhiteSpace(password) 
-                && (password.Length >= AireConstants.MinPasswordLength)
-                && (digits && lowercaseLetters && uppercaseLetters);
+            return false;
         }
+    }
 
-        public static bool ValidateSignupCredentials(SignupRequest signup)
-        {
-            if(signup.Credentials == null)
-                return false;
+    public static bool IsValidPassword(string? password)
+    {
+        if (password == null)
+            return false;
 
-            return (
-                IsValidEmail(signup.Credentials.Email) && 
-                IsValidPassword(signup.Credentials.Password)
-            );
-        }
+        bool digits = Regex.IsMatch(password, @"\d+");
+        bool lowercaseLetters = Regex.IsMatch(password, @"[a-z]");
+        bool uppercaseLetters = Regex.IsMatch(password, @"[A-Z]");
+
+        return !string.IsNullOrWhiteSpace(password)
+            && (password.Length >= AireConstants.MinPasswordLength)
+            && (digits && lowercaseLetters && uppercaseLetters);
+    }
+
+    public static bool ValidateSignupCredentials(SignupRequest signup)
+    {
+        if (signup.Credentials == null)
+            return false;
+
+        return (
+            IsValidEmail(signup.Credentials.Email) &&
+            IsValidPassword(signup.Credentials.Password)
+        );
     }
 }

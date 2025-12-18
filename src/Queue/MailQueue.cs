@@ -63,7 +63,7 @@ public class MailQueue
 
         var operation = _client.Send(
             Azure.WaitUntil.Completed,
-            senderAddress: AireEnvironment.EmailSenderAddress,
+            senderAddress: AireIdEnvironment.EmailSenderAddress,
             recipientAddress: mail.Recipient,
             subject: template.Subject,
             htmlContent: html,

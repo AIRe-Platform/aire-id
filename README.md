@@ -47,6 +47,7 @@ You should create `local.settings.json` in the root of the repository when devel
         "AzureWebJobsStorage": "",
         "StorageConnectionString": "<Connection string for Table storage or storage emulator>",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "AIRE_MODULE_ID": "aire.development.id",
         "AIRE_SERVICE_BASE": "http://localhost:7071/api/",
         "AIRE_SERVICE_KEY": "<service key secret>",
         "TOKEN_ENCRYPTION_KEY": "<enryption key shared between platform modules>",
@@ -64,18 +65,6 @@ You should create `local.settings.json` in the root of the repository when devel
 ```
 
 Use the same token keys you are using in AIRe Services module.
-
-## Module Settings
-
-AIRe Services platform module may configure the following settings:
-
-```jsonc
-{
-    // Comma-separated list of accepted email domains
-    // Omitted if all domains allowed
-    "email_domain_whitelist": "goodlife.technology,jamk.fi"
-}
-```
 
 ## API Documentation
 
@@ -97,4 +86,6 @@ Publish the Functions app and then setup the following required environment valu
 - `TOKEN_ISSUER` The token issuer host URL, the same as the service's host.
 - `TOKEN_AUDIENCE` Comma-separated list of audiences. (Optional)
 - `GLOBAL_RECOVERY_KEY` Encryption key for recovery data. This is optional and will make the user data accessable by the system administrators, but allows changing account passwords without losing the data.
+- `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.
+

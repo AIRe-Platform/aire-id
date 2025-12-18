@@ -65,6 +65,18 @@ You should create `local.settings.json` in the root of the repository when devel
 
 Use the same token keys you are using in AIRe Services module.
 
+## Module Settings
+
+AIRe Services platform module may configure the following settings:
+
+```jsonc
+{
+    // Comma-separated list of accepted email domains
+    // Omitted if all domains allowed
+    "email_domain_whitelist": "goodlife.technology,jamk.fi"
+}
+```
+
 ## API Documentation
 
 Visit path `/api/swagger/ui` to inspect. The default host is set to `/api` path.
@@ -77,6 +89,7 @@ Publish the Functions app and then setup the following required environment valu
 
 - `StorageConnectionString` Azure Table Storage connection string
 - `COMMUNICATION_SERVICES_CONNECTION_STRING`: Azure Communication Services (ACS) connection string.
+- `AIRE_MODULE_ID` The identifier of this module.
 - `AIRE_SERVICE_BASE` The endpoint of the AIRe Services module.
 - `AIRE_SERVICE_KEY` The service key for the AIRe Services module.
 - `TOKEN_SIGNING_KEY` The token signing key shared between the platform instance modules.
@@ -84,5 +97,4 @@ Publish the Functions app and then setup the following required environment valu
 - `TOKEN_ISSUER` The token issuer host URL, the same as the service's host.
 - `TOKEN_AUDIENCE` Comma-separated list of audiences. (Optional)
 - `GLOBAL_RECOVERY_KEY` Encryption key for recovery data. This is optional and will make the user data accessable by the system administrators, but allows changing account passwords without losing the data.
-- `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.

@@ -146,7 +146,7 @@ public class Client_v1
             RedirectUri = redirectUri.AbsoluteUri,
             Public = client.Public ?? true,
             RequireConsent = client.RequireConsent ?? true,
-            RequirePlatform = client.RequirePlatform,
+            RequirePlatform = client.RequirePlatform ?? true,
         };
 
         entity.SetAllowedScopes(client.Scopes);
@@ -239,6 +239,18 @@ public class Client_v1
 
             client.RedirectUri = uri.AbsoluteUri;
         }
+
+        if (data.Public.HasValue)
+            client.Public = data.Public.Value;
+
+        if (data.GrantTypes != null)
+            client.SetGrantTypes(data.GrantTypes);
+
+        if (data.RequirePlatform.HasValue)
+            client.RequirePlatform = data.RequirePlatform.Value;
+
+        if (data.Platforms != null)
+            client.SetAllowedPlatforms(data.Platforms);
 
         var update = await _storage.UpsertAsync(client);
         if (!update)

@@ -60,7 +60,7 @@ public class RegisterClient
             RedirectUri = redirect.AbsoluteUri,
             Public = client.Public ?? true,
             RequireConsent = client.RequireConsent ?? true,
-            RequirePlatform = client.RequirePlatform
+            RequirePlatform = client.RequirePlatform ?? true
         };
 
         entity.SetAllowedScopes(client.Scopes ?? ["*"]);

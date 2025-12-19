@@ -24,7 +24,7 @@ const sw: Locale = {
     consent_title: "Thibitisha Kuingia",
     consent_logged_in_as: "Umeingia kama {username}.",
     consent_click_to_logout: "Si wewe? Bofya hapa kutoka nje.",
-    consent_disclaimer: "Unaingia kwenye {service}. Hii inaruhusu huduma kupata taarifa zako. Je, unataka kuendelea?",
+    consent_disclaimer: "Unaingia katika {service} kwenye {platform}. Hii inaipa huduma ufikiaji wa taarifa zako. Unataka kuendelea?",
     consent_button_consent: "Thibitisha",
     consent_button_cancel: "Ghairi",
 

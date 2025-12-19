@@ -47,6 +47,7 @@ You should create `local.settings.json` in the root of the repository when devel
         "AzureWebJobsStorage": "",
         "StorageConnectionString": "<Connection string for Table storage or storage emulator>",
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+        "AIRE_MODULE_ID": "aire.development.id",
         "AIRE_SERVICE_BASE": "http://localhost:7071/api/",
         "AIRE_SERVICE_KEY": "<service key secret>",
         "TOKEN_ENCRYPTION_KEY": "<enryption key shared between platform modules>",
@@ -77,6 +78,7 @@ Publish the Functions app and then setup the following required environment valu
 
 - `StorageConnectionString` Azure Table Storage connection string
 - `COMMUNICATION_SERVICES_CONNECTION_STRING`: Azure Communication Services (ACS) connection string.
+- `AIRE_MODULE_ID` The identifier of this module.
 - `AIRE_SERVICE_BASE` The endpoint of the AIRe Services module.
 - `AIRE_SERVICE_KEY` The service key for the AIRe Services module.
 - `TOKEN_SIGNING_KEY` The token signing key shared between the platform instance modules.
@@ -86,3 +88,4 @@ Publish the Functions app and then setup the following required environment valu
 - `GLOBAL_RECOVERY_KEY` Encryption key for recovery data. This is optional and will make the user data accessable by the system administrators, but allows changing account passwords without losing the data.
 - `EmailDomainWhitelist` Comma-separated list of allowed email domains. Do not set to allow all domains.
 - `EmailSenderAddress` The sender address configured in ACS.
+

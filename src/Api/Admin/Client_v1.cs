@@ -143,11 +143,15 @@ public class Client_v1
         {
             Name = client.Name,
             Active = client.Active ?? false,
-            AllowedScopes = string.Join(" ", client.Scopes),
             RedirectUri = redirectUri.AbsoluteUri,
             Public = client.Public ?? true,
             RequireConsent = client.RequireConsent ?? true,
+            RequirePlatform = client.RequirePlatform ?? true,
         };
+
+        entity.SetAllowedScopes(client.Scopes);
+        entity.SetAllowedPlatforms(client.Platforms ?? []);
+        entity.SetGrantTypes(client.GrantTypes ?? []);
 
         string? clientSecret = null;
         if (client.Public == false)
@@ -207,7 +211,7 @@ public class Client_v1
             return new NotFoundResult();
 
         if (data.Scopes != null)
-            client.AllowedScopes = string.Join(" ", data.Scopes);
+            client.SetAllowedScopes(data.Scopes);
 
         if (data.Name != null)
         {
@@ -235,6 +239,18 @@ public class Client_v1
 
             client.RedirectUri = uri.AbsoluteUri;
         }
+
+        if (data.Public.HasValue)
+            client.Public = data.Public.Value;
+
+        if (data.GrantTypes != null)
+            client.SetGrantTypes(data.GrantTypes);
+
+        if (data.RequirePlatform.HasValue)
+            client.RequirePlatform = data.RequirePlatform.Value;
+
+        if (data.Platforms != null)
+            client.SetAllowedPlatforms(data.Platforms);
 
         var update = await _storage.UpsertAsync(client);
         if (!update)

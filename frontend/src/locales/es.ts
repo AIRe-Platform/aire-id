@@ -24,7 +24,7 @@ const es: Locale = {
     consent_title: "Confirmar inicio de sesión",
     consent_logged_in_as: "Has iniciado sesión como {username}.",
     consent_click_to_logout: "¿No eres tú? Haz clic aquí para cerrar sesión.",
-    consent_disclaimer: "Estás iniciando sesión en {service}. Esto le dará acceso al servicio a tu información. ¿Deseas continuar?",
+    consent_disclaimer: "Estás iniciando sesión en {service} en {platform}. Esto le da acceso al servicio a tu información. ¿Deseas continuar?",
     consent_button_consent: "Confirmar",
     consent_button_cancel: "Cancelar",
 

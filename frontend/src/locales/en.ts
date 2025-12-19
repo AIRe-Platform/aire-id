@@ -24,7 +24,7 @@ const en: Locale = {
     consent_title: "Confirm Login",
     consent_logged_in_as: "You are logged in as {username}.",
     consent_click_to_logout: "Not you? Click here to logout.",
-    consent_disclaimer: "You are logging into {service}. This gives the service access to your information. Do you wish to proceed?",
+    consent_disclaimer: "You are logging into {service} on {platform}. This gives the service access to your information. Do you wish to proceed?",
     consent_button_consent: "Confirm",
     consent_button_cancel: "Cancel",
 

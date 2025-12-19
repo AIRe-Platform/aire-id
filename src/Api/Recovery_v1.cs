@@ -52,7 +52,7 @@ public class Recovery_v1
     public async Task<IActionResult> RequestRecoveryCode(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/code")] HttpRequest req)
     {
-        if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
+        if (string.IsNullOrWhiteSpace(AireIdEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
 
         var body = await req.ReadJson<RecoveryCodeRequest>();
@@ -118,7 +118,7 @@ public class Recovery_v1
     public async Task<IActionResult> RecoveryPasswordChange(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/password")] HttpRequest req)
     {
-        if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
+        if (string.IsNullOrWhiteSpace(AireIdEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
 
         var body = await req.ReadJson<RecoveryPasswordChangeRequest>();

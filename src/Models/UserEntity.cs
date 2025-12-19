@@ -265,9 +265,9 @@ public class UserEntity : BaseTableEntity
         }
 
         // Optional global recovery
-        if (AireEnvironment.GlobalRecoveryKey != null)
+        if (AireIdEnvironment.GlobalRecoveryKey != null)
         {
-            var recoveryKey = Encoding.UTF8.GetBytes(AireEnvironment.GlobalRecoveryKey);
+            var recoveryKey = Encoding.UTF8.GetBytes(AireIdEnvironment.GlobalRecoveryKey);
             if (recoveryKey.Length != 32)
                 throw new Exception("Global recovery key is not 256 bits in length");
 
@@ -282,7 +282,7 @@ public class UserEntity : BaseTableEntity
     /// <returns>Encryption key in base-64</returns>
     public string? RecoverEncryptionKey()
     {
-        string? globalRecoveryKey = AireEnvironment.GlobalRecoveryKey;
+        string? globalRecoveryKey = AireIdEnvironment.GlobalRecoveryKey;
         if (globalRecoveryKey == null)
             return null;
 

@@ -4,7 +4,7 @@ This module handles authentication and user accounts.
 
 ## Getting Started
 
-You need to have [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) installed. Pull the repository and its submodules.
+You need to have [.NET 10.0](https://dotnet.microsoft.com/en-us/download/dotnet/10.0) installed. Pull the repository and its submodules.
 
 Open the solution in VS Code (recommended, works on Windows/Linux/macOS). You may also use Visual Studio on macOS and Windows.
 
@@ -79,6 +79,11 @@ Publish the Functions app and then setup the following required environment valu
 - `StorageConnectionString` Azure Table Storage connection string
 - `COMMUNICATION_SERVICES_CONNECTION_STRING`: Azure Communication Services (ACS) connection string.
 - `AIRE_MODULE_ID` The identifier of this module.
+- If the module has different 'compartments', use wildcard `*` to accept sub IDs.
+    - Clients calling the module need to use `Aire-Service-Target` header to tell which compartment they want to use.
+  - This is the case if you share the module between platform and want to separate the data. 
+    - Or, if you want to use the module multiple times in the platform but with different service configurations.
+    - Use `table_prefix` service setting to separate tables.
 - `AIRE_SERVICE_BASE` The endpoint of the AIRe Services module.
 - `AIRE_SERVICE_KEY` The service key for the AIRe Services module.
 - `TOKEN_SIGNING_KEY` The token signing key shared between the platform instance modules.

@@ -47,6 +47,15 @@ export enum LocalizationKey {
     recovery_failed = "recovery_failed",
     recovery_password_requirements_not_met = "recovery_password_requirements_not_met",
 
+    invite_title = "invite_title",
+    invite_email = "invite_email",
+    invite_failed_generic = "invite_failed_generic",
+    invite_failed_conflict = "invite_failed_conflict",
+    invite_failed_not_found = "invite_failed_not_found",
+    invite_failed_forbidden = "invite_failed_forbidden",
+    invite_sent = "invite_sent",
+    invite_submit = "invite_submit",
+
     error_not_found = "error_not_found",
     error_title = "error_title",
     error_details = "error_details",

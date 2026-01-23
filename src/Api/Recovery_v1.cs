@@ -24,18 +24,15 @@ namespace Aire.Id.Api;
 public class Recovery_v1
 {
     private readonly ITableStorageService _storage;
-    private readonly IJwtTokenService _jwt;
     private readonly QueueClient _mail_queue;
     private readonly ILogger<Recovery_v1> _log;
 
     public Recovery_v1(
         ITableStorageService storage,
-        IJwtTokenService jwt,
         QueueServiceClient queues,
         ILogger<Recovery_v1> log)
     {
         _storage = storage;
-        _jwt = jwt;
         _mail_queue = queues.GetQueueClient(AireConstants.Queues.Mail);
         _log = log;
     }

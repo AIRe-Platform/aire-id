@@ -46,6 +46,9 @@ public class UserEntity : BaseTableEntity
     public string? Encryption { get; set; }
     public string? Recovery { get; set; }
 
+    // Trial user
+    public string? TrialNonce { get; set; }
+
     public UserEntity()
     {
         string uuid = Guid.NewGuid().ToString();
@@ -167,7 +170,7 @@ public class UserEntity : BaseTableEntity
         if (key == null)
             return false;
         PasswordHash = null;
-        if(!ChangePassword(null, newPassword))
+        if (!ChangePassword(null, newPassword))
             return false;
 
         var keyBytes = Convert.FromBase64String(key!);
@@ -298,6 +301,38 @@ public class UserEntity : BaseTableEntity
             return null;
 
         return rec[0].DecryptString(key, Convert.FromBase64String(rec[1]));
+    }
+
+    public static UserEntity CreateTrialUser(string emailHash, string token)
+    {
+        var user = new UserEntity()
+        {
+            EmailHash = emailHash,
+            Role = AireRoles.TrialUser,
+            Verified = true,
+            LastLogin = DateTime.UtcNow,
+            TrialNonce = RandomNumberGenerator.GetHexString(32),
+        };
+
+        string password = user.GetTrialUserPassword(emailHash, token);
+        user.ChangePassword(null, password);
+        user.GenerateEncryptionKey(password);
+
+        return user;
+    }
+
+    public string GetTrialUserPassword(string emailHash, string token)
+    {
+        string password = string.Join(".", [emailHash, token, TrialNonce]);
+        return Crypto.SHA256Base16(password);
+    }
+
+    public bool UpgradeTrialUserToRegular(string password, string token)
+    {
+        string trialpass = GetTrialUserPassword(EmailHash!, token);
+        TrialNonce = null;
+        Role = AireRoles.User;
+        return ChangePassword(trialpass, password);
     }
 
     /// <summary>

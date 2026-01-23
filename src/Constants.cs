@@ -19,5 +19,6 @@ public static class AireConstants
 
     public const string AppAuthPath = "/app/auth";
     public const string AppLogoutPath = "/app/logout";
+    public const string AppInvitePath = "/app/invite";
     public static readonly TimeSpan AppAuthSessionTTL = TimeSpan.FromDays(14);
 }

@@ -11,7 +11,7 @@ namespace Aire.Id.Helpers;
 
 public static class Validation
 {
-    public static bool IsValidEmail(string? email)
+    public static bool IsValidEmail(string? email, bool skipWhitelist = false)
     {
         try
         {
@@ -20,12 +20,15 @@ public static class Validation
 
             var address = new MailAddress(email);
 
-            var whitelist = AireIdEnvironment.EmailDomainWhitelist?
-                .Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
-            if (whitelist != null && !whitelist.Contains(address.Host))
+            if (!skipWhitelist)
             {
-                return false;
+                var whitelist = AireIdEnvironment.EmailDomainWhitelist?
+                    .Split(",", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+
+                if (whitelist != null && !whitelist.Contains(address.Host))
+                {
+                    return false;
+                }
             }
 
             return true;

@@ -1,0 +1,11 @@
+AIRe Invitation
+
+Hello, you have been selected for participation in AIRe trial.
+
+Click the link below to chat with AIRe. You may also sign up later.
+
+{{url}}
+
+Best regards,
+
+AIRe Development Team

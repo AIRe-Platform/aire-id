@@ -526,7 +526,10 @@ public class Invite_v1(
 
         var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);
         var key = user.GetEncryptionKey(trialpass);
+
         var subject = _loginProvider.GetSubject(user, key!);
+        subject.Claims.Add(AireClaims.Platform, entity.Platform!);
+
         var expiresIn = TimeSpan.FromHours(2);
         var tokenDescriptor = new OauthTokenDescription(subject, scopes, expiresIn);
         var accessToken = _tokenProvider.IssueNewToken(tokenDescriptor);

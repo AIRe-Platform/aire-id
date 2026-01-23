@@ -324,12 +324,14 @@ public class Demo_v1(
             var subjectKey = entity.GetEncryptionKey(subject.AccessCode!);
             var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!);
             var scopes = ScopeHelper.GetScopesForUser(entity);
-            var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
-            var token = _tokenProvider.IssueNewToken(tokenDescriptor);
 
             var platforms = await _platformService.GetPlatformConfigurations();
             foreach (var platform in platforms)
             {
+                oauthSubject.Claims[AireClaims.Platform] = platform.Key;
+                var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
+                var token = _tokenProvider.IssueNewToken(tokenDescriptor);
+
                 var memoryModules = platform.Value.GetModules(ModuleType.Memory, false);
                 foreach (var memory in memoryModules)
                 {

@@ -15,8 +15,9 @@ namespace Aire.Id.Models;
 public class InviteCodeEntity : BaseTableEntity
 {
     public bool Active { get; set; }
+    public DateTime Created { get; set; }
     public DateTime Expiry { get; set; }
-    public long InviteLifeSpan { get; set; }
+    public int TrialDuration { get; set; }
     public int Limit { get; set; }
     public int Used { get; set; }
     public string? OwnerId { get; set; }
@@ -30,12 +31,14 @@ public class InviteCodeEntity : BaseTableEntity
         string code = Guid.NewGuid().ToString();
         PartitionKey ??= code;
         RowKey ??= code;
+        Created = DateTime.UtcNow;
     }
 
     public InviteCodeEntity(string code)
     {
         PartitionKey = code;
         RowKey = code;
+        Created = DateTime.UtcNow;
     }
 
     public string Code()
@@ -49,8 +52,9 @@ public class InviteCodeEntity : BaseTableEntity
         {
             Code = Guid.Parse(Code()),
             Active = Active,
+            Created = Created,
             Expiry = Expiry,
-            InviteLifeSpan = InviteLifeSpan,
+            TrialDuration = TrialDuration,
             Limit = Limit,
             Used = Used,
             ClientId = ClientId,

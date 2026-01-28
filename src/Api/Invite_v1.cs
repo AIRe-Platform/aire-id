@@ -53,7 +53,7 @@ public class Invite_v1(
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     public async Task<IActionResult> GetInviteCodes(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/invite-code/list")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/invite-codes")] HttpRequest req,
         FunctionContext context,
         [FromQuery] bool? active_only)
     {
@@ -105,7 +105,7 @@ public class Invite_v1(
             return new BadRequestResult();
 
         code = guid.ToString();
-        var entity = await _storage.RetrieveAsync<InviteCodeEntity>(code[..5], code);
+        var entity = await _storage.RetrieveAsync<InviteCodeEntity>(code);
         if (entity == null)
             return new NotFoundResult();
 
@@ -139,23 +139,26 @@ public class Invite_v1(
         if (body == null)
             return new BadRequestResult();
 
-        // TODO: Require and validate owner account ???
-
         var entity = new InviteCodeEntity()
         {
             Active = true,
+            Created = DateTime.UtcNow,
             Expiry = DateTime.UtcNow.AddDays(body.ValidDays),
             OwnerId = auth.UserId,
             ClientId = body.ClientId,
             Limit = body.UseLimit,
             Used = 0,
-            InviteLifeSpan = (long)TimeSpan.FromDays(body.InviteLifespanDays).TotalSeconds,
+            TrialDuration = body.TrialDuration,
             Platform = auth.Platform,
             AccountUpgrade = body.AllowAccountUpgrade
         };
 
-        var uriBuilder = new UriBuilder(req.HttpContext.Request.Host.Value ?? "")
+        var ctx = req.HttpContext.Request;
+        var uriBuilder = new UriBuilder()
         {
+            Scheme = ctx.Scheme,
+            Host = ctx.Host.Host,
+            Port = ctx.Host.Port ?? 80,
             Path = $"{AireConstants.AppInvitePath}/{entity.Code()}"
         };
         entity.Link = uriBuilder.Uri.AbsoluteUri;
@@ -211,7 +214,7 @@ public class Invite_v1(
         if (body == null)
             return new UnprocessableEntityResult();
 
-        var entity = await _storage.RetrieveAsync<InviteCodeEntity>(code[..5], code);
+        var entity = await _storage.RetrieveAsync<InviteCodeEntity>(code);
         if (entity == null)
             return new NotFoundResult();
 
@@ -224,7 +227,7 @@ public class Invite_v1(
         entity.Active = body.Active;
         entity.Limit = body.Limit;
         entity.Expiry = body.Expiry;
-        entity.InviteLifeSpan = body.InviteLifeSpan;
+        entity.TrialDuration = body.TrialDuration;
         entity.AccountUpgrade = body.AccountUpgrade;
 
         // TODO: Audit log - Log edit
@@ -272,7 +275,7 @@ public class Invite_v1(
 
         code = guid.ToString();
 
-        var entity = await _storage.RetrieveAsync<InviteCodeEntity>(code[..5], code);
+        var entity = await _storage.RetrieveAsync<InviteCodeEntity>(code);
         if (entity == null)
             return new NotFoundResult();
 
@@ -321,7 +324,7 @@ public class Invite_v1(
 
         // Check invitation code
 
-        var inviteCode = await _storage.RetrieveAsync<InviteCodeEntity>(code[..5], code);
+        var inviteCode = await _storage.RetrieveAsync<InviteCodeEntity>(code);
         if (inviteCode == null)
             return new NotFoundResult();
 
@@ -360,7 +363,7 @@ public class Invite_v1(
 
         var token = new InviteTokenEntity()
         {
-            Expiry = DateTime.UtcNow.AddSeconds(inviteCode.InviteLifeSpan),
+            Expiry = DateTime.UtcNow.AddSeconds(inviteCode.TrialDuration),
             EmailHash = emailHash,
             Active = true,
             UserId = null, // User entity is created when the user opens the chat for the first time
@@ -568,7 +571,7 @@ public class Invite_v1(
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Invalid token or account upgrade disabled")]
     [OpenApiResponseWithoutBody(HttpStatusCode.UnprocessableEntity, Description = "Invalid request body")]
     public async Task<IActionResult> SignupWithInvite_v1(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/invite/{token}/signup")] HttpRequest req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/invite/{token}/signup")] HttpRequest req,
         FunctionContext context,
         string token)
     {

@@ -527,6 +527,9 @@ public class Invite_v1(
         else
             scopes = ScopeHelper.GetScopesForUser(user);
 
+        if (!entity.AccountUpgrade)
+            scopes.Remove(AireScopes.TrialAccountUpgrade);
+
         var client = await _storage.RetrieveAsync<ClientEntity>(entity.ClientId!);
         if (client == null)
             return new ForbiddenResult();

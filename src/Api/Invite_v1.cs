@@ -489,6 +489,9 @@ public class Invite_v1(
         var key = user.GetEncryptionKey(trialpass);
         var subject = _loginProvider.GetSubject(user, key!);
 
+        if (entity.Platform != null)
+            subject.Claims.Add(AireClaims.Platform, entity.Platform);
+
         // Create new chat object
         if (entity.ChatId == null && !expired)
         {
@@ -536,7 +539,6 @@ public class Invite_v1(
 
         var validScopes = OauthAuthenticationService.ValidateClientScopes(scopes.ToString(), client);
         scopes = [.. validScopes!];
-        subject.Claims.Add(AireClaims.Platform, entity.Platform!);
 
         var expiresIn = TimeSpan.FromHours(2);
         var tokenDescriptor = new OauthTokenDescription(subject, scopes, expiresIn);

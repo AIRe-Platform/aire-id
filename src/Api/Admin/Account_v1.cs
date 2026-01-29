@@ -56,7 +56,7 @@ public class Account_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadAccounts))
             return new ForbiddenResult();
 
         if (string.IsNullOrWhiteSpace(id))
@@ -94,7 +94,7 @@ public class Account_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadAccounts))
             return new ForbiddenResult();
 
         var hash = Crypto.SHA256Base16(login_name);
@@ -133,7 +133,7 @@ public class Account_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminAccounts))
+        if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditAccounts))
             return new ForbiddenResult();
 
         if (string.IsNullOrWhiteSpace(id))

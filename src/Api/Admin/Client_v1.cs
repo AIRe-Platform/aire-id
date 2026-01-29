@@ -57,7 +57,7 @@ public class Client_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, AireScopes.AdminClients))
+        if (!_jwt.CheckAuthorization(auth, AireScopes.ReadClients))
             return new ForbiddenResult();
 
         if (string.IsNullOrWhiteSpace(id))
@@ -88,7 +88,7 @@ public class Client_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, AireScopes.AdminClients))
+        if (!_jwt.CheckAuthorization(auth, AireScopes.ReadClients))
             return new ForbiddenResult();
 
         var entities = await _storage.All<ClientEntity>();
@@ -118,7 +118,7 @@ public class Client_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, AireScopes.AdminClients))
+        if (!_jwt.CheckAuthorization(auth, AireScopes.CreateClients))
             return new ForbiddenResult();
 
         var client = await req.ReadJson<Client>();
@@ -193,7 +193,7 @@ public class Client_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, AireScopes.AdminClients))
+        if (!_jwt.CheckAuthorization(auth, AireScopes.EditClients))
             return new ForbiddenResult();
 
         if (string.IsNullOrWhiteSpace(id))
@@ -216,7 +216,7 @@ public class Client_v1
         if (data.Name != null)
         {
             client.Name = data.Name;
-            
+
             var existing_query = await _storage.QueryAsync<ClientEntity>(x => x.Name == client.Name);
             var existing_entity = await existing_query.FirstOrDefaultAsync();
 
@@ -281,7 +281,7 @@ public class Client_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        if (!_jwt.CheckAuthorization(auth, AireScopes.AdminClients))
+        if (!_jwt.CheckAuthorization(auth, AireScopes.DeleteClients))
             return new ForbiddenResult();
 
         if (string.IsNullOrWhiteSpace(id))

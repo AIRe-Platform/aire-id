@@ -318,6 +318,9 @@ public class UserEntity : BaseTableEntity
         user.ChangePassword(null, password);
         user.GenerateEncryptionKey(password);
 
+        string enc = user.GetEncryptionKey(password)!;
+        user.SetPrivateUserData(new UserPrivate(), enc);
+
         return user;
     }
 

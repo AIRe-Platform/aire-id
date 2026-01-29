@@ -28,7 +28,7 @@ public class InviteTokenEntity : BaseTableEntity
     public InviteTokenEntity()
     {
         string id = Guid.NewGuid().ToString();
-        PartitionKey ??= id;
+        PartitionKey ??= id[..5];
         RowKey ??= id;
     }
 

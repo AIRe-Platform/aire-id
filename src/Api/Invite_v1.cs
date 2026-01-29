@@ -141,6 +141,7 @@ public class Invite_v1(
 
         var entity = new InviteCodeEntity()
         {
+            Name = body.Name,
             Active = true,
             Created = DateTime.UtcNow,
             Expiry = DateTime.UtcNow.AddDays(body.ValidDays),
@@ -224,6 +225,7 @@ public class Invite_v1(
             return new BadRequestResult();
         }
 
+        entity.Name = body.Name;
         entity.Active = body.Active;
         entity.Limit = body.Limit;
         entity.Expiry = body.Expiry;
@@ -363,7 +365,7 @@ public class Invite_v1(
 
         var token = new InviteTokenEntity()
         {
-            Expiry = DateTime.UtcNow.AddSeconds(inviteCode.TrialDuration),
+            Expiry = DateTime.UtcNow.AddDays(inviteCode.TrialDuration),
             EmailHash = emailHash,
             Active = true,
             UserId = null, // User entity is created when the user opens the chat for the first time
@@ -483,6 +485,10 @@ public class Invite_v1(
             return new ForbiddenResult(); // User removed, no longer valid
         }
 
+        var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);
+        var key = user.GetEncryptionKey(trialpass);
+        var subject = _loginProvider.GetSubject(user, key!);
+
         // Create new chat object
         if (entity.ChatId == null && !expired)
         {
@@ -493,7 +499,8 @@ public class Invite_v1(
                 return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
             }
 
-            var clientToken = _jwt.IssueNewToken(user.UUID(), user.Role!, [AireScopes.WriteChatHistory], [], TimeSpan.FromMinutes(5));
+            var tokenDesc = new OauthTokenDescription(subject, [AireScopes.WriteChatHistory], TimeSpan.FromMinutes(5));
+            var clientToken = _tokenProvider.IssueNewToken(tokenDesc);
             var memoryClient = await _clientFactory.CreateMemoryClient(memory, clientToken);
 
             var metadata = await memoryClient.CreateChatlog();
@@ -526,11 +533,6 @@ public class Invite_v1(
 
         var validScopes = OauthAuthenticationService.ValidateClientScopes(scopes.ToString(), client);
         scopes = [.. validScopes!];
-
-        var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);
-        var key = user.GetEncryptionKey(trialpass);
-
-        var subject = _loginProvider.GetSubject(user, key!);
         subject.Claims.Add(AireClaims.Platform, entity.Platform!);
 
         var expiresIn = TimeSpan.FromHours(2);

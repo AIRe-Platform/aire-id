@@ -14,6 +14,7 @@ namespace Aire.Id.Models;
 [EntityTable("InviteCodes")]
 public class InviteCodeEntity : BaseTableEntity
 {
+    public string? Name { get; set; }
     public bool Active { get; set; }
     public DateTime Created { get; set; }
     public DateTime Expiry { get; set; }
@@ -51,6 +52,7 @@ public class InviteCodeEntity : BaseTableEntity
         return new InviteCode
         {
             Code = Guid.Parse(Code()),
+            Name = Name,
             Active = Active,
             Created = Created,
             Expiry = Expiry,

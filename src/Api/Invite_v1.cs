@@ -161,7 +161,7 @@ public class Invite_v1(
         {
             Scheme = ctx.Scheme,
             Host = ctx.Host.Host,
-            Port = ctx.Host.Port ?? 80,
+            Port = ctx.Host.Port ?? -1,
             Path = $"{AireConstants.AppInvitePath}/{entity.Code()}"
         };
         entity.Link = uriBuilder.Uri.AbsoluteUri;

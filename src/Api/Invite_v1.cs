@@ -55,7 +55,8 @@ public class Invite_v1(
     public async Task<IActionResult> GetInviteCodes(
         [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "api/v1/invite-codes")] HttpRequest req,
         FunctionContext context,
-        [FromQuery] bool? active_only)
+        [FromQuery] bool? active_only,
+        [FromQuery] string? platform)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
         if (auth == null)
@@ -64,13 +65,14 @@ public class Invite_v1(
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.AdminInvites))
             return new ForbiddenResult();
 
-        List<InviteCodeEntity> entities = [];
+        active_only ??= false;
+        platform ??= "";
 
-        // TODO: Implement more filters?
-        if (active_only == true)
-            entities = await (await _storage.QueryAsync<InviteCodeEntity>(x => x.Active == true)).ToListAsync();
-        else
-            entities = await _storage.All<InviteCodeEntity>();
+        var entities = await (
+            await _storage.QueryAsync<InviteCodeEntity>(x =>
+                (active_only != true || x.Active == true) &&
+                (platform == "" || x.Platform == platform))
+        ).ToListAsync();
 
         var codes = entities.Select(x => x.ToModel());
         return new OkObjectResult(codes);

@@ -404,7 +404,7 @@ public class Invite_v1(
         var invitationUrl = new UriBuilder(client.RedirectUri!)
         {
             Path = $"/invite/{token.Token()}",
-            Query = $"?lang={invitation.Language}"
+            Query = $"?lang={invitation.Language}&platform={inviteCode.Platform}"
         }.Uri.AbsoluteUri;
 
 

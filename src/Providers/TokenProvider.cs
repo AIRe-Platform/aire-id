@@ -38,7 +38,7 @@ public class TokenProvider(IJwtTokenService jwt) : IOauthTokenProvider
             description.Subject.Subject,
             description.Subject.Role,
             description.Scopes,
-            description.Subject.Claims,
+            description.Subject.Claims.ToDictionary(), // Make a copy
             description.Lifetime
         );
     }

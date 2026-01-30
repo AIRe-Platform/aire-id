@@ -373,7 +373,7 @@ public class OauthAuthenticationService(
         return reqUri;
     }
 
-    private static string[]? ValidateClientScopes(string? reqScopes, ClientEntity client)
+    public static string[]? ValidateClientScopes(string? reqScopes, ClientEntity client)
     {
         var scopes = reqScopes != null ? AireScopes.ParseString(reqScopes) : null;
 
@@ -403,7 +403,7 @@ public class OauthAuthenticationService(
         return scopes.ToArray();
     }
 
-    private static string[] FilterUserScopes(UserEntity user, IEnumerable<string> requested)
+    public static string[] FilterUserScopes(UserEntity user, IEnumerable<string> requested)
     {
         var scopes = ScopeHelper.GetScopesForUser(user);
 
@@ -411,14 +411,14 @@ public class OauthAuthenticationService(
         return requested.Where(x => scopes.Contains(x)).ToArray();
     }
 
-    private static bool ValidateGrantType(ClientEntity client, OauthGrantType grantType)
+    public static bool ValidateGrantType(ClientEntity client, OauthGrantType grantType)
     {
         var allowed = client.GetGrantTypes();
         var requested = grantType.ObjectToJson().Trim('"');
         return allowed.Contains(requested);
     }
 
-    private static bool VerifyClientSecret(string? secret_hash, string? secret)
+    public static bool VerifyClientSecret(string? secret_hash, string? secret)
     {
         if (string.IsNullOrWhiteSpace(secret_hash))
             return true;

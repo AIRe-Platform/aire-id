@@ -15,7 +15,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Logging;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.OpenApi.Models;
 
 namespace Aire.Id.Api;
 
@@ -23,16 +24,15 @@ public class GDPR_v1(
     IAireClientFactory clientFactory,
     ITableStorageService storage,
     IAirePlatformService platformService,
-    IJwtTokenService jwt,
-    ILogger<GDPR_v1> log)
+    IJwtTokenService jwt)
 {
-    private readonly ILogger<GDPR_v1> _log = log;
     private readonly IAireClientFactory _clientFactory = clientFactory;
     private readonly ITableStorageService _storage = storage;
     private readonly IAirePlatformService _platformService = platformService;
     private readonly IJwtTokenService _jwt = jwt;
 
     [Function("GDPR_PersonalData_v1")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiOperation("gdprPersonalData", ["GDPR"], Summary = "Get all personal data")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(GDPRDataCollection), Description = "Personal data collection")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]

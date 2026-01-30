@@ -13,6 +13,7 @@ import VerificationView from "./views/VerificationView.vue";
 import RecoveryView from "./views/RecoveryView.vue";
 import ErrorView from "./views/ErrorView.vue";
 import useSession from "./context/session";
+import InviteView from "./views/InviteView.vue";
 
 const router = createRouter({
     history: createWebHistory("app"),
@@ -20,10 +21,11 @@ const router = createRouter({
         { path: "/login", component: LoginView, meta: { requireSession: false } },
         { path: "/error", component: ErrorView, meta: { requireSession: false } },
         { path: "/logout", component: LogoutView, meta: { requireSession: false } },
-        { path: "/consent", component: ConsentView, meta: { requireSession: true }  },
-        { path: "/verify", component: VerificationView, meta: { requireSession: true }  },
-        { path: "/recovery", component: RecoveryView, meta: { requireSession: false }  },
-        { path: "/auth", component: AuthView, meta: { requireSession: false }  },
+        { path: "/consent", component: ConsentView, meta: { requireSession: true } },
+        { path: "/verify", component: VerificationView, meta: { requireSession: true } },
+        { path: "/recovery", component: RecoveryView, meta: { requireSession: false } },
+        { path: "/auth", component: AuthView, meta: { requireSession: false } },
+        { path: "/invite/:code", component: InviteView, meta: { requireSession: false } },
         {
             path: "/:pathMatch(.*)*",
             component: NotFoundView,
@@ -33,8 +35,8 @@ const router = createRouter({
 
 router.beforeEach((to, _) => {
     const session = useSession();
-    if(to.meta.requireSession) {
-        if(!session.session)
+    if (to.meta.requireSession) {
+        if (!session.session)
             return "/auth"
     }
 })

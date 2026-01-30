@@ -24,6 +24,7 @@ using Aire.Id.Oauth2.Models;
 using Aire.Id.Helpers;
 using Aire.Sdk.Platform;
 using Aire.Sdk.Models.Platform;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 
 namespace Aire.Id.Api;
 
@@ -45,6 +46,7 @@ public class Demo_v1(
         operationId: "getDemoGroups",
         tags: ["Demo"],
         Summary = "Get list of demo groups")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoGroup>), Description = "List of demo groups")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
@@ -72,6 +74,7 @@ public class Demo_v1(
         tags: ["Demo"],
         Summary = "Get list of demo users in a group")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoUser>), Description = "List of demo users")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authotization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
@@ -105,6 +108,7 @@ public class Demo_v1(
         tags: ["Demo"],
         Summary = "Get demo user")]
     [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path)]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(User), Description = "Demo user profile")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
@@ -138,6 +142,7 @@ public class Demo_v1(
         operationId: "createDemoGroup",
         tags: ["Demo"],
         Summary = "Create a demo group")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiRequestBody("application/json", typeof(DemoGroupCreateRequest), Description = "Group information")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(DemoGroup), Description = "Demo group object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
@@ -225,6 +230,7 @@ public class Demo_v1(
         operationId: "editDemoGroup",
         tags: ["Demo"],
         Summary = "Edit a demo group")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
     [OpenApiRequestBody("application/json", typeof(DemoGroup), Description = "Research group")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(DemoGroup), Description = "Edited demo group")]
@@ -279,6 +285,7 @@ public class Demo_v1(
         operationId: "deleteDemoGroup",
         tags: ["Demo"],
         Summary = "Delete a demo group")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Operation completed succesfully")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
@@ -317,12 +324,14 @@ public class Demo_v1(
             var subjectKey = entity.GetEncryptionKey(subject.AccessCode!);
             var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!);
             var scopes = ScopeHelper.GetScopesForUser(entity);
-            var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
-            var token = _tokenProvider.IssueNewToken(tokenDescriptor);
 
             var platforms = await _platformService.GetPlatformConfigurations();
             foreach (var platform in platforms)
             {
+                oauthSubject.Claims[AireClaims.Platform] = platform.Key;
+                var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
+                var token = _tokenProvider.IssueNewToken(tokenDescriptor);
+
                 var memoryModules = platform.Value.GetModules(ModuleType.Memory, false);
                 foreach (var memory in memoryModules)
                 {

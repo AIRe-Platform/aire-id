@@ -58,6 +58,12 @@ public class LoginProvider : IOauthLoginProvider
             }
         }
 
+        if (user.Role == AireRoles.TrialUser)
+        {
+            _log.LogWarning("Logins disabled for trial users");
+            return null;
+        }
+
         var key = user.GetEncryptionKey(password)!;
         var subject = GetSubject(user, key);
 

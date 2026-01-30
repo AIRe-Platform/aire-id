@@ -9,7 +9,7 @@ const vi: Locale = {
     settings_language: "Ngôn ngữ giao diện người dùng",
 
     auth_please_wait: "Vui lòng chờ...",
-    
+
     login_title: "Đăng nhập",
     login_username: "Tên người dùng hoặc email",
     login_password: "Mật khẩu",
@@ -48,6 +48,15 @@ const vi: Locale = {
     recovery_failed: "Không thể khôi phục tài khoản này. Vui lòng liên hệ với bộ phận hỗ trợ.",
     recovery_password_requirements_not_met: "Mật khẩu phải chứa ít nhất 8 ký tự và bao gồm cả chữ hoa và chữ thường.",
 
+    invite_title: "Mời người dùng mới",
+    invite_email: "Địa chỉ email",
+    invite_failed_generic: "Không thể gửi lời mời. Vui lòng thử lại sau.",
+    invite_failed_conflict: "Không thể gửi lời mời đến email này. Email này có thể đã được sử dụng hoặc đã có người mời.",
+    invite_failed_not_found: "Mã mời không hợp lệ. Mã QR hoặc liên kết mời bạn đã sử dụng có thể không tồn tại.",
+    invite_failed_forbidden: "Mã mời đã hết hạn. Mã QR hoặc liên kết mời bạn đã sử dụng có thể đã hết hạn.",
+    invite_sent: "Lời mời đã được gửi thành công đến '{email}'!",
+    invite_submit: "Gửi lời mời",
+
     error_not_found: "Trang yêu cầu không tồn tại. (404)",
     error_title: "Xác thực thất bại",
     error_details: `Không thể xác thực. Vui lòng thử lại sau.
@@ -55,7 +64,7 @@ const vi: Locale = {
             Lỗi: {error}
             Mô tả: {description}
         `,
-    
+
     en: "Tiếng Anh",
     fi: "Tiếng Phần Lan",
     es: "Tiếng Tây Ban Nha",

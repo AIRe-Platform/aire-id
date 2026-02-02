@@ -451,15 +451,15 @@ public class Invite_v1(
         if (entity == null)
             return new ForbiddenResult();
 
-        bool expired = entity.Expiry < DateTime.UtcNow;
+        bool expired = entity.Expiry < DateTime.UtcNow || !entity.Active;
+
+        if (expired)
+            return new ForbiddenResult();
 
         // Create new trial user
         UserEntity? user;
         if (entity.UserId == null)
         {
-            if (expired)
-                return new ForbiddenResult();
-
             user = UserEntity.CreateTrialUser(entity.EmailHash!, entity.Token());
             var created = await _storage.UpsertAsync(user);
             if (!created)
@@ -495,7 +495,7 @@ public class Invite_v1(
             subject.Claims.Add(AireClaims.Platform, entity.Platform);
 
         // Create new chat object
-        if (entity.ChatId == null && !expired)
+        if (entity.ChatId == null)
         {
             var memory = await _platformService.GetPlatformModule(entity.Platform!, ModuleType.Memory, null);
             if (memory == null)
@@ -526,12 +526,7 @@ public class Invite_v1(
 
         // Create access token
 
-        AireScopes scopes;
-        if (expired)
-            scopes = [AireScopes.TrialAccountUpgrade];
-        else
-            scopes = ScopeHelper.GetScopesForUser(user);
-
+        var scopes = ScopeHelper.GetScopesForUser(user);
         if (!entity.AccountUpgrade)
             scopes.Remove(AireScopes.TrialAccountUpgrade);
 

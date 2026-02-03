@@ -22,6 +22,7 @@ using Aire.Sdk.Auth.Extensions;
 using Azure.Storage.Queues;
 using Aire.Sdk.Platform;
 using Aire.Sdk.Platform.Clients;
+using Aire.Sdk.Audit;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker =>
@@ -115,6 +116,13 @@ var host = new HostBuilder()
                 o.Identifier = AireEnvironment.ModuleIdentifier;
             })
             .AddSingleton<IAireModuleSettingsService, AireModuleSettingsService>();
+
+        services
+            .Configure<AireAuditServiceOptions>(o =>
+            {
+                o.Source = AireEnvironment.ModuleIdentifier;
+            })
+            .AddSingleton<IAireAuditService, AireAuditService>();
     })
     .Build();
 

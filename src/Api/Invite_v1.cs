@@ -10,6 +10,7 @@ using Aire.Id.Oauth2;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Aire.Sdk.AspNetCore;
+using Aire.Sdk.Audit;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
@@ -31,7 +32,8 @@ namespace Aire.Id.Api;
 public class Invite_v1(
     IJwtTokenService jwt, ITableStorageService storage, IAireClientFactory clientFactory,
     IOauthLoginProvider loginProvider, IOauthTokenProvider tokenProvider,
-    QueueServiceClient queues, IAirePlatformService platformService, ILogger<Invite_v1> log)
+    QueueServiceClient queues, IAirePlatformService platformService,
+    IAireAuditService auditService, ILogger<Invite_v1> log)
 {
     private readonly IJwtTokenService _jwt = jwt;
     private readonly ITableStorageService _storage = storage;
@@ -39,8 +41,10 @@ public class Invite_v1(
     private readonly IAirePlatformService _platformService = platformService;
     private readonly IOauthLoginProvider _loginProvider = loginProvider;
     private readonly IOauthTokenProvider _tokenProvider = tokenProvider;
-    private readonly QueueClient _mail_queue = queues.GetQueueClient(AireConstants.Queues.Mail);
+    private readonly QueueClient _mailQueue = queues.GetQueueClient(AireConstants.Queues.Mail);
+    private readonly IAireAuditService _auditService = auditService;
     private readonly ILogger<Invite_v1> _log = log;
+    private const string resType = AireAuditResource.InviteCodeResourceType;
 
     [Function("GetInviteCodes_v1")]
     [OpenApiOperation(
@@ -166,8 +170,6 @@ public class Invite_v1(
         };
         entity.Link = uriBuilder.Uri.AbsoluteUri;
 
-        // TODO: Audit log - Log creation
-
         {
             var stored = await _storage.UpsertAsync(entity);
             if (!stored)
@@ -176,6 +178,8 @@ public class Invite_v1(
                 return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
             }
         }
+
+        await _auditService.LogEvent(new(resType, entity.Code()), auth.UserId, "create");
 
         var model = entity.ToModel();
         return new OkObjectResult(model);
@@ -234,8 +238,6 @@ public class Invite_v1(
         entity.TrialDuration = body.TrialDuration;
         entity.AccountUpgrade = body.AccountUpgrade;
 
-        // TODO: Audit log - Log edit
-
         {
             var updated = await _storage.UpsertAsync(entity);
             if (!updated)
@@ -244,6 +246,8 @@ public class Invite_v1(
                 return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
             }
         }
+
+        await _auditService.LogEvent(new(resType, entity.Code()), auth.UserId, "edit");
 
         var model = entity.ToModel();
         return new OkObjectResult(model);
@@ -283,8 +287,6 @@ public class Invite_v1(
         if (entity == null)
             return new NotFoundResult();
 
-        // TODO: Audit log - Log deletion
-
         {
             var deleted = await _storage.DeleteAsync(entity);
             if (!deleted)
@@ -293,6 +295,8 @@ public class Invite_v1(
                 return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
             }
         }
+
+        await _auditService.LogEvent(new(resType, code), auth.UserId, "delete");
 
         return new NoContentResult();
     }
@@ -399,8 +403,6 @@ public class Invite_v1(
             }
         }
 
-        // TODO: Audit log - Log new invitation
-
         // Create invitation link and queue mail
 
         var invitationUrl = new UriBuilder(client.RedirectUri!)
@@ -421,9 +423,15 @@ public class Invite_v1(
         };
 
         {
-            var result = await _mail_queue.SendMessageAsync(mail.ObjectToJson());
+            var result = await _mailQueue.SendMessageAsync(mail.ObjectToJson());
             _log.LogInformation($"Queued invitation email. MessageId: {result.Value.MessageId}");
         }
+
+        await _auditService.LogEvent(new(resType, token.Code), inviteCode.OwnerId ?? "", "invitation.send", new()
+        {
+            { "inviteToken", token.Token() },
+            { "emailHash", emailHash }
+        });
 
         return new NoContentResult();
     }
@@ -451,15 +459,15 @@ public class Invite_v1(
         if (entity == null)
             return new ForbiddenResult();
 
-        bool expired = entity.Expiry < DateTime.UtcNow;
+        bool expired = entity.Expiry < DateTime.UtcNow || !entity.Active;
+
+        if (expired)
+            return new ForbiddenResult();
 
         // Create new trial user
         UserEntity? user;
         if (entity.UserId == null)
         {
-            if (expired)
-                return new ForbiddenResult();
-
             user = UserEntity.CreateTrialUser(entity.EmailHash!, entity.Token());
             var created = await _storage.UpsertAsync(user);
             if (!created)
@@ -475,6 +483,12 @@ public class Invite_v1(
                 _log.LogError("Failed to update invite token");
                 return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
             }
+
+            await _auditService.LogEvent(new(resType, entity.Code), entity.UserId, "invitation.activate", new()
+            {
+                { "inviteToken", entity.Token() },
+                { "emailHash", entity.EmailHash }
+            });
         }
         else
         {
@@ -495,7 +509,7 @@ public class Invite_v1(
             subject.Claims.Add(AireClaims.Platform, entity.Platform);
 
         // Create new chat object
-        if (entity.ChatId == null && !expired)
+        if (entity.ChatId == null)
         {
             var memory = await _platformService.GetPlatformModule(entity.Platform!, ModuleType.Memory, null);
             if (memory == null)
@@ -526,12 +540,7 @@ public class Invite_v1(
 
         // Create access token
 
-        AireScopes scopes;
-        if (expired)
-            scopes = [AireScopes.TrialAccountUpgrade];
-        else
-            scopes = ScopeHelper.GetScopesForUser(user);
-
+        var scopes = ScopeHelper.GetScopesForUser(user);
         if (!entity.AccountUpgrade)
             scopes.Remove(AireScopes.TrialAccountUpgrade);
 
@@ -562,6 +571,12 @@ public class Invite_v1(
             UserId = entity.UserId,
             Platform = entity.Platform
         };
+
+        await _auditService.LogEvent(new(resType, entity.Code), entity.UserId, "invitation.validate", new()
+        {
+            { "inviteToken", entity.Token() },
+            { "emailHash", entity.EmailHash }
+        });
 
         return new OkObjectResult(response);
     }
@@ -645,6 +660,12 @@ public class Invite_v1(
             if (!deleted)
                 _log.LogError($"Failed to delete invite token '{token}'");
         }
+
+        await _auditService.LogEvent(new(resType, tokenEntity.Code), auth.UserId, "invitation.signup", new()
+        {
+            { "inviteToken", tokenEntity.Token() },
+            { "emailHash", tokenEntity.EmailHash }
+        });
 
         return new NoContentResult();
     }

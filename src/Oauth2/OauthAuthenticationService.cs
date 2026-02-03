@@ -384,9 +384,6 @@ public class OauthAuthenticationService(
         bool allowAllClientScopes = clientScopes?.Contains("*") ?? false;
         bool grantAllAvailableScopes = scopes == null || scopes.Contains("*") || scopes.Count == 0;
 
-        if (allowAllClientScopes)
-            clientScopes = AireScopes.AllClientScopes;
-
         if (grantAllAvailableScopes)
             scopes = clientScopes;
 

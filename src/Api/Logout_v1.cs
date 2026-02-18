@@ -14,11 +14,6 @@ namespace Aire.Id.Api;
 
 public class Logout_v1
 {
-    public Logout_v1()
-    {
-
-    }
-
     /// <summary>
     /// Redirect to frontend to remove authentication session
     /// </summary>

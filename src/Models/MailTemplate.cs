@@ -35,4 +35,14 @@ public class MailTemplate
     {
         public const string Id = "passwordChanged";
     }
+
+    public static class Invitation
+    {
+        public const string Id = "invitation";
+
+        public static class Params
+        {
+            public const string Url = "url";
+        }
+    }
 }

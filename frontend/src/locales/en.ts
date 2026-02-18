@@ -9,7 +9,7 @@ const en: Locale = {
     settings_language: "User interface language",
 
     auth_please_wait: "Please wait...",
-    
+
     login_title: "Login",
     login_username: "Username or email",
     login_password: "Password",
@@ -24,7 +24,7 @@ const en: Locale = {
     consent_title: "Confirm Login",
     consent_logged_in_as: "You are logged in as {username}.",
     consent_click_to_logout: "Not you? Click here to logout.",
-    consent_disclaimer: "You are logging into {service}. This gives the service access to your information. Do you wish to proceed?",
+    consent_disclaimer: "You are logging into {service} on {platform}. This gives the service access to your information. Do you wish to proceed?",
     consent_button_consent: "Confirm",
     consent_button_cancel: "Cancel",
 
@@ -48,6 +48,15 @@ const en: Locale = {
     recovery_failed: "This account cannot be recovered. Please contact support.",
     recovery_password_requirements_not_met: "The password must contain at least 8 characters as well as upper and lower case letters",
 
+    invite_title: "Invite a new user",
+    invite_email: "Email address",
+    invite_failed_generic: "Failed to send an invite. Try again later.",
+    invite_failed_conflict: "Cannot send an invite to this email. It may already be in use or invited already.",
+    invite_failed_not_found: "Invalid invite code. The QR code or invitation link you used may not exist.",
+    invite_failed_forbidden: "Expired invite code. The QR code or invitation link you used might be expired.",
+    invite_sent: "Invitation sent to '{email}' successfully!",
+    invite_submit: "Send invitation",
+
     error_not_found: "The requested page does not exist. (404)",
     error_title: "Authentication failed",
     error_details: `Failed to authenticate. Please try again later.
@@ -55,7 +64,7 @@ const en: Locale = {
             Error: {error}
             Description: {description}
         `,
-    
+
     en: "English",
     fi: "Finnish",
     es: "Spanish",

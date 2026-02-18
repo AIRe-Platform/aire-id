@@ -46,6 +46,9 @@ public class UserEntity : BaseTableEntity
     public string? Encryption { get; set; }
     public string? Recovery { get; set; }
 
+    // Trial user
+    public string? TrialNonce { get; set; }
+
     public UserEntity()
     {
         string uuid = Guid.NewGuid().ToString();
@@ -167,7 +170,7 @@ public class UserEntity : BaseTableEntity
         if (key == null)
             return false;
         PasswordHash = null;
-        if(!ChangePassword(null, newPassword))
+        if (!ChangePassword(null, newPassword))
             return false;
 
         var keyBytes = Convert.FromBase64String(key!);
@@ -265,9 +268,9 @@ public class UserEntity : BaseTableEntity
         }
 
         // Optional global recovery
-        if (AireEnvironment.GlobalRecoveryKey != null)
+        if (AireIdEnvironment.GlobalRecoveryKey != null)
         {
-            var recoveryKey = Encoding.UTF8.GetBytes(AireEnvironment.GlobalRecoveryKey);
+            var recoveryKey = Encoding.UTF8.GetBytes(AireIdEnvironment.GlobalRecoveryKey);
             if (recoveryKey.Length != 32)
                 throw new Exception("Global recovery key is not 256 bits in length");
 
@@ -282,7 +285,7 @@ public class UserEntity : BaseTableEntity
     /// <returns>Encryption key in base-64</returns>
     public string? RecoverEncryptionKey()
     {
-        string? globalRecoveryKey = AireEnvironment.GlobalRecoveryKey;
+        string? globalRecoveryKey = AireIdEnvironment.GlobalRecoveryKey;
         if (globalRecoveryKey == null)
             return null;
 
@@ -298,6 +301,41 @@ public class UserEntity : BaseTableEntity
             return null;
 
         return rec[0].DecryptString(key, Convert.FromBase64String(rec[1]));
+    }
+
+    public static UserEntity CreateTrialUser(string emailHash, string token)
+    {
+        var user = new UserEntity()
+        {
+            EmailHash = emailHash,
+            Role = AireRoles.TrialUser,
+            Verified = true,
+            LastLogin = DateTime.UtcNow,
+            TrialNonce = RandomNumberGenerator.GetHexString(32),
+        };
+
+        string password = user.GetTrialUserPassword(emailHash, token);
+        user.ChangePassword(null, password);
+        user.GenerateEncryptionKey(password);
+
+        string enc = user.GetEncryptionKey(password)!;
+        user.SetPrivateUserData(new UserPrivate(), enc);
+
+        return user;
+    }
+
+    public string GetTrialUserPassword(string emailHash, string token)
+    {
+        string password = string.Join(".", [emailHash, token, TrialNonce]);
+        return Crypto.SHA256Base16(password);
+    }
+
+    public bool UpgradeTrialUserToRegular(string password, string token)
+    {
+        string trialpass = GetTrialUserPassword(EmailHash!, token);
+        TrialNonce = null;
+        Role = AireRoles.User;
+        return ChangePassword(trialpass, password);
     }
 
     /// <summary>

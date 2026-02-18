@@ -9,7 +9,7 @@ const id: Locale = {
     settings_language: "Bahasa antarmuka pengguna",
 
     auth_please_wait: "Mohon tunggu...",
-    
+
     login_title: "Masuk",
     login_username: "Nama pengguna atau email",
     login_password: "Kata sandi",
@@ -24,7 +24,7 @@ const id: Locale = {
     consent_title: "Konfirmasi Masuk",
     consent_logged_in_as: "Anda masuk sebagai {username}.",
     consent_click_to_logout: "Bukan Anda? Klik di sini untuk keluar.",
-    consent_disclaimer: "Anda masuk ke {service}. Ini memberikan layanan akses ke informasi Anda. Apakah Anda ingin melanjutkan?",
+    consent_disclaimer: "Anda masuk ke {service} di {platform}. Ini memberi layanan akses ke informasi Anda. Apakah Anda ingin melanjutkan?",
     consent_button_consent: "Konfirmasi",
     consent_button_cancel: "Batal",
 
@@ -48,6 +48,15 @@ const id: Locale = {
     recovery_failed: "Akun ini tidak dapat dipulihkan. Silakan hubungi dukungan.",
     recovery_password_requirements_not_met: "Kata sandi harus terdiri dari setidaknya 8 karakter serta huruf besar dan kecil.",
 
+    invite_title: "Undang pengguna baru",
+    invite_email: "Alamat email",
+    invite_failed_generic: "Gagal mengirim undangan. Coba lagi nanti.",
+    invite_failed_conflict: "Tidak dapat mengirim undangan ke email ini. Mungkin sudah digunakan atau sudah diundang.",
+    invite_failed_not_found: "Kode undangan tidak valid. Kode QR atau tautan undangan yang Anda gunakan mungkin tidak ada.",
+    invite_failed_forbidden: "Kode undangan kedaluwarsa. Kode QR atau tautan undangan yang Anda gunakan mungkin sudah kedaluwarsa.",
+    invite_sent: "Undangan berhasil dikirim ke '{email}'!",
+    invite_submit: "Kirim undangan",
+
     error_not_found: "Halaman yang diminta tidak ada. (404)",
     error_title: "Otentikasi gagal",
     error_details: `Gagal mengautentikasi. Silakan coba lagi nanti.
@@ -55,7 +64,7 @@ const id: Locale = {
             Kesalahan: {error}
             Deskripsi: {description}
         `,
-    
+
     en: "Inggris",
     fi: "Suomi",
     es: "Spanyol",

@@ -22,35 +22,31 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Helpers;
+using Aire.Sdk.Platform;
+using Aire.Sdk.Models.Platform;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
 
 namespace Aire.Id.Api;
 
-public class Demo_v1
+public class Demo_v1(
+    IJwtTokenService jwt, ITableStorageService storage, IAireClientFactory clientFactory,
+    IAirePlatformService platformService, IOauthLoginProvider loginProvider, IOauthTokenProvider tokenProvider,
+    ILogger<Demo_v1> log)
 {
-    private readonly IJwtTokenService _jwt;
-    private readonly ITableStorageService _storage;
-    private readonly IAireClientFactory _clientFactory;
-    private readonly IOauthLoginProvider _loginProvider;
-    private readonly IOauthTokenProvider _tokenProvider;
-    private readonly ILogger<Demo_v1> _log;
-
-    public Demo_v1(
-        IJwtTokenService jwt, ITableStorageService storage, IAireClientFactory clientFactory,
-        IOauthLoginProvider loginProvider, IOauthTokenProvider tokenProvider, ILogger<Demo_v1> log)
-    {
-        _jwt = jwt;
-        _storage = storage;
-        _clientFactory = clientFactory;
-        _loginProvider = loginProvider;
-        _tokenProvider = tokenProvider;
-        _log = log;
-    }
+    private readonly IJwtTokenService _jwt = jwt;
+    private readonly ITableStorageService _storage = storage;
+    private readonly IAireClientFactory _clientFactory = clientFactory;
+    private readonly IAirePlatformService _platformService = platformService;
+    private readonly IOauthLoginProvider _loginProvider = loginProvider;
+    private readonly IOauthTokenProvider _tokenProvider = tokenProvider;
+    private readonly ILogger<Demo_v1> _log = log;
 
     [Function("GetDemoGroups_v1")]
     [OpenApiOperation(
         operationId: "getDemoGroups",
         tags: ["Demo"],
         Summary = "Get list of demo groups")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoGroup>), Description = "List of demo groups")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
@@ -78,6 +74,7 @@ public class Demo_v1
         tags: ["Demo"],
         Summary = "Get list of demo users in a group")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(List<DemoUser>), Description = "List of demo users")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authotization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
@@ -111,6 +108,7 @@ public class Demo_v1
         tags: ["Demo"],
         Summary = "Get demo user")]
     [OpenApiParameter("id", Description = "User identifier", In = ParameterLocation.Path)]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(User), Description = "Demo user profile")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
@@ -144,6 +142,7 @@ public class Demo_v1
         operationId: "createDemoGroup",
         tags: ["Demo"],
         Summary = "Create a demo group")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiRequestBody("application/json", typeof(DemoGroupCreateRequest), Description = "Group information")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(DemoGroup), Description = "Demo group object")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
@@ -231,6 +230,7 @@ public class Demo_v1
         operationId: "editDemoGroup",
         tags: ["Demo"],
         Summary = "Edit a demo group")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
     [OpenApiRequestBody("application/json", typeof(DemoGroup), Description = "Research group")]
     [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(DemoGroup), Description = "Edited demo group")]
@@ -285,13 +285,14 @@ public class Demo_v1
         operationId: "deleteDemoGroup",
         tags: ["Demo"],
         Summary = "Delete a demo group")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiParameter("id", Description = "Group identifier", In = ParameterLocation.Path)]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Operation completed succesfully")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or insufficient authorization")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid param")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
-    public async Task<IActionResult> DeleteResearchGroup(
+    public async Task<IActionResult> DeleteDemoGroup(
         [HttpTrigger(AuthorizationLevel.Anonymous, "delete", Route = "api/v1/demo/group/{id}")] HttpRequest req,
         FunctionContext context,
         string id)
@@ -323,15 +324,34 @@ public class Demo_v1
             var subjectKey = entity.GetEncryptionKey(subject.AccessCode!);
             var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!);
             var scopes = ScopeHelper.GetScopesForUser(entity);
-            var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
-            var token = _tokenProvider.IssueNewToken(tokenDescriptor);
 
-            var memoryService = await _clientFactory.CreateMemoryClient(token);
-            if (memoryService != null)
+            var platforms = await _platformService.GetPlatformConfigurations();
+            foreach (var platform in platforms)
             {
-                bool deleteData = await memoryService.DeleteUserData(true);
-                if (!deleteData)
-                    throw new Exception($"Failure to destroy user '{entity.RowKey}' data from Memory");
+                oauthSubject.Claims[AireClaims.Platform] = platform.Key;
+                var tokenDescriptor = new OauthTokenDescription(oauthSubject, scopes, TimeSpan.FromMinutes(5));
+                var token = _tokenProvider.IssueNewToken(tokenDescriptor);
+
+                var memoryModules = platform.Value.GetModules(ModuleType.Memory, false);
+                foreach (var memory in memoryModules)
+                {
+                    try
+                    {
+                        var memoryService = await _clientFactory.CreateMemoryClient(memory, token);
+                        if (memoryService != null)
+                        {
+                            bool deleteData = await memoryService.DeleteUserData(true);
+                            if (!deleteData)
+                                throw new Exception($"Failure to destroy user '{entity.RowKey}' data from Memory");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.LogError(ex, "Failed to delete user data. Platform: {platform} Module: {module}",
+                            platform.Key, memory.Id ?? "<null>");
+                    }
+
+                }
             }
 
             // Delete user entity

@@ -19,23 +19,29 @@ using Aire.Sdk.Azure;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Models.Identity;
 using Aire.Sdk.Platform.Clients;
+using Aire.Sdk.Platform;
+using Aire.Sdk.Models.Platform;
+using Aire.Id.Oauth2.Providers;
+using Aire.Id.Oauth2.Models;
 
 namespace Aire.Id.Api;
 
-public class User_v1
+public class User_v1(
+    IJwtTokenService jwt,
+    ITableStorageService storage,
+    IAirePlatformService platformService,
+    IAireClientFactory clientFactory,
+    IOauthLoginProvider loginProvider,
+    IOauthTokenProvider tokenProvider,
+    ILogger<User_v1> log)
 {
-    private readonly IJwtTokenService _jwt;
-    private readonly ITableStorageService _storage;
-    private readonly IAireClientFactory _clientFactory;
-    private readonly ILogger<User_v1> _log;
-
-    public User_v1(IJwtTokenService jwt, ITableStorageService storage, IAireClientFactory clientFactory, ILogger<User_v1> log)
-    {
-        _jwt = jwt;
-        _storage = storage;
-        _clientFactory = clientFactory;
-        _log = log;
-    }
+    private readonly IJwtTokenService _jwt = jwt;
+    private readonly ITableStorageService _storage = storage;
+    private readonly IAirePlatformService _platformService = platformService;
+    private readonly IAireClientFactory _clientFactory = clientFactory;
+    private readonly IOauthLoginProvider _loginProvider = loginProvider;
+    private readonly IOauthTokenProvider _tokenProvider = tokenProvider;
+    private readonly ILogger<User_v1> _log = log;
 
     [Function("GetUser_v1")]
     [OpenApiOperation(
@@ -318,15 +324,30 @@ public class User_v1
             return new BadRequestResult();
         }
 
-        // Delete user data from Memory module
-        var memoryService = await _clientFactory.CreateMemoryClient(auth!.JwtEncodedToken);
-        if (memoryService != null)
+        // Delete user data from Memory modules
+        var platforms = await _platformService.GetPlatformConfigurations();
+        foreach (var platform in platforms)
         {
-            bool dataDeleted = await memoryService.DeleteUserData(options.KeepAnonymizedData);
-            if (!dataDeleted)
+            // Create new tokens for platforms
+            var subject = _loginProvider.GetSubject(user, auth.UserKey);
+            subject.Claims.Add(AireClaims.Platform, platform.Key);
+
+            var desc = new OauthTokenDescription(subject, [AireScopes.DeleteChatHistory], TimeSpan.FromMinutes(5));
+            var token = _tokenProvider.IssueNewToken(desc);
+
+            var memories = platform.Value.GetModules(ModuleType.Memory, false);
+            foreach (var memory in memories)
             {
-                _log.LogCritical("Failure to delete data from the Memory module");
-                return new InternalServerErrorResult();
+                var memoryService = await _clientFactory.CreateMemoryClient(memory, token);
+                if (memoryService != null)
+                {
+                    bool dataDeleted = await memoryService.DeleteUserData(options.KeepAnonymizedData);
+                    if (!dataDeleted)
+                    {
+                        _log.LogCritical("Failure to delete data from the Memory module {id}", memory.Id);
+                        return new InternalServerErrorResult();
+                    }
+                }
             }
         }
 

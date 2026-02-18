@@ -9,7 +9,7 @@ const sw: Locale = {
     settings_language: "Lugha ya muundo wa mtumiaji",
 
     auth_please_wait: "Tafadhali subiri...",
-    
+
     login_title: "Ingia",
     login_username: "Jina la mtumiaji au barua pepe",
     login_password: "Nenosiri",
@@ -24,7 +24,7 @@ const sw: Locale = {
     consent_title: "Thibitisha Kuingia",
     consent_logged_in_as: "Umeingia kama {username}.",
     consent_click_to_logout: "Si wewe? Bofya hapa kutoka nje.",
-    consent_disclaimer: "Unaingia kwenye {service}. Hii inaruhusu huduma kupata taarifa zako. Je, unataka kuendelea?",
+    consent_disclaimer: "Unaingia katika {service} kwenye {platform}. Hii inaipa huduma ufikiaji wa taarifa zako. Unataka kuendelea?",
     consent_button_consent: "Thibitisha",
     consent_button_cancel: "Ghairi",
 
@@ -48,6 +48,15 @@ const sw: Locale = {
     recovery_failed: "Akaunti hii haiwezi kurejeshwa. Tafadhali wasiliana na msaada.",
     recovery_password_requirements_not_met: "Nenosiri lazima liwe na angalau herufi 8 na pia herufi kubwa na ndogo.",
 
+    invite_title: "Mwalike mtumiaji mpya",
+    invite_email: "Anwani ya barua pepe",
+    invite_failed_generic: "Imeshindwa kutuma mwaliko. Jaribu tena baadaye.",
+    invite_failed_conflict: "Haiwezi kutuma mwaliko kwa barua pepe hii. Huenda tayari inatumika au tayari imealikwa.",
+    invite_failed_not_found: "Nambari ya mwaliko si sahihi. Nambari ya QR au kiungo cha mwaliko ulichotumia huenda kisiwepo.",
+    invite_failed_forbidden: "Nambari ya mwaliko imekwisha muda wake. Nambari ya QR au kiungo cha mwaliko ulichotumia huenda kimeisha muda wake.",
+    invite_sent: "Mwaliko umetumwa kwa '{email}' kwa mafanikio!",
+    invite_submit: "Tuma mwaliko",
+
     error_not_found: "Ukurasa ulioombwa haupo. (404)",
     error_title: "Uthibitishaji umeshindwa",
     error_details: `Imeshindwa kuthibitisha. Tafadhali jaribu tena baadaye.
@@ -55,7 +64,7 @@ const sw: Locale = {
             Hitilafu: {error}
             Maelezo: {description}
         `,
-    
+
     en: "Kiingereza",
     fi: "Kifini",
     es: "Kihispania",

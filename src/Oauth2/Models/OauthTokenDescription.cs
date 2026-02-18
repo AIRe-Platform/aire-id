@@ -5,19 +5,12 @@
 
 using Aire.Sdk.Auth;
 
-namespace Aire.Id.Oauth2.Models
-{
-    public class OauthTokenDescription
-    {
-        public OauthSubject Subject { get; set; }
-        public AireScopes Scopes { get; set; }
-        public TimeSpan Lifetime { get; set; }
+namespace Aire.Id.Oauth2.Models;
 
-        public OauthTokenDescription(OauthSubject subject, AireScopes scopes, TimeSpan lifetime)
-        {
-            Subject = subject;
-            Scopes = scopes;
-            Lifetime = lifetime;
-        }
-    }
+public class OauthTokenDescription(OauthSubject subject, AireScopes scopes, TimeSpan lifetime)
+{
+    public OauthSubject Subject { get; set; } = subject;
+    public AireScopes Scopes { get; set; } = scopes;
+    public TimeSpan Lifetime { get; set; } = lifetime;
 }
+

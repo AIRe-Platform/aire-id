@@ -22,6 +22,7 @@ using Aire.Sdk.Auth.Extensions;
 using Azure.Storage.Queues;
 using Aire.Sdk.Platform;
 using Aire.Sdk.Platform.Clients;
+using Aire.Sdk.Audit;
 
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(worker =>
@@ -29,8 +30,8 @@ var host = new HostBuilder()
         worker.UseNewtonsoftJson();
         worker.UseJwtAuth(new JwtTokenServiceConfiguration()
         {
-            Issuer = AireEnvironment.TokenIssuer,
-            Audience = AireEnvironment.TokenAudience,
+            Issuer = AireIdEnvironment.TokenIssuer,
+            Audience = AireIdEnvironment.TokenAudience,
             SigningKey = AireEnvironment.TokenSigningKey,
             EncryptionKey = AireEnvironment.TokenEncryptionKey
         });
@@ -49,21 +50,21 @@ var host = new HostBuilder()
 
         services.AddAzureClients(builder =>
         {
-            builder.AddEmailClient(AireEnvironment.CommunicationServiceConnectionString);
+            builder.AddEmailClient(AireIdEnvironment.CommunicationServiceConnectionString);
 
-            builder.AddTableServiceClient(AireEnvironment.StorageConnectionString)
+            builder.AddTableServiceClient(AireIdEnvironment.StorageConnectionString)
                 .ConfigureOptions(options =>
                 {
                     options.Diagnostics.IsLoggingEnabled = false;
                 });
 
-            builder.AddQueueServiceClient(AireEnvironment.StorageConnectionString)
+            builder.AddQueueServiceClient(AireIdEnvironment.StorageConnectionString)
                 .ConfigureOptions(options =>
                 {
                     options.MessageEncoding = QueueMessageEncoding.Base64;
                 });
 
-            builder.AddBlobServiceClient(AireEnvironment.StorageConnectionString)
+            builder.AddBlobServiceClient(AireIdEnvironment.StorageConnectionString)
                 .ConfigureOptions(options =>
                 {
                     options.Diagnostics.IsLoggingEnabled = false;
@@ -88,7 +89,7 @@ var host = new HostBuilder()
                     Description = "This is the reference implementation of the AIRe Platform ID module."
                 },
                 Servers = [
-                    new OpenApiServer { Url = AireEnvironment.OpenApiHost ?? "/" }
+                    new OpenApiServer { Url = AireIdEnvironment.OpenApiHost ?? "/" }
                 ],
                 OpenApiVersion = OpenApiVersionType.V3,
                 IncludeRequestingHostName = false,
@@ -106,6 +107,22 @@ var host = new HostBuilder()
             })
             .AddSingleton<IAirePlatformService, AirePlatformService>()
             .AddSingleton<IAireClientFactory, AireClientFactory>();
+
+
+        services
+            .Configure<AireModuleConfig>(o =>
+            {
+                o.Type = Aire.Sdk.Models.Platform.ModuleType.ID;
+                o.Identifier = AireEnvironment.ModuleIdentifier;
+            })
+            .AddSingleton<IAireModuleSettingsService, AireModuleSettingsService>();
+
+        services
+            .Configure<AireAuditServiceOptions>(o =>
+            {
+                o.Source = AireEnvironment.ModuleIdentifier;
+            })
+            .AddSingleton<IAireAuditService, AireAuditService>();
     })
     .Build();
 

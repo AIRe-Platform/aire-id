@@ -3,10 +3,9 @@
 // file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 
-namespace Aire.Id.Oauth2
+namespace Aire.Id.Oauth2;
+
+public class OauthConfiguration
 {
-    public class OauthConfiguration
-    {
-        public TimeSpan TokenLifetime { get; set; }
-    }
+    public TimeSpan TokenLifetime { get; set; }
 }

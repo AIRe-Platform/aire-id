@@ -8,40 +8,33 @@ using Aire.Id.Models;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Models;
+using Aire.Sdk.Models.Platform;
+using Aire.Sdk.Platform;
 using Aire.Sdk.Platform.Clients;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
-using Microsoft.Extensions.Logging;
+using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
+using Microsoft.OpenApi.Models;
 
 namespace Aire.Id.Api;
 
-public class GDPR_v1
+public class GDPR_v1(
+    IAireClientFactory clientFactory,
+    ITableStorageService storage,
+    IAirePlatformService platformService,
+    IJwtTokenService jwt)
 {
-    private readonly ILogger<GDPR_v1> _log;
-    private readonly IAireClientFactory _clientFactory;
-    private readonly ITableStorageService _storage;
-    private readonly IJwtTokenService _jwt;
-
-    public GDPR_v1(
-        ILogger<GDPR_v1> log,
-        IAireClientFactory clientFactory,
-        ITableStorageService storage,
-        IJwtTokenService jwt)
-    {
-        _log = log;
-        _clientFactory = clientFactory;
-        _storage = storage;
-        _jwt = jwt;
-    }
+    private readonly IAireClientFactory _clientFactory = clientFactory;
+    private readonly ITableStorageService _storage = storage;
+    private readonly IAirePlatformService _platformService = platformService;
+    private readonly IJwtTokenService _jwt = jwt;
 
     [Function("GDPR_PersonalData_v1")]
-    [OpenApiOperation(
-        operationId: "gdprPersonalData",
-        tags: ["GDPR"],
-        Summary = "Get all personal data")]
-    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(Dictionary<string, object?>), Description = "Personal data collection")]
+    [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
+    [OpenApiOperation("gdprPersonalData", ["GDPR"], Summary = "Get all personal data")]
+    [OpenApiResponseWithBody(HttpStatusCode.OK, "application/json", typeof(GDPRDataCollection), Description = "Personal data collection")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Authorization required")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Access denied")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error")]
@@ -53,16 +46,27 @@ public class GDPR_v1
         if (auth == null)
             return new UnauthorizedResult();
 
-        var data = new GDPRDataCollection();
-
-        // Gather data from the memory service
-        var memoryClient = await _clientFactory.CreateMemoryClient(auth.JwtEncodedToken);
-        if (memoryClient != null)
+        var platforms = await _platformService.GetPlatformConfigurations();
+        var data = new GDPRDataCollection()
         {
-            var userData = await memoryClient.GetUserData();
-            if(userData != null)
+            Memory = []
+        };
+
+        // Gather data from the memory services
+        foreach (var platform in platforms)
+        {
+            var memories = platform.Value.GetModules(ModuleType.Memory, false);
+            foreach (var memory in memories)
             {
-                data = userData;
+                var memoryClient = await _clientFactory.CreateMemoryClient(memory, auth.JwtEncodedToken);
+                if (memoryClient != null)
+                {
+                    var userData = await memoryClient.GetUserData();
+                    if (userData != null)
+                    {
+                        data.Memory.Add($"{platform.Key}/{memory.Id}", userData);
+                    }
+                }
             }
         }
 

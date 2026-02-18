@@ -9,7 +9,7 @@ const es: Locale = {
     settings_language: "Idioma de la interfaz de usuario",
 
     auth_please_wait: "Por favor, espere...",
-    
+
     login_title: "Iniciar sesión",
     login_username: "Nombre de usuario o correo electrónico",
     login_password: "Contraseña",
@@ -24,7 +24,7 @@ const es: Locale = {
     consent_title: "Confirmar inicio de sesión",
     consent_logged_in_as: "Has iniciado sesión como {username}.",
     consent_click_to_logout: "¿No eres tú? Haz clic aquí para cerrar sesión.",
-    consent_disclaimer: "Estás iniciando sesión en {service}. Esto le dará acceso al servicio a tu información. ¿Deseas continuar?",
+    consent_disclaimer: "Estás iniciando sesión en {service} en {platform}. Esto le da acceso al servicio a tu información. ¿Deseas continuar?",
     consent_button_consent: "Confirmar",
     consent_button_cancel: "Cancelar",
 
@@ -48,6 +48,15 @@ const es: Locale = {
     recovery_failed: "Esta cuenta no se puede recuperar. Por favor, contacta con el soporte.",
     recovery_password_requirements_not_met: "La contraseña debe tener al menos 8 caracteres y contener letras mayúsculas y minúsculas.",
 
+    invite_title: "Invitar a un nuevo usuario",
+    invite_email: "Dirección de correo electrónico",
+    invite_failed_generic: "Error al enviar la invitación. Inténtalo más tarde.",
+    invite_failed_conflict: "No se puede enviar una invitación a este correo electrónico. Es posible que ya esté en uso o que ya se haya invitado.",
+    invite_failed_not_found: "Código de invitación no válido. Es posible que el código QR o el enlace de invitación que usaste no existan.",
+    invite_failed_forbidden: "Código de invitación caducado. Es posible que el código QR o el enlace de invitación que usaste estén caducados.",
+    invite_sent: "¡Invitación enviada a '{email}' correctamente!",
+    invite_submit: "Enviar invitación",
+
     error_not_found: "La página solicitada no existe. (404)",
     error_title: "Fallo en la autenticación",
     error_details: `Error al autenticar. Por favor, inténtalo de nuevo más tarde.
@@ -55,7 +64,7 @@ const es: Locale = {
             Error: {error}
             Descripción: {description}
         `,
-    
+
     en: "Inglés",
     fi: "Finlandés",
     es: "Español",

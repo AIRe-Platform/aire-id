@@ -9,7 +9,7 @@ const fi: Locale = {
     settings_language: "Käyttöliittymän kieli",
 
     auth_please_wait: "Hetkinen...",
-    
+
     login_title: "Kirjautuminen",
     login_username: "Käyttäjätunnus tai sähköpostiosoite",
     login_password: "Salasana",
@@ -24,7 +24,7 @@ const fi: Locale = {
     consent_title: "Vahvista kirjautuminen",
     consent_logged_in_as: "Olet kirjautunut käyttäjänä {username}.",
     consent_click_to_logout: "Etkö ole sinä? Kirjaudu ulos klikkaamalla tästä.",
-    consent_disclaimer: "Olet kirjautumassa palveluun {service}. Tämä antaa palvelulle pääsyn tietoihisi. Haluatko jatkaa?",
+    consent_disclaimer: "Olet kirjautumassa palveluun {service} alustalla {platform}. Tämä antaa palvelulle pääsyn tietoihisi. Haluatko jatkaa?",
     consent_button_consent: "Vahvista",
     consent_button_cancel: "Peruuta",
 
@@ -48,6 +48,15 @@ const fi: Locale = {
     recovery_failed: "Tätä tiliä ei voida palauttaa. Ota yhteyttä tukeen.",
     recovery_password_requirements_not_met: "Salasanan tulee olla vähintään 8 merkkiä pitkä ja sisältää isoja ja pieniä kirjaimia.",
 
+    invite_title: "Kutsu uusi käyttäjä",
+    invite_email: "Sähköpostiosoite",
+    invite_failed_generic: "Kutsun lähettäminen epäonnistui. Yritä myöhemmin uudelleen.",
+    invite_failed_conflict: "Kutsua ei voitu lähettää. Sähköpostiosoite saattaa olla jo käytössä tai kutsuttu.",
+    invite_failed_not_found: "Virheellinen kutsukoodi. Käyttämäsi QR-koodi tai kutsulinkki ei enää ole olemassa.",
+    invite_failed_forbidden: "Vanhentunut kutsukoodi. Käyttämäsi QR-koodi tai kutsulinkki ei ole enää voimassa.",
+    invite_sent: "Kutsu lähetetty osoitteeseen '{email}' onnistuneesti!",
+    invite_submit: "Lähetä kutsu",
+
     error_not_found: "Pyydettyä sivua ei löydy. (404)",
     error_title: "Tunnistautuminen epäonnistui",
     error_details: `Tunnistautuminen epäonnistui. Yritä myöhemmin uudelleen.
@@ -55,7 +64,7 @@ const fi: Locale = {
             Virhe: {error}
             Kuvaus: {description}
         `,
-    
+
     en: "Englanti",
     fi: "Suomi",
     es: "Espanja",

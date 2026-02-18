@@ -24,18 +24,15 @@ namespace Aire.Id.Api;
 public class Recovery_v1
 {
     private readonly ITableStorageService _storage;
-    private readonly IJwtTokenService _jwt;
     private readonly QueueClient _mail_queue;
     private readonly ILogger<Recovery_v1> _log;
 
     public Recovery_v1(
         ITableStorageService storage,
-        IJwtTokenService jwt,
         QueueServiceClient queues,
         ILogger<Recovery_v1> log)
     {
         _storage = storage;
-        _jwt = jwt;
         _mail_queue = queues.GetQueueClient(AireConstants.Queues.Mail);
         _log = log;
     }
@@ -52,7 +49,7 @@ public class Recovery_v1
     public async Task<IActionResult> RequestRecoveryCode(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/code")] HttpRequest req)
     {
-        if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
+        if (string.IsNullOrWhiteSpace(AireIdEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
 
         var body = await req.ReadJson<RecoveryCodeRequest>();
@@ -118,7 +115,7 @@ public class Recovery_v1
     public async Task<IActionResult> RecoveryPasswordChange(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/password")] HttpRequest req)
     {
-        if (string.IsNullOrWhiteSpace(AireEnvironment.GlobalRecoveryKey))
+        if (string.IsNullOrWhiteSpace(AireIdEnvironment.GlobalRecoveryKey))
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
 
         var body = await req.ReadJson<RecoveryPasswordChangeRequest>();

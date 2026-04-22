@@ -67,6 +67,7 @@ const id: Locale = {
 
     en: "Inggris",
     fi: "Suomi",
+    sv: "Swedia",
     es: "Spanyol",
     vi: "Vietnam",
     id: "Indonesia",

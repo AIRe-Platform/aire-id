@@ -6,7 +6,7 @@
 import { Locale } from ".";
 
 const fi: Locale = {
-    settings_language: "Käyttöliittymän kieli",
+    settings_language: "AIRe-palvelun kieli",
 
     auth_please_wait: "Hetkinen...",
 
@@ -23,7 +23,7 @@ const fi: Locale = {
 
     consent_title: "Vahvista kirjautuminen",
     consent_logged_in_as: "Olet kirjautunut käyttäjänä {username}.",
-    consent_click_to_logout: "Etkö ole sinä? Kirjaudu ulos klikkaamalla tästä.",
+    consent_click_to_logout: "Väärä käyttäjätili? Kirjaudu ulos tästä.",
     consent_disclaimer: "Olet kirjautumassa palveluun {service} alustalla {platform}. Tämä antaa palvelulle pääsyn tietoihisi. Haluatko jatkaa?",
     consent_button_consent: "Vahvista",
     consent_button_cancel: "Peruuta",
@@ -67,11 +67,12 @@ const fi: Locale = {
 
     en: "Englanti",
     fi: "Suomi",
+    sv: "Ruotsi",
     es: "Espanja",
     vi: "Vietnam",
     id: "Indonesia",
     sw: "Swahili",
-    rw: "Ruandan kieli"
+    rw: "Kinyarwanda"
 };
 
 

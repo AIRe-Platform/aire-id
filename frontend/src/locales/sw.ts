@@ -67,6 +67,7 @@ const sw: Locale = {
 
     en: "Kiingereza",
     fi: "Kifini",
+    sv: "Kiswidi",
     es: "Kihispania",
     vi: "Kivietinamu",
     id: "Kiindonesia",

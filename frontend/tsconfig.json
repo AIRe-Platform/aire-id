@@ -9,7 +9,6 @@
     }
   ],
   "compilerOptions": {
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true, // This is optional but helps with catching errors

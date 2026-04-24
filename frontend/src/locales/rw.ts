@@ -59,10 +59,15 @@ const rw: Locale = {
 
     error_not_found: "Paji yasabwe ntibaho. (404)",
     error_title: "Gusuzuma byanze",
-    error_details: "Gusuzuma byanze. Nyamuneka ongera wigerageze nyuma.\n\n Ikosa: {error}\n Ibisobanuro: {description}\n",
+    error_details: `Gusuzuma byanze. Nyamuneka ongera wigerageze nyuma.
+    
+            Ikosa: {error}
+            Ibisobanuro: {description}
+            `,
 
     en: "Icyongereza",
     fi: "Icyongereza",
+    sv: "Igisuwede",
     es: "Icyesipanyolo",
     vi: "Icyaviyetinamu",
     id: "Icyindonesiya",

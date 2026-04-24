@@ -6,6 +6,7 @@
 import { createI18n } from 'vue-i18n';
 import en from './en';
 import fi from './fi';
+import sv from './sv';
 import es from './es';
 import vi from './vi';
 import id from './id';
@@ -19,7 +20,7 @@ export const l = LocalizationKey;
 export type Locale = { [id in LocalizationKey]: string };
 
 export const supportedLocales: LanguageCode[] = [
-    "en", "fi", "es", "vi", "id", "sw", "rw"
+    "en", "fi", "sv", "es", "vi", "id", "sw", "rw"
 ]
 
 export function requested_locale() {
@@ -43,6 +44,7 @@ function initLocale() {
         messages: {
             en: { ...en },
             fi: { ...fi },
+            sv: { ...sv },
             es: { ...es },
             id: { ...id },
             sw: { ...sw },

@@ -67,6 +67,7 @@ const vi: Locale = {
 
     en: "Tiếng Anh",
     fi: "Tiếng Phần Lan",
+    sv: "Tiếng Thụy Điển",
     es: "Tiếng Tây Ban Nha",
     vi: "Tiếng Việt",
     id: "Tiếng Indonesia",

@@ -62,6 +62,7 @@ export enum LocalizationKey {
     
     en = "en",
     fi = "fi",
+    sv = "sv",
     es = "es",
     vi = "vi",
     id = "id",

@@ -67,6 +67,7 @@ const es: Locale = {
 
     en: "Inglés",
     fi: "Finlandés",
+    sv: "Sueco",
     es: "Español",
     vi: "Vietnamita",
     id: "Indonesio",

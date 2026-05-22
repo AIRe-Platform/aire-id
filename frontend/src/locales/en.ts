@@ -6,7 +6,7 @@
 import { Locale } from ".";
 
 const en: Locale = {
-    settings_language: "User interface language",
+    settings_language: "The language of the AIRe Service",
 
     auth_please_wait: "Please wait...",
 
@@ -23,7 +23,7 @@ const en: Locale = {
 
     consent_title: "Confirm Login",
     consent_logged_in_as: "You are logged in as {username}.",
-    consent_click_to_logout: "Not you? Click here to logout.",
+    consent_click_to_logout: "Wrong user account? Log out here.",
     consent_disclaimer: "You are logging into {service} on {platform}. This gives the service access to your information. Do you wish to proceed?",
     consent_button_consent: "Confirm",
     consent_button_cancel: "Cancel",
@@ -67,6 +67,7 @@ const en: Locale = {
 
     en: "English",
     fi: "Finnish",
+    sv: "Swedish",
     es: "Spanish",
     vi: "Vietnamese",
     id: "Indonesian",

@@ -5,7 +5,7 @@
 
 import { Locale } from ".";
 
-const se: Locale = {
+const sv: Locale = {
     settings_language: "AIRe-tjänstens språk",
 
     auth_please_wait: "Vänta lite...",
@@ -75,4 +75,4 @@ const se: Locale = {
 };
 
 
-export default se;
+export default sv;

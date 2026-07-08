@@ -24,4 +24,7 @@ public class InviteAuthResponse
 
     [JsonProperty("auth")]
     public OauthTokenResponse? Auth { get; set; }
+
+    [JsonProperty("invitation")]
+    public string? Invitation { get; set; }
 }

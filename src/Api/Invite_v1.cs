@@ -379,7 +379,7 @@ public class Invite_v1(
             ClientId = inviteCode.ClientId,
             Platform = inviteCode.Platform,
             Code = inviteCode.Code(),
-            AccountUpgrade = inviteCode.AccountUpgrade
+            AccountUpgrade = inviteCode.AccountUpgrade,
         };
 
         {
@@ -457,6 +457,11 @@ public class Invite_v1(
         token = guid.ToString();
         var entity = await _storage.RetrieveAsync<InviteTokenEntity>(token[..5], token);
         if (entity == null)
+            return new ForbiddenResult();
+
+        // Invitation code has to exist (it's okay if it is disabled or expired)
+        var inviteCode = await _storage.RetrieveAsync<InviteCodeEntity>(entity.Code!);
+        if (inviteCode == null)
             return new ForbiddenResult();
 
         bool expired = entity.Expiry < DateTime.UtcNow || !entity.Active;
@@ -569,7 +574,8 @@ public class Invite_v1(
             AccountUpgrade = entity.AccountUpgrade,
             ChatId = entity.ChatId,
             UserId = entity.UserId,
-            Platform = entity.Platform
+            Platform = entity.Platform,
+            Invitation = inviteCode.Name
         };
 
         await _auditService.LogEvent(new(resType, entity.Code), entity.UserId, "invitation.validate", new()

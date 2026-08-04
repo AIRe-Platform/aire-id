@@ -456,7 +456,7 @@ public class Invite_v1(
 
         token = guid.ToString();
         var entity = await _storage.RetrieveAsync<InviteTokenEntity>(token[..5], token);
-        if (entity == null)
+        if (entity?.Platform == null)
             return new ForbiddenResult();
 
         // Invitation code has to exist (it's okay if it is disabled or expired)
@@ -473,7 +473,7 @@ public class Invite_v1(
         UserEntity? user;
         if (entity.UserId == null)
         {
-            user = UserEntity.CreateTrialUser(entity.EmailHash!, entity.Token());
+            user = UserEntity.CreateTrialUser(entity.EmailHash!, entity.Token(), entity.Platform);
             var created = await _storage.UpsertAsync(user);
             if (!created)
             {
@@ -508,10 +508,8 @@ public class Invite_v1(
 
         var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);
         var key = user.GetEncryptionKey(trialpass);
-        var subject = _loginProvider.GetSubject(user, key!);
-
-        if (entity.Platform != null)
-            subject.Claims.Add(AireClaims.Platform, entity.Platform);
+        var subject = _loginProvider.GetSubject(user, key!, entity.Platform);
+        subject.Claims.Add(AireClaims.Platform, entity.Platform);
 
         // Create new chat object
         if (entity.ChatId == null)
@@ -545,7 +543,7 @@ public class Invite_v1(
 
         // Create access token
 
-        var scopes = ScopeHelper.GetScopesForUser(user);
+        var scopes = user.GetScopes(entity.Platform);
         if (!entity.AccountUpgrade)
             scopes.Remove(AireScopes.TrialAccountUpgrade);
 
@@ -606,7 +604,7 @@ public class Invite_v1(
         string token)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.TrialAccountUpgrade))
@@ -637,13 +635,13 @@ public class Invite_v1(
         if (user == null)
             return new ForbiddenResult();
 
-        if (user.Role != AireRoles.TrialUser)
+        if (!user.HasRole(AireRoles.TrialUser, auth.Platform))
         {
             _log.LogWarning("Already signed up");
             return new NoContentResult();
         }
 
-        bool upgraded = user.UpgradeTrialUserToRegular(body.Password, token);
+        bool upgraded = user.UpgradeTrialUserToRegular(body.Password, token, auth.Platform);
         if (!upgraded)
         {
             _log.LogError("Failed to upgrade account");

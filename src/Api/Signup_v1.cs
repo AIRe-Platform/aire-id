@@ -43,13 +43,13 @@ public class Signup_v1
         Summary = "Register new user")]
     [OpenApiRequestBody("application/json", typeof(SignupRequest), Description = "Signup request", Required = true)]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Signup success")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "User already exists, failed to signup to platform")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid email format, account already exists, or password does not meet minimum requirements")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error, try again later.")]
     public async Task<IActionResult> Signup(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/signup")] HttpRequest req)
     {
         var request = await req.ReadJson<SignupRequest>();
-
         if (request == null)
             return new BadRequestResult();
 
@@ -58,17 +58,33 @@ public class Signup_v1
 
         var hash = Crypto.SHA256Base16(request.Credentials!.Email!);
         var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
-        var ent = await query.FirstOrDefaultAsync();
+        var user = await query.FirstOrDefaultAsync();
 
-        if (ent != null)
-            return new BadRequestResult();
+        if (user != null) // Does user exist?
+        {
+            // Validate credentials and enroll to a new platform
+            if (!user.CheckPassword(request.Credentials.Password!))
+                return new ForbiddenResult();
+
+            // Already member?
+            if (!user.HasRole(AireRoles.NonMember, request.Platform!))
+                return new BadRequestResult();
+
+            user.SetRole(request.Platform!, AireRoles.User);
+
+            bool result = await _storage.UpsertAsync(user);
+            if (!result)
+                return new InternalServerErrorResult();
+
+            return new NoContentResult();
+        }
 
         var pw = request.Credentials!.Password!;
-        var user = new UserEntity()
+        user = new UserEntity()
         {
-            EmailHash = hash,
-            Role = AireRoles.User
+            EmailHash = hash
         };
+        user.SetRole(request.Platform!, AireRoles.User);
         user.GenerateEncryptionKey(pw);
         user.ChangePassword(null, pw);
 

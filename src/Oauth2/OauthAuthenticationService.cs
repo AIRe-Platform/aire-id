@@ -19,7 +19,6 @@ using Aire.Sdk.Helpers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Web;
-using Aire.Id.Helpers;
 using Aire.Sdk.Platform;
 
 namespace Aire.Id.Oauth2;
@@ -228,7 +227,7 @@ public class OauthAuthenticationService(
         if (user == null)
             throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
-        var subject = _loginProvider.GetSubject(user, code.UserKey!);
+        var subject = _loginProvider.GetSubject(user, code.UserKey!, code.Platform);
         if (code.Platform != null)
             subject.Claims.Add(AireClaims.Platform, code.Platform);
 
@@ -255,7 +254,13 @@ public class OauthAuthenticationService(
         if (client == null)
             throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
 
+        if (req.Platform == null)
+            throw new OauthException(OauthError.InvalidRequest, "Platform required");
+
         ThrowIfInvalidClientPlatform(client, req.Platform);
+
+        var platform = await _platformService.GetInternalPlatformConfiguration(req.Platform)
+            ?? throw new OauthException(OauthError.TemporarilyUnavailable, "Platform unavailable");
 
         var scopes = ValidateClientScopes(req.Scope, client);
         if (scopes == null)
@@ -269,16 +274,8 @@ public class OauthAuthenticationService(
         query["scope"] = string.Join(" ", scopes);
         query["state"] = req.State;
         query["consent"] = client.RequireConsent ? "1" : "0";
-
-        if (req.Platform != null)
-        {
-            query["platform"] = req.Platform;
-
-            var platform = await _platformService.GetInternalPlatformConfiguration(req.Platform)
-                ?? throw new OauthException(OauthError.TemporarilyUnavailable, "Platform unavailable");
-
-            query["platform_name"] = platform.Platform?.Name;
-        }
+        query["platform"] = req.Platform;
+        query["platform_name"] = platform.Platform?.Name;
 
         if (req.CodeChallenge != null)
             query["code_challenge"] = req.CodeChallenge;
@@ -296,6 +293,9 @@ public class OauthAuthenticationService(
         if (client == null)
             throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
 
+        if (req.Platform == null)
+            throw new OauthException(OauthError.InvalidRequest, "Platform required");
+
         ThrowIfInvalidClientPlatform(client, req.Platform);
 
         var user = await _storage.RetrieveAsync<UserEntity>(auth.UserId);
@@ -306,7 +306,8 @@ public class OauthAuthenticationService(
         if (scopes == null)
             throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
 
-        scopes = FilterUserScopes(user, scopes);
+
+        scopes = FilterUserScopes(user, scopes, req.Platform);
 
         var redirect = GetClientRedirectUri(req, client);
         string code = RandomNumberGenerator.GetHexString(32, true);
@@ -397,15 +398,15 @@ public class OauthAuthenticationService(
                 return null;
         }
 
-        return scopes.ToArray();
+        return [.. scopes];
     }
 
-    public static string[] FilterUserScopes(UserEntity user, IEnumerable<string> requested)
+    public static string[] FilterUserScopes(UserEntity user, IEnumerable<string> requested, string platform)
     {
-        var scopes = ScopeHelper.GetScopesForUser(user);
+        var scopes = user.GetScopes(platform);
 
         // Ignore all scopes not allowed for the user
-        return requested.Where(x => scopes.Contains(x)).ToArray();
+        return [.. requested.Where(x => scopes.Contains(x))];
     }
 
     public static bool ValidateGrantType(ClientEntity client, OauthGrantType grantType)
@@ -427,18 +428,10 @@ public class OauthAuthenticationService(
         return hash == secret_hash;
     }
 
-    private static void ThrowIfInvalidClientPlatform(ClientEntity client, string? platform)
+    private static void ThrowIfInvalidClientPlatform(ClientEntity client, string platform)
     {
-        if (platform != null)
-        {
-            var allowedPlatforms = client.GetAllowedPlatforms();
-            if (!allowedPlatforms.Contains(platform) && allowedPlatforms.FirstOrDefault() != "*")
-                throw new OauthException(OauthError.UnauthorizedClient, "Client not authorized for platform");
-        }
-        else
-        {
-            if (client.RequirePlatform)
-                throw new OauthException(OauthError.InvalidRequest, "Client requires platform");
-        }
+        var allowedPlatforms = client.GetAllowedPlatforms();
+        if (!allowedPlatforms.Contains(platform) && allowedPlatforms.FirstOrDefault() != "*")
+            throw new OauthException(OauthError.UnauthorizedClient, "Client not authorized for platform");
     }
 }

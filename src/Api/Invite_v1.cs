@@ -359,47 +359,55 @@ public class Invite_v1(
 
         var emailHash = Crypto.SHA256Base16(invitation.Email!);
 
-        var alias = await (await _storage.QueryAsync<UserEntity>(x => x.EmailHash == emailHash)).FirstOrDefaultAsync();
+        var alias = await (await _storage.QueryAsync<UserEntity>(x => x.EmailHash == emailHash))
+            .FirstOrDefaultAsync();
+
         if (alias != null)
-            return new ConflictResult();
+            return new ConflictResult(); // User already registered
 
-        var invite = await (await _storage.QueryAsync<InviteTokenEntity>(x => x.EmailHash == emailHash)).FirstOrDefaultAsync();
-        if (invite != null)
-            return new ConflictResult();
+        var token = await (await _storage.QueryAsync<InviteTokenEntity>(x => x.EmailHash == emailHash))
+            .FirstOrDefaultAsync();
 
-        // Create invitation token
-
-        var token = new InviteTokenEntity()
+        if (token != null)
         {
-            Expiry = DateTime.UtcNow.AddDays(inviteCode.TrialDuration),
-            EmailHash = emailHash,
-            Active = true,
-            UserId = null, // User entity is created when the user opens the chat for the first time
-            ChatId = null, // Chat object is created on first activation
-            ClientId = inviteCode.ClientId,
-            Platform = inviteCode.Platform,
-            Code = inviteCode.Code(),
-            AccountUpgrade = inviteCode.AccountUpgrade,
-        };
-
-        {
-            var created = await _storage.UpsertAsync(token);
-            if (!created)
-            {
-                _log.LogError("Failed to create invite token entity");
-                return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
-            }
+            // If the user was already invited, check validity and resend
+            if (token.Expiry < DateTime.UtcNow || !token.Active || token.Code != code)
+                return new ForbiddenResult();
         }
-
-        // Update invite code
-
-        inviteCode.Used += 1;
+        else // New user
         {
-            var updated = await _storage.UpsertAsync(inviteCode);
-            if (!updated)
+            token = new InviteTokenEntity()
             {
-                _log.LogError("Failed to update invite code entity");
-                return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                Expiry = DateTime.UtcNow.AddDays(inviteCode.TrialDuration),
+                EmailHash = emailHash,
+                Active = true,
+                UserId = null, // User entity is created when the user opens the chat for the first time
+                ChatId = null, // Chat object is created on first activation
+                ClientId = inviteCode.ClientId,
+                Platform = inviteCode.Platform,
+                Code = inviteCode.Code(),
+                AccountUpgrade = inviteCode.AccountUpgrade,
+            };
+
+            {
+                var created = await _storage.UpsertAsync(token);
+                if (!created)
+                {
+                    _log.LogError("Failed to create invite token entity");
+                    return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                }
+            }
+
+            // Update invite code
+
+            inviteCode.Used += 1;
+            {
+                var updated = await _storage.UpsertAsync(inviteCode);
+                if (!updated)
+                {
+                    _log.LogError("Failed to update invite code entity");
+                    return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                }
             }
         }
 

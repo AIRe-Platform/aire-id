@@ -43,7 +43,7 @@ public class Signup_v1
         Summary = "Register new user")]
     [OpenApiRequestBody("application/json", typeof(SignupRequest), Description = "Signup request", Required = true)]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Signup success")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "User already exists, failed to signup to platform")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "User already exists")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid email format, account already exists, or password does not meet minimum requirements")]
     [OpenApiResponseWithoutBody(HttpStatusCode.InternalServerError, Description = "Internal error, try again later.")]
     public async Task<IActionResult> Signup(
@@ -60,24 +60,8 @@ public class Signup_v1
         var query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == hash);
         var user = await query.FirstOrDefaultAsync();
 
-        if (user != null) // Does user exist?
-        {
-            // Validate credentials and enroll to a new platform
-            if (!user.CheckPassword(request.Credentials.Password!))
-                return new ForbiddenResult();
-
-            // Already member?
-            if (!user.HasRole(AireRoles.NonMember, request.Platform!))
-                return new BadRequestResult();
-
-            user.SetRole(request.Platform!, AireRoles.User);
-
-            bool result = await _storage.UpsertAsync(user);
-            if (!result)
-                return new InternalServerErrorResult();
-
-            return new NoContentResult();
-        }
+        if (user != null)
+            return new ForbiddenResult();
 
         var pw = request.Credentials!.Password!;
         user = new UserEntity()

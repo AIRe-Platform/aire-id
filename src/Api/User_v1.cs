@@ -329,7 +329,7 @@ public class User_v1(
         foreach (var platform in platforms)
         {
             // Create new tokens for platforms
-            var subject = _loginProvider.GetSubject(user, auth.UserKey);
+            var subject = _loginProvider.GetSubject(user, auth.UserKey, platform.Key);
             subject.Claims.Add(AireClaims.Platform, platform.Key);
 
             var desc = new OauthTokenDescription(subject, [AireScopes.DeleteChatHistory], TimeSpan.FromMinutes(5));

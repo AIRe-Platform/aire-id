@@ -21,7 +21,6 @@ using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using Aire.Id.Oauth2.Models;
-using Aire.Id.Helpers;
 using Aire.Sdk.Platform;
 using Aire.Sdk.Models.Platform;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Enums;
@@ -120,7 +119,7 @@ public class Demo_v1(
         string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadDemoGroups))
@@ -130,7 +129,7 @@ public class Demo_v1(
             return new BadRequestResult();
 
         var user = await _storage.RetrieveAsync<DemoUserEntity>(id);
-        if (user == null || user.Role != AireRoles.DemoUser)
+        if (user == null || !user.HasRole(AireRoles.DemoUser, auth.Platform))
             return new NotFoundResult();
 
         var key = user.GetEncryptionKey(user.DemoAccessCode!)!;
@@ -154,7 +153,7 @@ public class Demo_v1(
         FunctionContext context)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditDemoGroups))
@@ -186,12 +185,12 @@ public class Demo_v1(
             var accessCode = RandomNumberGenerator.GetHexString(8, true);
             var entity = new DemoUserEntity()
             {
-                Role = AireRoles.DemoUser,
                 Username = $"{group.UsernamePrefix!}{i}",
                 DemoGroupId = groupId,
                 DemoAccessCode = accessCode,
                 Verified = true
             };
+            entity.SetRole(auth.Platform, AireRoles.DemoUser);
             entity.GenerateEncryptionKey(accessCode);
             entity.ChangePassword(null, accessCode);
 
@@ -298,7 +297,7 @@ public class Demo_v1(
         string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.DeleteDemoGroups))
@@ -322,8 +321,8 @@ public class Demo_v1(
 
             // Delete user data from Memory (pretend to be the subject)
             var subjectKey = entity.GetEncryptionKey(subject.AccessCode!);
-            var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!);
-            var scopes = ScopeHelper.GetScopesForUser(entity);
+            var oauthSubject = _loginProvider.GetSubject(entity, subjectKey!, auth.Platform);
+            var scopes = entity.GetScopes(auth.Platform);
 
             var platforms = await _platformService.GetPlatformConfigurations();
             foreach (var platform in platforms)

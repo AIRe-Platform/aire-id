@@ -20,4 +20,7 @@ public class SignupRequest
 {
     [JsonProperty("credentials", Required = Required.Always)]
     public SignupCredentials? Credentials { get; set; }
+
+    [JsonProperty("platform", Required = Required.Always)]
+    public string? Platform { get; set; }
 }

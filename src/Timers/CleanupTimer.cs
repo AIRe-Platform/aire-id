@@ -68,7 +68,7 @@ namespace Aire.Id.Timers
                         continue;
 
                     var user = await _storage.RetrieveAsync<UserEntity>(item.UserId);
-                    if (user == null || user.Role != AireRoles.TrialUser) // Deleted or upgraded?
+                    if (user == null || user.HasRole(AireRoles.TrialUser, item.Platform)) // Deleted or upgraded?
                         continue;
 
                     _logger.LogInformation($"Deleting user {user.UUID()}");
@@ -83,7 +83,7 @@ namespace Aire.Id.Timers
                     var pw = user.GetTrialUserPassword(item.EmailHash!, item.Token());
                     var key = user.GetEncryptionKey(pw);
 
-                    var subject = _loginProvider.GetSubject(user, key!);
+                    var subject = _loginProvider.GetSubject(user, key!, item.Platform);
                     subject.Claims[AireClaims.Platform] = item.Platform!;
 
                     var tokendesc = new OauthTokenDescription(subject, [AireScopes.DeleteChatHistory], TimeSpan.FromMinutes(5));

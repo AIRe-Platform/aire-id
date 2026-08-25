@@ -359,47 +359,55 @@ public class Invite_v1(
 
         var emailHash = Crypto.SHA256Base16(invitation.Email!);
 
-        var alias = await (await _storage.QueryAsync<UserEntity>(x => x.EmailHash == emailHash)).FirstOrDefaultAsync();
+        var alias = await (await _storage.QueryAsync<UserEntity>(x => x.EmailHash == emailHash))
+            .FirstOrDefaultAsync();
+
         if (alias != null)
-            return new ConflictResult();
+            return new ConflictResult(); // User already registered
 
-        var invite = await (await _storage.QueryAsync<InviteTokenEntity>(x => x.EmailHash == emailHash)).FirstOrDefaultAsync();
-        if (invite != null)
-            return new ConflictResult();
+        var token = await (await _storage.QueryAsync<InviteTokenEntity>(x => x.EmailHash == emailHash))
+            .FirstOrDefaultAsync();
 
-        // Create invitation token
-
-        var token = new InviteTokenEntity()
+        if (token != null)
         {
-            Expiry = DateTime.UtcNow.AddDays(inviteCode.TrialDuration),
-            EmailHash = emailHash,
-            Active = true,
-            UserId = null, // User entity is created when the user opens the chat for the first time
-            ChatId = null, // Chat object is created on first activation
-            ClientId = inviteCode.ClientId,
-            Platform = inviteCode.Platform,
-            Code = inviteCode.Code(),
-            AccountUpgrade = inviteCode.AccountUpgrade
-        };
-
-        {
-            var created = await _storage.UpsertAsync(token);
-            if (!created)
-            {
-                _log.LogError("Failed to create invite token entity");
-                return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
-            }
+            // If the user was already invited, check validity and resend
+            if (token.Expiry < DateTime.UtcNow || !token.Active || token.Code != code)
+                return new ForbiddenResult();
         }
-
-        // Update invite code
-
-        inviteCode.Used += 1;
+        else // New user
         {
-            var updated = await _storage.UpsertAsync(inviteCode);
-            if (!updated)
+            token = new InviteTokenEntity()
             {
-                _log.LogError("Failed to update invite code entity");
-                return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                Expiry = DateTime.UtcNow.AddDays(inviteCode.TrialDuration),
+                EmailHash = emailHash,
+                Active = true,
+                UserId = null, // User entity is created when the user opens the chat for the first time
+                ChatId = null, // Chat object is created on first activation
+                ClientId = inviteCode.ClientId,
+                Platform = inviteCode.Platform,
+                Code = inviteCode.Code(),
+                AccountUpgrade = inviteCode.AccountUpgrade,
+            };
+
+            {
+                var created = await _storage.UpsertAsync(token);
+                if (!created)
+                {
+                    _log.LogError("Failed to create invite token entity");
+                    return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                }
+            }
+
+            // Update invite code
+
+            inviteCode.Used += 1;
+            {
+                var updated = await _storage.UpsertAsync(inviteCode);
+                if (!updated)
+                {
+                    _log.LogError("Failed to update invite code entity");
+                    return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                }
             }
         }
 
@@ -456,7 +464,12 @@ public class Invite_v1(
 
         token = guid.ToString();
         var entity = await _storage.RetrieveAsync<InviteTokenEntity>(token[..5], token);
-        if (entity == null)
+        if (entity?.Platform == null)
+            return new ForbiddenResult();
+
+        // Invitation code has to exist (it's okay if it is disabled or expired)
+        var inviteCode = await _storage.RetrieveAsync<InviteCodeEntity>(entity.Code!);
+        if (inviteCode == null)
             return new ForbiddenResult();
 
         bool expired = entity.Expiry < DateTime.UtcNow || !entity.Active;
@@ -468,7 +481,7 @@ public class Invite_v1(
         UserEntity? user;
         if (entity.UserId == null)
         {
-            user = UserEntity.CreateTrialUser(entity.EmailHash!, entity.Token());
+            user = UserEntity.CreateTrialUser(entity.EmailHash!, entity.Token(), entity.Platform);
             var created = await _storage.UpsertAsync(user);
             if (!created)
             {
@@ -503,10 +516,8 @@ public class Invite_v1(
 
         var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);
         var key = user.GetEncryptionKey(trialpass);
-        var subject = _loginProvider.GetSubject(user, key!);
-
-        if (entity.Platform != null)
-            subject.Claims.Add(AireClaims.Platform, entity.Platform);
+        var subject = _loginProvider.GetSubject(user, key!, entity.Platform);
+        subject.Claims.Add(AireClaims.Platform, entity.Platform);
 
         // Create new chat object
         if (entity.ChatId == null)
@@ -540,7 +551,7 @@ public class Invite_v1(
 
         // Create access token
 
-        var scopes = ScopeHelper.GetScopesForUser(user);
+        var scopes = user.GetScopes(entity.Platform);
         if (!entity.AccountUpgrade)
             scopes.Remove(AireScopes.TrialAccountUpgrade);
 
@@ -569,7 +580,8 @@ public class Invite_v1(
             AccountUpgrade = entity.AccountUpgrade,
             ChatId = entity.ChatId,
             UserId = entity.UserId,
-            Platform = entity.Platform
+            Platform = entity.Platform,
+            Invitation = inviteCode.Name
         };
 
         await _auditService.LogEvent(new(resType, entity.Code), entity.UserId, "invitation.validate", new()
@@ -600,7 +612,7 @@ public class Invite_v1(
         string token)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.TrialAccountUpgrade))
@@ -631,13 +643,13 @@ public class Invite_v1(
         if (user == null)
             return new ForbiddenResult();
 
-        if (user.Role != AireRoles.TrialUser)
+        if (!user.HasRole(AireRoles.TrialUser, auth.Platform))
         {
             _log.LogWarning("Already signed up");
             return new NoContentResult();
         }
 
-        bool upgraded = user.UpgradeTrialUserToRegular(body.Password, token);
+        bool upgraded = user.UpgradeTrialUserToRegular(body.Password, token, auth.Platform);
         if (!upgraded)
         {
             _log.LogError("Failed to upgrade account");

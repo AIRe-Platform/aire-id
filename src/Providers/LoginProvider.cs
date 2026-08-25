@@ -10,7 +10,6 @@ using Aire.Id.Models;
 using Aire.Id.Oauth2.Models;
 using Aire.Id.Oauth2.Providers;
 using Microsoft.Extensions.Logging;
-using Aire.Id.Helpers;
 
 namespace Aire.Id.Providers;
 
@@ -44,7 +43,7 @@ public class LoginProvider : IOauthLoginProvider
             return null;
         }
 
-        if (user.Role == AireRoles.DemoUser)
+        if (user.HasRole(AireRoles.DemoUser))
         {
             var asDemoUser = await _storage.RetrieveAsync<DemoUserEntity>(user.UUID());
             if (asDemoUser?.DemoGroupId != null)
@@ -58,14 +57,14 @@ public class LoginProvider : IOauthLoginProvider
             }
         }
 
-        if (user.Role == AireRoles.TrialUser)
+        if (user.HasRole(AireRoles.TrialUser))
         {
             _log.LogWarning("Logins disabled for trial users");
             return null;
         }
 
         var key = user.GetEncryptionKey(password)!;
-        var subject = GetSubject(user, key);
+        var subject = GetSubject(user, key, null);
 
         user.LastLogin = DateTime.UtcNow;
         if (!await _storage.UpsertAsync(user))
@@ -77,15 +76,15 @@ public class LoginProvider : IOauthLoginProvider
         return subject;
     }
 
-    public OauthSubject GetSubject(UserEntity user, string key)
+    public OauthSubject GetSubject(UserEntity user, string key, string? platform)
     {
         var privateData = user.GetPrivateUserData(key!);
 
         var subject = new OauthSubject
         {
             Subject = user.UUID(),
-            Role = user.Role ?? AireRoles.User,
-            AllowedScopes = ScopeHelper.GetScopesForUser(user),
+            Role = platform == null ? AireRoles.NonMember : user.GetRole(platform),
+            AllowedScopes = platform == null ? [] : user.GetScopes(platform),
             Claims = new Dictionary<string, object> {
                     { AireClaims.UserEncryptionKey, key },
                     { AireClaims.ConnectedServices, privateData!.ConnectedServices! },

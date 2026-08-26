@@ -5,12 +5,12 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using Aire.Id.Helpers;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;
 using Aire.Sdk.Models.Admin;
 using Aire.Sdk.Models.Identity;
+using Aire.Sdk.Platform;
 
 namespace Aire.Id.Models;
 
@@ -23,11 +23,16 @@ public class UserEntity : BaseTableEntity
     public string? Username { get; set; }
     public string? EmailHash { get; set; }
     public string? PublicName { get; set; }
+    public DateTime? LastLogin { get; set; }
+    public DateTime? EulaAccepted { get; set; }
+
+    // Instance-wide role and scopes
     public string? Role { get; set; }
     public string? Scopes { get; set; }
     public string? AdditionalScopes { get; set; }
-    public DateTime? LastLogin { get; set; }
-    public DateTime? EulaAccepted { get; set; }
+
+    // Access rights data per platform
+    public string? AccessRightsData { get; set; }
 
     // Verification
     public bool Verified { get; set; }
@@ -303,16 +308,17 @@ public class UserEntity : BaseTableEntity
         return rec[0].DecryptString(key, Convert.FromBase64String(rec[1]));
     }
 
-    public static UserEntity CreateTrialUser(string emailHash, string token)
+    public static UserEntity CreateTrialUser(string emailHash, string token, string platform)
     {
         var user = new UserEntity()
         {
             EmailHash = emailHash,
-            Role = AireRoles.TrialUser,
             Verified = true,
             LastLogin = DateTime.UtcNow,
             TrialNonce = RandomNumberGenerator.GetHexString(32),
         };
+
+        user.SetRole(platform, AireRoles.TrialUser);
 
         string password = user.GetTrialUserPassword(emailHash, token);
         user.ChangePassword(null, password);
@@ -330,11 +336,14 @@ public class UserEntity : BaseTableEntity
         return Crypto.SHA256Base16(password);
     }
 
-    public bool UpgradeTrialUserToRegular(string password, string token)
+    public bool UpgradeTrialUserToRegular(string password, string token, string platform)
     {
+        if (!HasRole(AireRoles.TrialUser, platform))
+            return false; // cannot upgrade another platform's trial users
+
         string trialpass = GetTrialUserPassword(EmailHash!, token);
         TrialNonce = null;
-        Role = AireRoles.User;
+        SetRole(platform, AireRoles.User);
         return ChangePassword(trialpass, password);
     }
 
@@ -342,7 +351,7 @@ public class UserEntity : BaseTableEntity
     /// Construct an account model from the entity
     /// </summary>
     /// <returns>Account model</returns>
-    public Account ToAccountModel()
+    public Account ToAccountModel(string platform)
     {
         return new Account
         {
@@ -352,10 +361,117 @@ public class UserEntity : BaseTableEntity
             Verified = Verified,
             EulaAccepted = EulaAccepted,
             LastLogin = LastLogin,
-            Role = Role ?? AireRoles.User,
-            OverrideScopes = Scopes != null && Scopes.Length > 0,
-            Scopes = ScopeHelper.GetScopesForUser(this),
-            AdditionalScopes = ScopeHelper.GetAdditionalScopesForUser(this)
+            Role = GetRole(platform),
+            OverrideScopes = GetScopeOverride(platform) != null,
+            Scopes = GetScopes(platform),
+            AdditionalScopes = GetAdditionalScopes(platform)
         };
+    }
+
+    public Dictionary<string, AccessRights> GetAccessRights()
+    {
+        if (!string.IsNullOrWhiteSpace(AccessRightsData))
+            return AccessRightsData.JsonToObject<Dictionary<string, AccessRights>>()
+                ?? throw new AirePlatformException("Corrupted access rights");
+        else
+            return [];
+    }
+
+    public AccessRights GetAccessRights(string platform)
+    {
+        if (!string.IsNullOrWhiteSpace(AccessRightsData))
+        {
+            var dict = GetAccessRights();
+            if (dict?.ContainsKey(platform) ?? false)
+            {
+                return dict[platform];
+            }
+        }
+        return GetFallbackAccessRights();
+    }
+
+    public AccessRights GetFallbackAccessRights()
+    {
+        // Revert to obsolete fields
+        return new AccessRights()
+        {
+            Role = Role ?? AireRoles.User,
+            OverrideScopes = string.IsNullOrWhiteSpace(Scopes) ? null : AireScopes.ParseString(Scopes),
+            AdditionalScopes = string.IsNullOrWhiteSpace(AdditionalScopes) ? null : AireScopes.ParseString(AdditionalScopes)
+        };
+    }
+
+    public void SetAccessRights(string platform, AccessRights rights)
+    {
+        Dictionary<string, AccessRights> dict = [];
+        if (!string.IsNullOrWhiteSpace(AccessRightsData))
+            dict = AccessRightsData.JsonToObject<Dictionary<string, AccessRights>>()!;
+
+        dict[platform] = rights;
+        AccessRightsData = dict.ObjectToJson();
+    }
+
+    public bool HasRole(string role, string? platform = null)
+    {
+        if (platform == null)
+        {
+            return GetAccessRights().Any(x => x.Value.Role == role);
+        }
+        else
+        {
+            return GetRole(platform) == role;
+        }
+    }
+
+    public string GetRole(string platform)
+    {
+        return GetAccessRights(platform).Role;
+    }
+
+    public void SetRole(string platform, string role)
+    {
+        var rights = GetAccessRights(platform);
+        rights.Role = role;
+        SetAccessRights(platform, rights);
+    }
+
+    public AireScopes GetScopes(string platform, bool baseScopesOnly = false)
+    {
+        var rights = GetAccessRights(platform);
+        var scopes = rights.GetScopes(baseScopesOnly);
+
+        if (!Verified)
+        {
+            if (scopes.Contains(AireScopes.PasswordChange))
+                return [AireScopes.PasswordChange];
+            else
+                return [];
+        }
+
+        return scopes;
+    }
+
+    public void SetScopeOverride(string platform, AireScopes scopes)
+    {
+        var rights = GetAccessRights(platform);
+        rights.OverrideScopes = scopes;
+        SetAccessRights(platform, rights);
+    }
+
+    public AireScopes? GetScopeOverride(string platform)
+    {
+        return GetAccessRights(platform).OverrideScopes;
+    }
+
+    public AireScopes GetAdditionalScopes(string platform)
+    {
+        return GetAccessRights(platform).AdditionalScopes ?? [];
+    }
+
+    public void SetAdditionalScopes(string platform, AireScopes scopes)
+    {
+        var rights = GetAccessRights(platform);
+        rights.AdditionalScopes = scopes;
+        SetAccessRights(platform, rights);
     }
 }

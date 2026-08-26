@@ -17,7 +17,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs.Extensions.OpenApi.Core.Attributes;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Aire.Id.Helpers;
 
 namespace Aire.Id.Api;
 
@@ -69,8 +68,8 @@ public class Recovery_v1
             return new NoContentResult();
         }
 
-        var scopes = ScopeHelper.GetScopesForUser(user);
-        if (!scopes.Contains(AireScopes.PasswordChange))
+        var rights = user.GetAccessRights();
+        if (!rights.Any(x => x.Value.GetScopes().Contains(AireScopes.PasswordChange)))
         {
             _log.LogWarning("This account is not allowed to change the password");
             return new NoContentResult();

@@ -53,7 +53,7 @@ public class Account_v1
             string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadAccounts))
@@ -69,7 +69,8 @@ public class Account_v1
             return new NotFoundResult();
         }
 
-        return new OkObjectResult(entity.ToAccountModel());
+        var account = entity.ToAccountModel(auth.Platform);
+        return new OkObjectResult(account);
     }
 
     [Function("FindAccount_v1")]
@@ -91,7 +92,7 @@ public class Account_v1
             [FromQuery] string login_name)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.ReadAccounts))
@@ -107,7 +108,8 @@ public class Account_v1
             return new NotFoundResult();
         }
 
-        return new OkObjectResult(entity.ToAccountModel());
+        var account = entity.ToAccountModel(auth.Platform);
+        return new OkObjectResult(account);
     }
 
     [Function("EditAccount_v1")]
@@ -130,7 +132,7 @@ public class Account_v1
             string id)
     {
         var auth = context.Features.Get<JwtAuthFeature>();
-        if (auth == null)
+        if (auth?.Platform == null)
             return new UnauthorizedResult();
 
         if (!_jwt.CheckAuthorization(auth, requiredScopes: AireScopes.EditAccounts))
@@ -156,31 +158,36 @@ public class Account_v1
         if (data.Verified.HasValue)
             entity.Verified = data.Verified.Value;
 
-        if (data.Role != null)
-            entity.Role = data.Role;
-
-        if (data.AdditionalScopes != null)
-            entity.AdditionalScopes = string.Join(" ", data.AdditionalScopes);
-
         if (data.PublicName != null)
             entity.PublicName = data.PublicName;
 
-        if (data.OverrideScopes)
+        var rights = entity.GetAccessRights(auth.Platform);
         {
-            if (data.Scopes == null)
-                return new BadRequestResult();
 
-            entity.Scopes = string.Join(" ", data.Scopes);
+            if (data.Role != null)
+                rights.Role = data.Role;
+
+            if (data.AdditionalScopes != null)
+                rights.AdditionalScopes = new AireScopes(data.AdditionalScopes);
+
+            if (data.OverrideScopes)
+            {
+                if (data.Scopes == null)
+                    return new BadRequestResult();
+                rights.OverrideScopes = new AireScopes(data.Scopes);
+            }
+            else
+            {
+                rights.OverrideScopes = null;
+            }
         }
-        else
-        {
-            entity.Scopes = "";
-        }
+        entity.SetAccessRights(auth.Platform, rights);
 
         var edit = await _storage.UpsertAsync(entity);
         if (!edit)
             return new InternalServerErrorResult();
 
-        return new OkObjectResult(entity.ToAccountModel());
+        var account = entity.ToAccountModel(auth.Platform);
+        return new OkObjectResult(account);
     }
 }

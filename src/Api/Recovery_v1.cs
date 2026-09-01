@@ -52,7 +52,7 @@ public class Recovery_v1
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
 
         var body = await req.ReadJson<RecoveryCodeRequest>();
-        if (body == null || !body.Validate())
+        if (body == null || !body.Validate(true))
         {
             _log.LogError("Invalid request");
             return new BadRequestResult();

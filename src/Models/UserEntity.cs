@@ -392,7 +392,6 @@ public class UserEntity : BaseTableEntity
 
     public AccessRights GetFallbackAccessRights()
     {
-        // Revert to obsolete fields
         return new AccessRights()
         {
             Role = Role ?? AireRoles.User,
@@ -408,6 +407,16 @@ public class UserEntity : BaseTableEntity
             dict = AccessRightsData.JsonToObject<Dictionary<string, AccessRights>>()!;
 
         dict[platform] = rights;
+        AccessRightsData = dict.ObjectToJson();
+    }
+
+    public void ClearAccessRights(string platform)
+    {
+        Dictionary<string, AccessRights> dict = [];
+        if (!string.IsNullOrWhiteSpace(AccessRightsData))
+            dict = AccessRightsData.JsonToObject<Dictionary<string, AccessRights>>()!;
+
+        dict.Remove(platform);
         AccessRightsData = dict.ObjectToJson();
     }
 

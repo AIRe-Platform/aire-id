@@ -15,8 +15,8 @@ public class RecoveryCodeRequest
     [JsonProperty("language")]
     public string? Language { get; set; }
 
-    public bool Validate()
+    public bool Validate(bool skipDomainWhitelist)
     {
-        return Helpers.Validation.IsValidEmail(Email);
+        return Helpers.Validation.IsValidEmail(Email, skipDomainWhitelist);
     }
 }

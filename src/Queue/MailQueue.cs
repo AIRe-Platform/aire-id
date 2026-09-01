@@ -61,7 +61,7 @@ public class MailQueue
             }
         }
 
-        var operation = _client.Send(
+        var operation = await _client.SendAsync(
             Azure.WaitUntil.Completed,
             senderAddress: AireIdEnvironment.EmailSenderAddress,
             recipientAddress: mail.Recipient,
@@ -69,7 +69,20 @@ public class MailQueue
             htmlContent: html,
             plainTextContent: plainText);
 
-        _logger.LogInformation($"Status: {operation.Value.Status}");
-        _logger.LogInformation($"Operation id = {operation.Id}");
+        var result = await operation.WaitForCompletionAsync();
+
+        if (result.Value.Status != EmailSendStatus.Succeeded)
+        {
+            _logger.LogError($"Status: {result.Value.Status}");
+            _logger.LogError($"Operation id = {operation.Id}");
+
+            throw new Exception($"(${operation.Id}) Send failed: {result.Value.Status}");
+        }
+        else
+        {
+            _logger.LogInformation($"Status: {result.Value.Status}");
+            _logger.LogInformation($"Operation id = {operation.Id}");
+        }
+
     }
 }

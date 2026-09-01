@@ -118,7 +118,7 @@ public class Recovery_v1
             return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
 
         var body = await req.ReadJson<RecoveryPasswordChangeRequest>();
-        if (body == null || !body.Validate())
+        if (body == null || !body.Validate(true))
             return new BadRequestResult();
 
         var hash = Crypto.SHA256Base16(body.Email!);

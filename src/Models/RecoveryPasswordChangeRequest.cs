@@ -22,8 +22,8 @@ public class RecoveryPasswordChangeRequest
     [JsonProperty("language")]
     public string? Language { get; set; }
 
-    public bool Validate()
+    public bool Validate(bool skipDomainWhitelist)
     {
-        return Validation.IsValidEmail(Email) && Validation.IsValidPassword(Password);
+        return Validation.IsValidEmail(Email, skipDomainWhitelist) && Validation.IsValidPassword(Password);
     }
 }

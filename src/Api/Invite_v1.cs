@@ -309,7 +309,7 @@ public class Invite_v1(
     [OpenApiParameter("code", In = ParameterLocation.Path, Description = "Invite code identifier", Required = true)]
     [OpenApiRequestBody("application/json", typeof(Invitation), Description = "Invitation")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Invitation sent")]
-    [OpenApiResponseWithoutBody(HttpStatusCode.Conflict, Description = "Email already in use or invited")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.Conflict, Description = "Already has an existing user account or an active invite")]
     [OpenApiResponseWithoutBody(HttpStatusCode.UnprocessableEntity, Description = "Invalid request body")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "Invite not found")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Expired invitation")]
@@ -359,23 +359,31 @@ public class Invite_v1(
 
         var emailHash = Crypto.SHA256Base16(invitation.Email!);
 
-        var alias = await (await _storage.QueryAsync<UserEntity>(x => x.EmailHash == emailHash))
-            .FirstOrDefaultAsync();
+        // Find any active invitations
+        var token = await (
+            await _storage.QueryAsync<InviteTokenEntity>(x =>
+                x.EmailHash == emailHash &&
+                x.Expiry > DateTime.UtcNow &&
+                x.Active)
+        ).FirstOrDefaultAsync();
 
-        if (alias != null)
-            return new ConflictResult(); // User already registered
-
-        var token = await (await _storage.QueryAsync<InviteTokenEntity>(x => x.EmailHash == emailHash))
-            .FirstOrDefaultAsync();
-
-        if (token != null)
+        if (token != null) // existing invite
         {
-            // If the user was already invited, check validity and resend
-            if (token.Expiry < DateTime.UtcNow || !token.Active || token.Code != code)
-                return new ForbiddenResult();
+            // Allow re-sending invite mail if invite code matches
+            if (token.Code != code)
+                return new ConflictResult();
         }
-        else // New user
+        else // new invite
         {
+            // Check whether an account already registered
+            var user = await (
+                await _storage.QueryAsync<UserEntity>(x => x.EmailHash == emailHash)
+            ).FirstOrDefaultAsync();
+
+            // Deny invite if user exists and is not an old trial user
+            if (user != null && !user.HasRole(AireRoles.TrialUser))
+                return new ConflictResult();
+
             token = new InviteTokenEntity()
             {
                 Expiry = DateTime.UtcNow.AddDays(inviteCode.TrialDuration),
@@ -418,7 +426,6 @@ public class Invite_v1(
             Path = $"/invite/{token.Token()}",
             Query = $"?lang={invitation.Language}&platform={inviteCode.Platform}"
         }.Uri.AbsoluteUri;
-
 
         var mail = new MailTemplate
         {
@@ -512,6 +519,28 @@ public class Invite_v1(
         {
             _log.LogWarning("User does not exist anymore");
             return new ForbiddenResult(); // User removed, no longer valid
+        }
+
+        if (!user.HasRole(AireRoles.TrialUser))
+        {
+            _log.LogWarning("User is not an trial user anymore");
+            return new ForbiddenResult(); // User removed, no longer valid
+        }
+
+        // Check for old trial user roles and move the role to the new one
+        var rights = user.GetAccessRights();
+        var currentTrial = rights.FirstOrDefault(x => x.Value.Role == AireRoles.TrialUser);
+        if (currentTrial.Key != entity.Platform)
+        {
+            user.ClearAccessRights(entity.Platform);
+            user.SetRole(entity.Platform, AireRoles.TrialUser);
+            
+            var updated = await _storage.UpsertAsync(user);
+            if (!updated)
+            {
+                _log.LogError("Failed to update user");
+                return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+            }
         }
 
         var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);

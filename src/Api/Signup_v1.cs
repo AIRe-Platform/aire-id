@@ -61,7 +61,20 @@ public class Signup_v1
         var user = await query.FirstOrDefaultAsync();
 
         if (user != null)
-            return new ForbiddenResult();
+        {
+            // Trial users can sign up as usual
+            if (user.HasRole(AireRoles.TrialUser))
+            {
+                // Delete trial account
+                bool result = await _storage.DeleteAsync(user);
+                if (!result)
+                    return new InternalServerErrorResult();
+            }
+            else
+            {
+                return new ForbiddenResult();
+            }
+        }
 
         var pw = request.Credentials!.Password!;
         user = new UserEntity()

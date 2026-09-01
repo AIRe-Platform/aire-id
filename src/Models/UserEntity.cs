@@ -5,7 +5,6 @@
 
 using System.Security.Cryptography;
 using System.Text;
-using Aire.Id.Helpers;
 using Aire.Sdk.Auth;
 using Aire.Sdk.Azure;
 using Aire.Sdk.Helpers;

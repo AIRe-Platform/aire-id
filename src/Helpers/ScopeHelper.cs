@@ -13,7 +13,7 @@ public static class ScopeHelper
     {
         if (AireScopes.DefaultRoleScopes.TryGetValue(role, out var scopes))
         {
-            return scopes ?? [];
+            return scopes.GetMutableCopy();
         }
         return [];
     }

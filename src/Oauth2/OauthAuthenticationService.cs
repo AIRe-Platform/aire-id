@@ -147,24 +147,21 @@ public class OauthAuthenticationService(
 
     private async Task<IActionResult> PasswordGrant(OauthTokenPasswordGrantRequest req)
     {
-        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
-        if (client == null)
-            throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
-
+        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!)
+            ?? throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+            
         if (!VerifyClientSecret(client.SecretHash, req.ClientSecret))
             throw new OauthException(OauthError.UnauthorizedClient, req, "Missing or invalid client secret");
 
-        var scopes = ValidateClientScopes(req.Scope, client);
-        if (scopes == null)
-            throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
+        var scopes = ValidateClientScopes(req.Scope, client)
+            ?? throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
 
         if (!ValidateGrantType(client, req.GrantType))
             throw new OauthException(OauthError.InvalidGrant, req, "Grant type not allowed");
 
-        var subject = await _loginProvider.Login(req.Username!, req.Password!);
-        if (subject == null)
-            throw new OauthException(OauthError.AccessDenied, req, "Invalid credentials");
-
+        var subject = await _loginProvider.Login(req.Username!, req.Password!)
+            ?? throw new OauthException(OauthError.AccessDenied, req, "Invalid credentials");
+            
         if (req.Platform != null)
             subject.Claims.Add(AireClaims.Platform, req.Platform);
 
@@ -194,9 +191,8 @@ public class OauthAuthenticationService(
 
     private async Task<IActionResult> AuthCodeGrant(OauthAuthCodeGrantRequest req)
     {
-        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
-        if (client == null)
-            throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!)
+            ?? throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
 
         if (!VerifyClientSecret(client.SecretHash, req.ClientSecret))
             throw new OauthException(OauthError.UnauthorizedClient, req, "Missing or invalid client secret");
@@ -204,9 +200,8 @@ public class OauthAuthenticationService(
         if (!ValidateGrantType(client, req.GrantType))
             throw new OauthException(OauthError.InvalidGrant, req, "Grant type not allowed");
 
-        var code = await _storage.RetrieveAsync<AuthCodeEntity>(req.Code![..5], req.Code!);
-        if (code == null)
-            throw new OauthException(OauthError.InvalidGrant, req, "Invalid code");
+        var code = await _storage.RetrieveAsync<AuthCodeEntity>(req.Code![..5], req.Code!)
+            ?? throw new OauthException(OauthError.InvalidGrant, req, "Invalid code");
 
         if (!await _storage.DeleteAsync(code))
             _log.LogError("Failed to delete auth code entity");
@@ -214,8 +209,14 @@ public class OauthAuthenticationService(
         if (req.State != code.State || req.RedirectUri != code.RedirectUri || req.ClientId != code.ClientId)
             throw new OauthException(OauthError.InvalidGrant, req, "Invalid grant"); ;
 
-        if (code.Verifier != null && req.CodeVerifier != code.Verifier)
-            throw new OauthException(OauthError.InvalidGrant, req, "Invalid verifier");
+        if (code.Verifier != null)
+        {
+            if (string.IsNullOrEmpty(req.CodeVerifier))
+                throw new OauthException(OauthError.InvalidGrant, req, "Missing code verifier");
+
+            if (!Crypto.SHA256Base16(req.CodeVerifier).Equals(code.Verifier, StringComparison.CurrentCultureIgnoreCase))
+                throw new OauthException(OauthError.InvalidGrant, req, "Invalid code verifier");
+        }
 
         if (req.Platform != code.Platform)
             throw new OauthException(OauthError.InvalidGrant, req, "Invalid platform");
@@ -223,9 +224,8 @@ public class OauthAuthenticationService(
         if (code.Expires < DateTime.UtcNow)
             throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
-        var user = await _storage.RetrieveAsync<UserEntity>(code.UserId!);
-        if (user == null)
-            throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
+        var user = await _storage.RetrieveAsync<UserEntity>(code.UserId!)
+            ?? throw new OauthException(OauthError.InvalidGrant, req, "Expired code");
 
         var subject = _loginProvider.GetSubject(user, code.UserKey!, code.Platform);
         if (code.Platform != null)
@@ -250,9 +250,8 @@ public class OauthAuthenticationService(
 
     private async Task<IActionResult> RedirectToLoginPage(OauthAuthRequest req, HttpRequest httpRequest)
     {
-        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
-        if (client == null)
-            throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!)
+            ?? throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
 
         if (req.Platform == null)
             throw new OauthException(OauthError.InvalidRequest, "Platform required");
@@ -262,9 +261,8 @@ public class OauthAuthenticationService(
         var platform = await _platformService.GetInternalPlatformConfiguration(req.Platform)
             ?? throw new OauthException(OauthError.TemporarilyUnavailable, "Platform unavailable");
 
-        var scopes = ValidateClientScopes(req.Scope, client);
-        if (scopes == null)
-            throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
+        var scopes = ValidateClientScopes(req.Scope, client)
+            ?? throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
 
         var query = httpRequest.Query.ToDictionary();
         query["service"] = client.Name;
@@ -298,28 +296,27 @@ public class OauthAuthenticationService(
 
         ThrowIfInvalidClientPlatform(client, req.Platform);
 
-        var user = await _storage.RetrieveAsync<UserEntity>(auth.UserId);
-        if (user == null)
-            throw new OauthException(OauthError.AccessDenied, req, "Access denied");
+        var user = await _storage.RetrieveAsync<UserEntity>(auth.UserId)
+            ?? throw new OauthException(OauthError.AccessDenied, req, "Access denied");
 
-        var scopes = ValidateClientScopes(req.Scope, client);
-        if (scopes == null)
-            throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
-
+        var scopes = ValidateClientScopes(req.Scope, client)
+            ?? throw new OauthException(OauthError.InvalidScope, req, "Invalid scopes requested");
 
         scopes = FilterUserScopes(user, scopes, req.Platform);
 
         var redirect = GetClientRedirectUri(req, client);
         string code = RandomNumberGenerator.GetHexString(32, true);
 
-        if (req.CodeChallengeMethod.HasValue && string.IsNullOrWhiteSpace(req.CodeChallenge))
+        if (!req.CodeChallengeMethod.HasValue)
+            throw new OauthException(OauthError.InvalidRequest, req, "Code challenge method required");
+
+        if (string.IsNullOrWhiteSpace(req.CodeChallenge))
             throw new OauthException(OauthError.InvalidRequest, req, "Missing code challenge");
 
         string? codeVerifier = req.CodeChallengeMethod switch
         {
-            OauthCodeChallengeMethod.Plain => req.CodeChallenge,
-            OauthCodeChallengeMethod.SHA256 => Crypto.SHA256Base16(req.CodeChallenge!).ToLower(),
-            _ => null
+            OauthCodeChallengeMethod.SHA256 => req.CodeChallenge.ToLower(),
+            _ => throw new OauthException(OauthError.InvalidRequest, req, "Unsupported code challenge method"),
         };
 
         var codeEntity = new AuthCodeEntity(code)

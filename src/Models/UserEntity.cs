@@ -205,11 +205,16 @@ public class UserEntity : BaseTableEntity
     /// </summary>
     public string GenerateVerificationCode()
     {
+        // Prevent brute-forcing by resetting retry count only when the current code has expired.
+        if (!VerificationCodeExpiry.HasValue || VerificationCodeExpiry.Value < DateTime.UtcNow)
+        {
+            VerificationCodeRetryCount = 0;
+        }
+
         string code = RandomNumberGenerator.GetInt32(0, 1000000).ToString("D6");
-        Verified = false;
         VerificationCode = code;
         VerificationCodeExpiry = DateTime.UtcNow.AddHours(1);
-        VerificationCodeRetryCount = 0;
+
         return code;
     }
 

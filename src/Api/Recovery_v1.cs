@@ -44,6 +44,7 @@ public class Recovery_v1
     [OpenApiRequestBody("application/json", typeof(RecoveryCodeRequest), Description = "Password recovery code request body", Required = true)]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Returned always whether an account is found or not.")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "Account recovery is not supported by the platform.")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.TooManyRequests, Description = "Verification failed too many times within an hour.")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request.")]
     public async Task<IActionResult> RequestRecoveryCode(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/recovery/code")] HttpRequest req)
@@ -66,6 +67,16 @@ public class Recovery_v1
         {
             _log.LogWarning("Could not find the user account");
             return new NoContentResult();
+        }
+
+        // Prevent creating new codes when any codes have been tried within an hour of creating the most recent code
+        if (user.VerificationCodeExpiry.HasValue)
+        {
+            if (user.VerificationCodeRetryCount >= AireConstants.MaxVerificationRetryCount &&
+                user.VerificationCodeExpiry.Value > DateTime.UtcNow)
+            {
+                return new StatusCodeResult((int)HttpStatusCode.TooManyRequests);
+            }
         }
 
         var rights = user.GetAccessRights();
@@ -109,6 +120,7 @@ public class Recovery_v1
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Success")]
     [OpenApiResponseWithoutBody(HttpStatusCode.BadRequest, Description = "Invalid request.")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotFound, Description = "The account does not exist")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.TooManyRequests, Description = "Too many retries with an invalid code")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NotImplemented, Description = "Account recovery is not supported by the platform.")]
     [OpenApiResponseWithoutBody(HttpStatusCode.UnprocessableEntity, Description = "The account is not recoverable.")]
     public async Task<IActionResult> RecoveryPasswordChange(
@@ -129,6 +141,9 @@ public class Recovery_v1
             _log.LogWarning("Account does not exist");
             return new NotFoundResult();
         }
+
+        if (user.VerificationCodeRetryCount >= AireConstants.MaxVerificationRetryCount)
+            return new StatusCodeResult((int)HttpStatusCode.TooManyRequests);
 
         bool verified = user.VerifyAccount(body.Code!);
         if (!verified)

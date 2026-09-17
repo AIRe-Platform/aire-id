@@ -149,7 +149,10 @@ public class OauthAuthenticationService(
     {
         var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!)
             ?? throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
-            
+
+        if (!client.Active)
+            throw new OauthException(OauthError.UnauthorizedClient, req, "Client deactivated");
+
         if (!VerifyClientSecret(client.SecretHash, req.ClientSecret))
             throw new OauthException(OauthError.UnauthorizedClient, req, "Missing or invalid client secret");
 
@@ -161,7 +164,7 @@ public class OauthAuthenticationService(
 
         var subject = await _loginProvider.Login(req.Username!, req.Password!)
             ?? throw new OauthException(OauthError.AccessDenied, req, "Invalid credentials");
-            
+
         if (req.Platform != null)
             subject.Claims.Add(AireClaims.Platform, req.Platform);
 
@@ -193,6 +196,9 @@ public class OauthAuthenticationService(
     {
         var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!)
             ?? throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+
+        if (!client.Active)
+            throw new OauthException(OauthError.UnauthorizedClient, req, "Client deactivated");
 
         if (!VerifyClientSecret(client.SecretHash, req.ClientSecret))
             throw new OauthException(OauthError.UnauthorizedClient, req, "Missing or invalid client secret");
@@ -287,9 +293,11 @@ public class OauthAuthenticationService(
 
     private async Task<IActionResult> AuthorizationCodeResponse(OauthAuthRequest req, JwtAuthFeature auth)
     {
-        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!);
-        if (client == null)
-            throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+        var client = await _storage.RetrieveAsync<ClientEntity>(req.ClientId!)
+            ?? throw new OauthException(OauthError.UnauthorizedClient, req, "Invalid client ID");
+
+        if (!client.Active)
+            throw new OauthException(OauthError.UnauthorizedClient, req, "Client deactivated");
 
         if (req.Platform == null)
             throw new OauthException(OauthError.InvalidRequest, "Platform required");
@@ -349,7 +357,7 @@ public class OauthAuthenticationService(
         return new RedirectResult(redirectUri, false, false);
     }
 
-    private Uri GetClientRedirectUri(OauthAuthRequest req, ClientEntity client)
+    private static Uri GetClientRedirectUri(OauthAuthRequest req, ClientEntity client)
     {
         if (string.IsNullOrWhiteSpace(client.RedirectUri))
             throw new OauthException(OauthError.TemporarilyUnavailable, req, "Client is not configured correctly.");

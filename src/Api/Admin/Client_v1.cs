@@ -167,7 +167,7 @@ public class Client_v1
         var model = entity.ToModel();
         model.Secret = clientSecret;
 
-        return new OkObjectResult(entity.ToModel());
+        return new OkObjectResult(model);
     }
 
     [Function("EditClient_v1")]

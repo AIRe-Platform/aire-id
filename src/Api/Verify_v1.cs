@@ -46,6 +46,7 @@ public class Verify_v1
     [OpenApiSecurity("bearer_auth", SecuritySchemeType.Http, Scheme = OpenApiSecuritySchemeType.Bearer, BearerFormat = "JWT", Description = "User token")]
     [OpenApiResponseWithoutBody(HttpStatusCode.NoContent, Description = "Verification succeeded")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Forbidden, Description = "Invalid or expired code")]
+    [OpenApiResponseWithoutBody(HttpStatusCode.TooManyRequests, Description = "Too many with an invalid code")]
     [OpenApiResponseWithoutBody(HttpStatusCode.Unauthorized, Description = "Missing or invalid user token")]
     public async Task<IActionResult> VerifyCode(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "api/v1/verify/{code}")] HttpRequest req,
@@ -64,6 +65,9 @@ public class Verify_v1
 
         if (user == null)
             return new UnauthorizedResult();
+
+        if (user.VerificationCodeRetryCount >= AireConstants.MaxVerificationRetryCount)
+            return new StatusCodeResult((int)HttpStatusCode.TooManyRequests);
 
         bool verified = user.VerifyAccount(code);
 

@@ -210,7 +210,7 @@ public class OauthAuthenticationService(
             ?? throw new OauthException(OauthError.InvalidGrant, req, "Invalid code");
 
         if (!await _storage.DeleteAsync(code))
-            _log.LogError("Failed to delete auth code entity");
+            throw new OauthException(OauthError.ServerError, req, "Server error");
 
         if (req.State != code.State || req.RedirectUri != code.RedirectUri || req.ClientId != code.ClientId)
             throw new OauthException(OauthError.InvalidGrant, req, "Invalid grant"); ;

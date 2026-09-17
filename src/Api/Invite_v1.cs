@@ -407,14 +407,52 @@ public class Invite_v1(
             }
 
             // Update invite code
+            int retry = 3;
 
-            inviteCode.Used += 1;
+            async Task cleanupToken()
             {
-                var updated = await _storage.UpsertAsync(inviteCode);
-                if (!updated)
+                var delete = await _storage.DeleteAsync(token);
+                if (!delete)
+                    _log.LogError("Failed to clean up invite token");
+            }
+
+            while (retry > 0)
+            {
+                try
                 {
-                    _log.LogError("Failed to update invite code entity");
-                    return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                    inviteCode.Used += 1;
+                    {
+                        var updated = await _storage.UpdateAsync(inviteCode);
+                        if (!updated)
+                            throw new Exception("Failed to update invite code entity, retrying...");
+                    }
+                    break;
+                }
+                catch (Exception e)
+                {
+                    _log.LogWarning(e.Message);
+                    retry -= 1;
+
+                    if (retry == 0)
+                    {
+                        await cleanupToken();
+                        return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
+                    }
+
+                    // Retrieve and check the code again
+                    inviteCode = await _storage.RetrieveAsync<InviteCodeEntity>(code);
+
+                    if (inviteCode == null)
+                    {
+                        await cleanupToken();
+                        return new NotFoundResult();
+                    }
+
+                    if (inviteCode.Expiry < DateTime.UtcNow || !inviteCode.Active || inviteCode.Used >= inviteCode.Limit)
+                    {
+                        await cleanupToken();
+                        return new ForbiddenResult();
+                    }
                 }
             }
         }

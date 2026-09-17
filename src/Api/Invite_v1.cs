@@ -484,9 +484,11 @@ public class Invite_v1(
         if (expired)
             return new ForbiddenResult();
 
-        // Create new trial user
-        UserEntity? user;
-        if (entity.UserId == null)
+        var user_query = await _storage.QueryAsync<UserEntity>(x => x.EmailHash == entity.EmailHash);
+        var user = await user_query.FirstOrDefaultAsync();
+
+        // Create new trial user if one does not exist
+        if (user == null)
         {
             user = UserEntity.CreateTrialUser(entity.EmailHash!, entity.Token(), entity.Platform);
             var created = await _storage.UpsertAsync(user);
@@ -495,7 +497,18 @@ public class Invite_v1(
                 _log.LogError("Failed to create user");
                 return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
             }
+        }
 
+        // Existing users have to be trial users
+        if (!user.HasRole(AireRoles.TrialUser))
+        {
+            _log.LogWarning("User is not an trial user anymore");
+            return new ForbiddenResult();
+        }
+
+        // Bind user to the invite if not already
+        if (entity.UserId != user.UUID())
+        {
             entity.UserId = user.UUID();
             var updated = await _storage.UpsertAsync(entity);
             if (!updated)
@@ -510,22 +523,6 @@ public class Invite_v1(
                 { "emailHash", entity.EmailHash }
             });
         }
-        else
-        {
-            user = await _storage.RetrieveAsync<UserEntity>(entity.UserId);
-        }
-
-        if (user == null)
-        {
-            _log.LogWarning("User does not exist anymore");
-            return new ForbiddenResult(); // User removed, no longer valid
-        }
-
-        if (!user.HasRole(AireRoles.TrialUser))
-        {
-            _log.LogWarning("User is not an trial user anymore");
-            return new ForbiddenResult(); // User removed, no longer valid
-        }
 
         // Check for old trial user roles and move the role to the new one
         var rights = user.GetAccessRights();
@@ -534,7 +531,11 @@ public class Invite_v1(
         {
             user.ClearAccessRights(entity.Platform);
             user.SetRole(entity.Platform, AireRoles.TrialUser);
-            
+        }
+
+        // Update user login time and upsert entity
+        {
+            user.LastLogin = DateTime.UtcNow;
             var updated = await _storage.UpsertAsync(user);
             if (!updated)
             {
@@ -543,6 +544,7 @@ public class Invite_v1(
             }
         }
 
+        // Generate subject
         var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);
         var key = user.GetEncryptionKey(trialpass);
         var subject = _loginProvider.GetSubject(user, key!, entity.Platform);

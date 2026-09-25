@@ -1,0 +1,17 @@
+Kutsu AIRe Talk -palveluun
+
+Hei!
+
+Tervetuloa käyttämään AIRe Talkia, tekoälyavusteista palvelua, joka on suunniteltu tukemaan kuntoutustarpeitasi.
+
+Kutsustasi riippuen sinulla on joko kokeilukäyttöoikeus AIRe Talkiin tai mahdollisuus rekisteröityä palvelun käyttäjäksi, jolloin saat käyttöösi lisäominaisuuksia.
+
+Aloita AIRe Talkin käyttö napsauttamalla alla olevaa linkkiä.
+
+Aloita keskustelu: {{url}}
+
+Ystävällisin terveisin,
+AIRe-tiimi
+
+Käyttöehdot: https://talk.aire.fi/about/tos?lang=fi
+Tietosuojaseloste: https://talk.aire.fi/about/privacy?lang=fi

@@ -1,15 +1,17 @@
-AIRe Invitation
+Invitation to AIRe Talk
 
-Hello, you have been selected for participation in AIRe trial.
+Hello,
 
-Click the link below to chat with AIRe. You may also sign up later.
+Welcome to AIRe Talk, an AI-assisted service designed to support your rehabilitation needs.
 
-{{url}}
+Depending on your invitation, you may either have trial access to AIRe Talk or the opportunity to register as a full user with additional features.
+
+Click the link below to start using AIRe Talk.
+
+Click here to chat: {{url}}
 
 Best regards,
-
-the AIRe Team
-
+The AIRe Team
 
 Terms of Service: https://talk.aire.fi/about/tos?lang=en
 Privacy Policy: https://talk.aire.fi/about/privacy?lang=en

@@ -1,0 +1,17 @@
+Inbjudan till tjänsten AIRe Talk
+
+Hej!
+
+Välkommen att använda AIRe Talk, en AI-stödd tjänst som är utformad för att stödja dina rehabiliteringsbehov.
+
+Beroende på din inbjudan har du antingen tillgång till AIRe Talk på prov eller möjlighet att registrera dig som användare av tjänsten, vilket ger dig tillgång till ytterligare funktioner.
+
+Börja använda AIRe Talk genom att klicka på länken nedan.
+
+Starta en konversation: {{url}}
+
+Med vänliga hälsningar,
+AIRe-teamet
+
+Användarvillkor: https://talk.aire.fi/about/tos?lang=sv
+Integritetspolicy: https://talk.aire.fi/about/privacy?lang=sv

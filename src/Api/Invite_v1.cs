@@ -359,21 +359,20 @@ public class Invite_v1(
 
         var emailHash = Crypto.SHA256Base16(invitation.Email!);
 
-        // Find any active invitations
-        var token = await (
-            await _storage.QueryAsync<InviteTokenEntity>(x =>
-                x.EmailHash == emailHash &&
-                x.Expiry > DateTime.UtcNow &&
-                x.Active)
-        ).FirstOrDefaultAsync();
+        // Find invitations
+        var tokens = await (
+            await _storage.QueryAsync<InviteTokenEntity>(x => x.EmailHash == emailHash)
+        ).ToListAsync();
 
-        if (token != null) // existing invite
+        // Check this code's invitation
+        var token = tokens.FirstOrDefault(x => x.Code == code);
+        if (token != null)
         {
-            // Allow re-sending invite mail if invite code matches
-            if (token.Code != code)
-                return new ConflictResult();
+            // check token still valid
+            if (token.Expiry < DateTime.UtcNow || !token.Active)
+                return new ForbiddenResult();
         }
-        else // new invite
+        else
         {
             // Check whether an account already registered
             var user = await (
@@ -536,12 +535,44 @@ public class Invite_v1(
                 return new StatusCodeResult((int)HttpStatusCode.FailedDependency);
             }
         }
-
-        // Existing users have to be trial users
-        if (!user.HasRole(AireRoles.TrialUser))
+        else
         {
-            _log.LogWarning("User is not an trial user anymore");
-            return new ForbiddenResult();
+            if (!user.HasRole(AireRoles.TrialUser))
+                return new ConflictResult();
+
+            var tokens = await (
+                await _storage.QueryAsync<InviteTokenEntity>(x => x.EmailHash == entity.EmailHash)
+            ).ToListAsync();
+
+            // Update trial pass, invalidating previous trials
+            var lastTrial = tokens.FirstOrDefault(x =>
+            {
+                var pass = user.GetTrialUserPassword(entity.EmailHash!, x.Token());
+                var key = user.GetEncryptionKey(pass);
+                return key != null;
+            });
+
+            if (lastTrial == null)
+            {
+                _log.LogWarning("Cannot determine last trial");
+                return new ForbiddenResult();
+            }
+
+            if (lastTrial.Token() != token)
+            {
+                var lastPass = user.GetTrialUserPassword(entity.EmailHash!, lastTrial.Token());
+                var newPass = user.GetTrialUserPassword(entity.EmailHash!, token);
+                user.ChangePassword(lastPass, newPass);
+            }
+
+            // Check for old trial user roles and move the role to the new one
+            var rights = user.GetAccessRights();
+            var currentTrial = rights.FirstOrDefault(x => x.Value.Role == AireRoles.TrialUser);
+            if (currentTrial.Key != entity.Platform)
+            {
+                user.ClearAccessRights(currentTrial.Key);
+                user.SetRole(entity.Platform, AireRoles.TrialUser);
+            }
         }
 
         // Bind user to the invite if not already
@@ -562,15 +593,6 @@ public class Invite_v1(
             });
         }
 
-        // Check for old trial user roles and move the role to the new one
-        var rights = user.GetAccessRights();
-        var currentTrial = rights.FirstOrDefault(x => x.Value.Role == AireRoles.TrialUser);
-        if (currentTrial.Key != entity.Platform)
-        {
-            user.ClearAccessRights(entity.Platform);
-            user.SetRole(entity.Platform, AireRoles.TrialUser);
-        }
-
         // Update user login time and upsert entity
         {
             user.LastLogin = DateTime.UtcNow;
@@ -582,7 +604,7 @@ public class Invite_v1(
             }
         }
 
-        // Generate subject
+        // Prepare subject
         var trialpass = user.GetTrialUserPassword(user.EmailHash!, token);
         var key = user.GetEncryptionKey(trialpass);
         var subject = _loginProvider.GetSubject(user, key!, entity.Platform);
